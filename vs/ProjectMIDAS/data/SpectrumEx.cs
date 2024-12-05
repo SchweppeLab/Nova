@@ -3,9 +3,9 @@
 namespace ProjectMIDAS.Data.Spectrum
 {
     /// <summary>
-    /// The struct-based contents of a single spectrum/scan event
+    /// An expanded version of the Spectrum object that uses the sCentroid structure for the data array.
     /// </summary>
-    public class Spectrum : SpectrumFoundation, IDisposable
+    public class SpectrumEx : SpectrumFoundation, IDisposable
     {
 
         #region CONSTRUCTORS
@@ -13,10 +13,10 @@ namespace ProjectMIDAS.Data.Spectrum
         /// <summary>
         /// Constructor for Spectrum class.
         /// </summary>
-        public Spectrum(int sz)
+        public SpectrumEx(int sz)
         {
             DataPointsCount = sz;
-            DataPoints = new sSpecDP[DataPointsCount];
+            DataPoints = new sCentroid[DataPointsCount];
         }
         #endregion
 
@@ -27,7 +27,7 @@ namespace ProjectMIDAS.Data.Spectrum
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
-        public sSpecDP this[int i]
+        public sCentroid this[int i]
         {
             get => DataPoints[i];
             set => DataPoints[i] = value;
@@ -45,7 +45,7 @@ namespace ProjectMIDAS.Data.Spectrum
 
         #region DATA MEMBERS
         //=== DATA MEMBERS ===//
-        private sSpecDP[] DataPoints;
+        private sCentroid[] DataPoints;
         private int DataPointsCount;
         #endregion
 

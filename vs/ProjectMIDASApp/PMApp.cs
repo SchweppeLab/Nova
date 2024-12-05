@@ -1,9 +1,6 @@
 ﻿#define GLOBALMEM
 
-using ProjectMIDAS.Data.Peak;
 using ProjectMIDAS.Data.Spectrum;
-using ProjectMIDAS.Data.SpectrumFixed;
-using ProjectMIDAS.Data.SpectrumLight;
 
 class PMApp
 {
@@ -15,37 +12,18 @@ class PMApp
 
 #if(GLOBALMEM)
     public List<Spectrum> spec;
-    public List<SpectrumLight> specLight;
-    public List<SpectrumFixed> specFixed;
+    public List<SpectrumEx> specEx;
 #endif
 
     static void Main(string[] args)
     {
         PMApp app = new PMApp();
 
-        app.MemoryTestSpectrumLight(); //Light #1
-        app.Clear();
-        if (Interrupt) app.Pause();
-
-        app.MemoryTestSpectrumFixed(); //Fixed #1
+        app.MemoryTestSpectrumEx(); //Fixed #1
         app.Clear();
         if (Interrupt) app.Pause();
 
         app.MemoryTestSpectrum();  //Normal #1
-        app.Clear();
-        if (Interrupt) app.Pause();
-
-        
-
-        app.MemoryTestSpectrumFixed(); //Fixed #2
-        app.Clear();
-        if (Interrupt) app.Pause();
-
-        app.MemoryTestSpectrum();  //Normal #2
-        app.Clear();
-        if (Interrupt) app.Pause();
-
-        app.MemoryTestSpectrumLight(); //Light #2
         app.Clear();
         if (Interrupt) app.Pause();
 
@@ -55,8 +33,7 @@ class PMApp
     {
 #if GLOBALMEM
         spec = new List<Spectrum>();
-        specLight = new List<SpectrumLight>();
-        specFixed = new List<SpectrumFixed>();
+        specEx = new List<SpectrumEx>();
 #endif
     }
 
@@ -64,8 +41,7 @@ class PMApp
     {
 #if GLOBALMEM
         spec.Clear();
-        specLight.Clear();
-        specFixed.Clear();
+        specEx.Clear();
 #endif
     }
 
@@ -78,59 +54,33 @@ class PMApp
 #endif
         for (int i = 0; i < ScanCount; i++)
         {
-            Spectrum spectrum = new Spectrum();
+            spec.Add(new Spectrum(ScanSize));
             for(int j = 0; j < ScanSize; j++)
             {
-                Centroid centroid = new Centroid();
-                centroid.Mz = j;
-                centroid.Intensity = j;
-                spectrum.Centroids.Add(centroid);
+                spec[i][j].Mz = j;
+                spec[i][j].Intensity = j;
             }
-            spec.Add(spectrum);
         }
         if (Echo) Console.WriteLine("MemoryTestSpectrum Finished");
     }
 
-    public void MemoryTestSpectrumLight()
+    public void MemoryTestSpectrumEx()
     {
         //Create a set of 1000 spectra of 1000 datapoints
-        if (Echo) Console.WriteLine("MemoryTestSpectrumLight");
+        if (Echo) Console.WriteLine("MemoryTestSpectrumEx");
 #if (!GLOBALMEM)
-        List<SpectrumLight> specLight = new List<SpectrumLight>();
+        List<SpectrumEx> specEx = new List<SpectrumEx>();
 #endif
         for (int i = 0; i < ScanCount; i++)
         {
-            SpectrumLight spectrum = new SpectrumLight();
+            specEx.Add(new SpectrumEx(ScanSize));
             for (int j = 0; j < ScanSize; j++)
             {
-                ProjectMIDAS.Data.SpectrumLight.sCentroid centroid = new ProjectMIDAS.Data.SpectrumLight.sCentroid();
-                centroid.Mz = j;
-                centroid.Intensity = j;
-                spectrum.Centroids.Add(centroid);
+                specEx[i][j].Mz = j;
+                specEx[i][j].Intensity = j;
             }
-            specLight.Add(spectrum);
         }
-        if (Echo) Console.WriteLine("MemoryTestSpectrumLight Finished");
-    }
-
-    public void MemoryTestSpectrumFixed()
-    {
-        //Create a set of 1000 spectra of 1000 datapoints
-        if (Echo) Console.WriteLine("MemoryTestSpectrumFixed");
-#if (!GLOBALMEM)
-        List<SpectrumFixed> specFixed = new List<SpectrumFixed>();
-#endif
-        for (int i = 0; i < ScanCount; i++)
-        {
-            SpectrumFixed spectrum = new SpectrumFixed(ScanSize);
-            for (int j = 0; j < ScanSize; j++)
-            {
-                spectrum.Centroids[j].Mz = j;
-                spectrum.Centroids[j].Intensity = j;
-            }
-            specFixed.Add(spectrum);
-        }
-        if (Echo) Console.WriteLine("MemoryTestSpectrumFixed Finished");
+        if (Echo) Console.WriteLine("MemoryTestSpectrumEx Finished");
     }
 
     public void Pause()
