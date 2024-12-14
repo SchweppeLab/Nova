@@ -15,19 +15,27 @@ class PMApp
     public List<SpectrumEx> specEx;
 #endif
 
-    static void Main(string[] args)
-    {
-        PMApp app = new PMApp();
+  static void Main(string[] args)
+  {
+    PMApp app = new PMApp();
 
-        app.MemoryTestSpectrumEx(); //Fixed #1
-        app.Clear();
-        if (Interrupt) app.Pause();
+    app.MemoryTestSpectrumEx(); //Fixed #1
+    app.Clear();
+    if (Interrupt) app.Pause();
 
-        app.MemoryTestSpectrum();  //Normal #1
-        app.Clear();
-        if (Interrupt) app.Pause();
+    app.MemoryTestSpectrum();  //Normal #1
+    app.Clear();
+    if (Interrupt) app.Pause();
 
-    }
+    app.MemoryTestSpectrum();  //Normal #2
+    app.Clear();
+    if (Interrupt) app.Pause();
+
+    app.MemoryTestSpectrumEx(); //Fixed #2
+    app.Clear();
+    if (Interrupt) app.Pause();
+
+  }
 
     PMApp()
     {
@@ -57,8 +65,8 @@ class PMApp
             spec.Add(new Spectrum(ScanSize));
             for(int j = 0; j < ScanSize; j++)
             {
-                spec[i][j].Mz = j;
-                spec[i][j].Intensity = j;
+                spec[i].DataPoints[j].Mz = j;
+                spec[i].DataPoints[j].Intensity = j;
             }
         }
         if (Echo) Console.WriteLine("MemoryTestSpectrum Finished");
@@ -76,8 +84,8 @@ class PMApp
             specEx.Add(new SpectrumEx(ScanSize));
             for (int j = 0; j < ScanSize; j++)
             {
-                specEx[i][j].Mz = j;
-                specEx[i][j].Intensity = j;
+                specEx[i].DataPoints[j].Mz = j;
+                specEx[i].DataPoints[j].Intensity = j;
             }
         }
         if (Echo) Console.WriteLine("MemoryTestSpectrumEx Finished");

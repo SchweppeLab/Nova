@@ -22,16 +22,6 @@ namespace ProjectMIDAS.Data.Spectrum
 
         #region INDEXERS & OPERATORS
         //=== INDEXERS & OPERATORS ==//
-        /// <summary>
-        /// Indexer to any data point in the spectrum. WARNING: no bounds check.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
-        public sSpecDP this[int i]
-        {
-            get => DataPoints[i];
-            set => DataPoints[i] = value;
-        }
         #endregion
 
         #region FUNCTIONS
@@ -45,7 +35,7 @@ namespace ProjectMIDAS.Data.Spectrum
 
         #region DATA MEMBERS
         //=== DATA MEMBERS ===//
-        private sSpecDP[] DataPoints;
+        public sSpecDP[] DataPoints;
         private int DataPointsCount;
         #endregion
 

@@ -6,84 +6,85 @@ using System.Threading.Tasks;
 
 namespace ProjectMIDAS.Data.Spectrum
 {
-    /// <summary>
-    /// The spectrum data point structure defines the basic contents of a mass spectrum.
-    /// </summary>
-    public struct sSpecDP
+  /// <summary>
+  /// The spectrum data point structure defines the basic contents of a mass spectrum.
+  /// </summary>
+  public struct sSpecDP
     {
-        /// <summary>
-        /// The m/z value of a spectrum data point.
-        /// </summary>
-        public double Mz { get; set; }
-        /// <summary>
-        /// The intensity (aka abundance) of a spectrum data point. This may in the future be set
-        /// to foating point precision to save memory. Currently at double precision to maximize
-        /// compatibility.
-        /// </summary>
-        public double Intensity { get; set; }
-        /// <summary>
-        /// Spectrum data point constructor.
-        /// </summary>
-        /// <param name="mz"></param>
-        /// <param name="intensity"></param>
-        public sSpecDP(double mz = 0, double intensity = 0)
-        {
-            Mz = mz;
-            Intensity = intensity;
-        }
+    /// <summary>
+    /// The m/z value of a spectrum data point.
+    /// </summary>
+    public double Mz;
+    /// <summary>
+    /// The intensity (aka abundance) of a spectrum data point. This may in the future be set
+    /// to foating point precision to save memory. Currently at double precision to maximize
+    /// compatibility.
+    /// </summary>
+    public double Intensity;
+
+    /// <summary>
+    /// Spectrum data point constructor.
+    /// </summary>
+    /// <param name="mz"></param>
+    /// <param name="intensity"></param>
+    public sSpecDP(double mz, double intensity)
+    {
+        Mz = mz;
+        Intensity = intensity;
+    }
+  }
+
+  /// <summary>
+  /// An advanced spectrum data structure where data points are represented by centroid peaks.
+  /// This format replicates Thermo centroid structures. If only mz and intensity are used, it
+  /// is more economical to use the sSpecDP structure.
+  /// </summary>
+  public struct sCentroid //: ICentroid, IEquatable<Centroid>
+  {
+    /// <summary>
+    /// Basic centroid peak constructor.
+    /// </summary>
+    /// <param name="mz"></param>
+    /// <param name="intensity"></param>
+    public sCentroid(double mz, double intensity, int z=0, double baseline = 0, double noise = 0, double resolution = 0)
+    {
+        Mz = mz;
+        Intensity = intensity;
+        Baseline = baseline;
+        Noise = noise;
+        Resolution = resolution;
+        Z = z;
     }
 
     /// <summary>
-    /// An advanced spectrum data structure where data points are represented by centroid peaks.
-    /// This format replicates Thermo centroid structures. If only mz and intensity are used, it
-    /// is more economical to use the sSpecDP structure.
+    /// Centroid m/z
     /// </summary>
-    public struct sCentroid //: ICentroid, IEquatable<Centroid>
-    {
-        /// <summary>
-        /// Basic centroid peak constructor.
-        /// </summary>
-        /// <param name="mz"></param>
-        /// <param name="intensity"></param>
-        public sCentroid(double mz, double intensity, int z=0, double baseline = 0, double noise = 0, double resolution = 0)
-        {
-            Mz = mz;
-            Intensity = intensity;
-            Baseline = baseline;
-            Noise = noise;
-            Resolution = resolution;
-            Z = z;
-        }
+    public double Mz;
 
-        /// <summary>
-        /// Centroid m/z
-        /// </summary>
-        public double Mz { get; set; }
+    /// <summary>
+    /// charge state
+    /// </summary>
+    public int Z;
 
-        /// <summary>
-        /// charge state
-        /// </summary>
-        public int Z { get; set; }
+    /// <summary>
+    /// Baseline
+    /// </summary>
+    public double Baseline;
 
-        /// <summary>
-        /// Baseline
-        /// </summary>
-        public double Baseline { get; set; }
+    /// <summary>
+    /// Centroid intensity
+    /// </summary>
+    public double Intensity;
 
-        /// <summary>
-        /// Centroid intensity
-        /// </summary>
-        public double Intensity { get; set; }
+    /// <summary>
+    /// Source noise level
+    /// </summary>
+    public double Noise;
 
-        /// <summary>
-        /// Source noise level
-        /// </summary>
-        public double Noise { get; set; }
-
-        /// <summary>
-        /// Centroid resolution
-        /// </summary>
-        public double Resolution { get; set; }
+    /// <summary>
+    /// Centroid resolution
+    /// </summary>
+    public double Resolution;
 
             //TODO: possibly reimplement this here, but with more flexibility, such as PPM tolerance.
             //Will need to be speed tested.
