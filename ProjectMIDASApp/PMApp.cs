@@ -1,33 +1,34 @@
 ﻿#define GLOBALMEM
 
 using System.Collections.Specialized;
+using System.Security.Cryptography;
 using ProjectMIDAS.Data.Spectrum;
 using ProjectMIDAS.IO;
 
 class PMApp
 {
 
-  public FileReader Reader;
+  FileReader Reader;
+  Spectrum Spec;
 
 
-    public const int ScanCount= 100000;
-    public const int ScanSize = 5000;
-    public const bool Interrupt = false;
-    public const bool Echo = false;
+  public const int ScanCount= 100000;
+  public const int ScanSize = 5000;
+  public const bool Interrupt = false;
+  public const bool Echo = false;
 
 #if(GLOBALMEM)
-    public List<Spectrum> spec;
-    public List<SpectrumEx> specEx;
+  public List<Spectrum> spec;
+  public List<SpectrumEx> specEx;
 #endif
 
   static void Main(string[] args)
   {
-    
 
     //Test code accepts a Thermo raw file as a parameter, then reads all MS2 & MS3 scans from the file.
-    FileReader Reader = new FileReader();
-    Reader.Filter = MSFilter.MS2 | MSFilter.MS3;
-    Spectrum spec = new Spectrum(); //alternatively make this a global variable...
+    //FileReader Reader = new FileReader();
+    PMApp app = new PMApp();
+    app.Reader.Filter = MSFilter.MS2 | MSFilter.MS3;
 
     //Reading the first spectrum from a file is easy, just give it the file name.
     //If filters are used, the reader automatically advances to the first spectrum
@@ -35,7 +36,7 @@ class PMApp
     //the existence of the file can be thrown. But I'm not convinced of the utility.
     try
     {
-      spec = Reader.ReadSpectrum(args[0]);
+      app.Spec = app.Reader.ReadSpectrum(args[0]);
     }
     catch (Exception ex)
     {
@@ -46,13 +47,32 @@ class PMApp
     //reasons: end of file, no scan data, no scans fit filter parameters, failure to
     //open the file, etc.
     int count = 0;
-    while (spec.ScanNumber > 0)
+    while (app.Spec.ScanNumber > 0)
     {
       //TODO: whatever you want to do with a spectrum...
+      //Display the first spectrum header to screen
+      if(count == 0){
+        Console.WriteLine("ScanNumber:     " + app.Spec.ScanNumber.ToString());
+        Console.WriteLine("Retention Time: " + app.Spec.RetentionTime.ToString());
+        Console.WriteLine("MS Level:       " + app.Spec.MsLevel.ToString());
+        Console.WriteLine("Centoroid:      " + (app.Spec.Centroid ? "yes" : "no"));
+        if (app.Spec.MsLevel > 1)
+        {
+          for (int i = 0; i < app.Spec.Precursors.Count; i++) {
+            Console.WriteLine("Precursor {0}:", i);
+            Console.WriteLine("  Isolation Mz:    " + app.Spec.Precursors[i].IsolationMz.ToString());
+            Console.WriteLine("  Isolation Width: " + app.Spec.Precursors[i].IsolationWidth.ToString());
+            Console.WriteLine("  Monoisotopic Mz: " + app.Spec.Precursors[i].MonoisotopicMz.ToString());
+            Console.WriteLine("  Charge:          " + app.Spec.Precursors[i].Charge.ToString());
+          }
+        }
+        Console.WriteLine("Data points:    " + app.Spec.Count().ToString());
+        
+      }
       count++;
 
       //Reading the next spectrum is just another call to ReadSpectrum() without any parameters.
-      spec = Reader.ReadSpectrum();
+      app.Spec = app.Reader.ReadSpectrum();
     }
 
     //Give some output to indicate success.
@@ -60,6 +80,7 @@ class PMApp
 
 
     /*
+    //This code is for speed testing storing and manipulating massive amounts of spectral data.
     PMApp app = new PMApp();
 
     app.MemoryTestSpectrumEx(); //Fixed #1
@@ -81,21 +102,23 @@ class PMApp
 
   }
 
-    PMApp()
-    {
+  PMApp()
+  {
 #if GLOBALMEM
-        spec = new List<Spectrum>();
-        specEx = new List<SpectrumEx>();
+    spec = new List<Spectrum>();
+    specEx = new List<SpectrumEx>();
 #endif
-    }
+    Reader = new FileReader();
+    Spec = new Spectrum();
+  }
 
-    public void Clear()
-    {
+  public void Clear()
+  {
 #if GLOBALMEM
-        spec.Clear();
-        specEx.Clear();
+    spec.Clear();
+    specEx.Clear();
 #endif
-    }
+  }
 
     public void MemoryTestSpectrum()
     {

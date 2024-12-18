@@ -30,6 +30,7 @@ namespace ProjectMIDAS.io
     /// <param name="fileName">Path to the data file.</param>
     bool Open(string fileName);
 
+    //TODO: decide if this is worthwhile
     /// <summary>
     /// Return some metadata about the file.
     /// </summary>

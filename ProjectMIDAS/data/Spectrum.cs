@@ -5,20 +5,20 @@ namespace ProjectMIDAS.Data.Spectrum
     /// <summary>
     /// The struct-based contents of a single spectrum/scan event
     /// </summary>
-    public class Spectrum : SpectrumFoundation, IDisposable
-    {
+  public class Spectrum : SpectrumFoundation, IDisposable
+  {
 
-        #region CONSTRUCTORS
-        //=== CONSTRUCTORS ===//
-        /// <summary>
-        /// Constructor for Spectrum class.
-        /// </summary>
-        public Spectrum(int sz=0)
-        {
-            DataPointsCount = sz;
-            DataPoints = new sSpecDP[DataPointsCount];
-        }
-        #endregion
+    #region CONSTRUCTORS
+    //=== CONSTRUCTORS ===//
+    /// <summary>
+    /// Constructor for Spectrum class.
+    /// </summary>
+    public Spectrum(int sz=0) : base()
+    {
+      DataPointsCount = sz;
+      DataPoints = new sSpecDP[DataPointsCount];
+    }
+    #endregion
 
         #region INDEXERS & OPERATORS
         //=== INDEXERS & OPERATORS ==//

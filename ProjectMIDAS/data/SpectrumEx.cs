@@ -5,19 +5,19 @@ namespace ProjectMIDAS.Data.Spectrum
     /// <summary>
     /// An expanded version of the Spectrum object that uses the sCentroid structure for the data array.
     /// </summary>
-    public class SpectrumEx : SpectrumFoundation, IDisposable
-    {
+  public class SpectrumEx : SpectrumFoundation, IDisposable
+  {
 
-        #region CONSTRUCTORS
-        //=== CONSTRUCTORS ===//
-        /// <summary>
-        /// Constructor for Spectrum class.
-        /// </summary>
-        public SpectrumEx(int sz=0)
-        {
-            DataPointsCount = sz;
-            DataPoints = new sCentroid[DataPointsCount];
-        }
+    #region CONSTRUCTORS
+    //=== CONSTRUCTORS ===//
+    /// <summary>
+    /// Constructor for Spectrum class.
+    /// </summary>
+    public SpectrumEx(int sz=0) : base()
+    {
+      DataPointsCount = sz;
+      DataPoints = new sCentroid[DataPointsCount];
+    }
         #endregion
 
         #region INDEXERS & OPERATORS

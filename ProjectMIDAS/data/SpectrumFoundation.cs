@@ -10,7 +10,7 @@ namespace ProjectMIDAS.Data.Spectrum
   /// The spectrum data point structure defines the basic contents of a mass spectrum.
   /// </summary>
   public struct sSpecDP
-    {
+  {
     /// <summary>
     /// The m/z value of a spectrum data point.
     /// </summary>
@@ -121,8 +121,17 @@ namespace ProjectMIDAS.Data.Spectrum
             //}
     }
 
+
   public abstract class SpectrumFoundation
   {
+
+    /// <summary>
+    /// SpectrumFoundation constructor.
+    /// </summary>
+    protected SpectrumFoundation() 
+    {
+      Precursors = new List<PrecursorIon>();
+    }
 
     /// <summary>
     /// Identifies the peak data type as centroid (true) or profile (false)
@@ -185,10 +194,10 @@ namespace ProjectMIDAS.Data.Spectrum
         /// </summary>
         //public string FilterLine { get; set; }
 
-        /// <summary>
-        /// Scan retention time (minutes)
-        /// </summary>
-        public double RetentionTime { get; set; } = 0;
+    /// <summary>
+    /// Scan retention time (minutes)
+    /// </summary>
+    public double RetentionTime { get; set; } = 0;
 
         /// <summary>
         /// Mz that scan starts at
@@ -236,6 +245,12 @@ namespace ProjectMIDAS.Data.Spectrum
         /// </summary>
         public double CollisionEnergy { get; set; }
 
+    /// <summary>
+    /// Zero or more precursor ions associated with this spectrum.
+    /// </summary>
+    public List<PrecursorIon> Precursors { get; set; }
+
+
         /// <summary>
         /// If a dependent scan, the parent scan number
         /// </summary>
@@ -245,5 +260,5 @@ namespace ProjectMIDAS.Data.Spectrum
         /// If a dependent scan, the activation method used to generate the scan fragments
         /// </summary>
         //public string PrecursorActivationMethod { get; set; }
-    }
+  }
 }

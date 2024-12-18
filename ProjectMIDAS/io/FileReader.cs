@@ -54,7 +54,6 @@ namespace ProjectMIDAS.IO
     public string FileName { get; set; } = "";
 
 
-
     /// <summary>
     /// Checks to see if we requested, or already have, a valid file from which to read a spectrum. Use null to specify reading
     /// another spectrum from the same file.

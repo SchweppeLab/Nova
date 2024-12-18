@@ -7,6 +7,7 @@ using ThermoFisher.CommonCore.Data.Business;
 using ThermoFisher.CommonCore.Data.Interfaces;
 using ThermoFisher.CommonCore.RawFileReader;
 
+using ProjectMIDAS.Data;
 using ProjectMIDAS.Data.Spectrum;
 using System.Collections.Specialized;
 using System.Formats.Tar;
@@ -18,16 +19,39 @@ namespace ProjectMIDAS.io
   internal class ThermoRawReader : ISpectrumFileReader
   {
 
+    /// <summary>
+    /// A basic spectrum type reading only mz and intensity values for each data point.
+    /// </summary>
     private Spectrum spectrum;
+
+    /// <summary>
+    /// An extended spectrum type that reads mz, intensity, charge, resolution, etc. for each data point.
+    /// </summary>
     private SpectrumEx spectrumEx;
 
-    private IRawDataPlus? RawFile;
+    /// <summary>
+    /// The interface to the Raw file.
+    /// </summary>
+    private IRawDataExtended RawFile;
 
+    /// <summary>
+    /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
+    /// </summary>
     private MSFilter Filter { get; set; } 
 
+    /// <summary>
+    /// The ScanNumber of the last scan in the file.
+    /// </summary>
     private int lastScanNumber { get; set; } = 0;
+    /// <summary>
+    /// The ScanNumber of the most recent scan that was read. A value of 0 means a scan has not yet been read.
+    /// </summary>
     private int CurrentScanNumber = 0;
 
+    /// <summary>
+    /// Constructor for ThermoRawReader
+    /// </summary>
+    /// <param name="filter">The desired scan filter.</param>
     public ThermoRawReader(MSFilter filter)
     {
       Filter = filter;
@@ -35,6 +59,13 @@ namespace ProjectMIDAS.io
       spectrumEx = new SpectrumEx();
     }
 
+    /// <summary>
+    /// Returns the requested spectrum from the file. If the desired spectrum could not be read, then an empty spectrum with
+    /// a ScanNumber of 0 is returned.
+    /// </summary>
+    /// <param name="scanNumber">The desired scan number, or -1 to get the next scan in the file.</param>
+    /// <param name="centroid">Request centroid data; if centroid data can not be obtained, profile data is returned.</param>
+    /// <returns>Spectrum object</returns>
     public Spectrum GetSpectrum(int scanNumber, bool centroid)
     {
       //Set the scan number, or if one wasn't specified (i.e. -1), then go to the next scan.
@@ -87,6 +118,7 @@ namespace ProjectMIDAS.io
       }
 
       ScanStatistics scanStatistics = RawFile.GetScanStatsForScanNumber(CurrentScanNumber);
+      double retentionTime = RawFile.RetentionTimeFromScanNumber(CurrentScanNumber);
 
       //check scan type. If profile, and user wants centroid, see if centroid version is also available.
       if (centroid)
@@ -107,8 +139,7 @@ namespace ProjectMIDAS.io
             spectrum.DataPoints[i].Mz = centroidStream.Masses[i];
             spectrum.DataPoints[i].Intensity = centroidStream.Intensities[i];
           }
-          ProcessSpectrumStatistics(scanStatistics);
-          ProcessSpectrumFilter(scanFilter);
+          ProcessSpectrumInformation(scanFilter, scanStatistics);
           return spectrum;
         }
 
@@ -122,11 +153,28 @@ namespace ProjectMIDAS.io
         spectrum.DataPoints[i].Mz = segmentedScan.Positions[i];
         spectrum.DataPoints[i].Intensity = segmentedScan.Intensities[i];
       }
-      ProcessSpectrumStatistics(scanStatistics);
-      ProcessSpectrumFilter(scanFilter);
+      ProcessSpectrumInformation(scanFilter, scanStatistics);
       return spectrum;
     }
 
+    /// <summary>
+    /// Returns the requested extended spectrum from the file. If the desired spectrum could not be read, then an empty spectrum with
+    /// a ScanNumber of 0 is returned. 
+    /// TODO: Finish this function; it currently only returns an empty extended spectrum.
+    /// </summary>
+    /// <param name="scanNumber">The desired scan number, or -1 to get the next scan in the file.</param>
+    /// <param name="centroid">Request centroid data; if centroid data can not be obtained, profile data is returned.</param>
+    /// <returns>SpectrumEx object</returns>
+    public SpectrumEx GetSpectrumEx(int scanNumber, bool centroid)
+    {
+      return new SpectrumEx();
+    }
+
+    /// <summary>
+    /// Opens a Thermo RAW file for reading, setting the current position to the beginning of the file and identifying the total number of spectra.
+    /// </summary>
+    /// <param name="fileName">A valid path to a Thermo RAW file.</param>
+    /// <returns>true if file opened successfully, false otherwise.</returns>
     public bool Open(string fileName)
     {
       RawFile = RawFileReaderAdapter.FileFactory(fileName);
@@ -137,16 +185,54 @@ namespace ProjectMIDAS.io
       return true;
     }
 
+    /// <summary>
+    /// Close the RAW file reader.
+    /// </summary>
     public void Close()
     {
       if(RawFile != null) RawFile.Dispose();
     }
 
     /// <summary>
+    /// A single function call to simplify gathering spectrum information from various sources.
+    /// </summary>
+    /// <param name="scanFilter">Optionally provide an IScanFilter object if it was previously obtained.</param>
+    /// <param name="scanStatistics">Optionally provide a ScanStatistics object if it was previously obtained.</param>
+    private void ProcessSpectrumInformation(IScanFilter scanFilter=null, ScanStatistics scanStatistics = null)
+    {
+      //If scanFilter or scanStatistics was not provided, grab them now.
+      if(scanFilter == null) scanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber);
+      if (scanStatistics == null) scanStatistics = RawFile.GetScanStatsForScanNumber(CurrentScanNumber);
+
+      //Add spectrum information or call functions to process the information already obtained
+      spectrum.RetentionTime = RawFile.RetentionTimeFromScanNumber(CurrentScanNumber);
+      ProcessSpectrumStatistics(scanStatistics);
+      ProcessSpectrumFilter(scanFilter);
+      IScanEvent scanEvent = RawFile.GetScanEventForScanNumber(CurrentScanNumber);
+      ProcessScanEvent(scanEvent);
+      ILogEntryAccess trailerData = RawFile.GetTrailerExtraInformation(CurrentScanNumber);
+      ProcessTrailerExtraInformation(trailerData);
+    }
+
+    /// <summary>
+    /// Used to process precursor ion information
+    /// </summary>
+    /// <param name="scanEvent">IScanEvent object</param>
+    private void ProcessScanEvent(IScanEvent scanEvent)
+    {
+      //Get all the precursor information
+      IReaction reaction = scanEvent.GetReaction(0);
+      PrecursorIon pre = new PrecursorIon();
+      pre.IsolationMz = reaction.PrecursorMass;
+      pre.IsolationWidth = reaction.IsolationWidth;
+      spectrum.Precursors.Add(pre);
+    }
+
+    /// <summary>
     /// Process the scan filter for a spectrum. Provides useful header information.
     /// </summary>
-    /// <param name="filter"></param>
-    void ProcessSpectrumFilter(IScanFilter filter)
+    /// <param name="filter">IScanFilter object</param>
+    private void ProcessSpectrumFilter(IScanFilter filter)
     {
       spectrum.MsLevel = (int)filter.MSOrder;
       if(filter.Polarity==PolarityType.Positive) spectrum.Polarity = true;
@@ -157,10 +243,37 @@ namespace ProjectMIDAS.io
     /// <summary>
     /// Process the scan statistics for a spectrum. Provides useful header information.
     /// </summary>
-    /// <param name="scanStatistics"></param>
-    void ProcessSpectrumStatistics(ScanStatistics scanStatistics)
+    /// <param name="scanStatistics">ScanStatistics object</param>
+    private void ProcessSpectrumStatistics(ScanStatistics scanStatistics)
     {
       spectrum.ScanNumber = scanStatistics.ScanNumber;
+      spectrum.Centroid = scanStatistics.IsCentroidScan;
+    }
+
+    //TODO: Reassess these values closely. Some trailer information applies to multiple precursors. Other trailer information to only the first precursor.
+    /// <summary>
+    /// Processes the Trailer Extra Information attached to the Scan Header.
+    /// </summary>
+    /// <param name="trailerData">ILogEntryAccess object</param>
+    private void ProcessTrailerExtraInformation(ILogEntryAccess trailerData)
+    {
+      for (int i = 0; i < trailerData.Length; i++)
+      {
+        if (trailerData.Labels[i] == "Monoisotopic M/Z:")
+        {
+          spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
+        }
+
+        if ((trailerData.Labels[i] == "Master Scan Number:") || (trailerData.Labels[i] == "Master Scan Number") || (trailerData.Labels[i] == "Master Index:"))
+        {
+          spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
+        }
+
+        if ((trailerData.Labels[i] == "Charge State:"))
+        {
+          spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
+        }
+      }
     }
 
   }
