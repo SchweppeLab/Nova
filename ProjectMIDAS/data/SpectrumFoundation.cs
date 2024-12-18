@@ -121,8 +121,14 @@ namespace ProjectMIDAS.Data.Spectrum
             //}
     }
 
-    public abstract class SpectrumFoundation
-    {
+  public abstract class SpectrumFoundation
+  {
+
+    /// <summary>
+    /// Identifies the peak data type as centroid (true) or profile (false)
+    /// </summary>
+    public bool Centroid { get; set; } = true;
+
         /// <summary>
         /// Total time, including injection time, to acquire the current scan (milliseconds)
         /// </summary>

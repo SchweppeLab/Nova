@@ -13,7 +13,7 @@ namespace ProjectMIDAS.Data.Spectrum
         /// <summary>
         /// Constructor for Spectrum class.
         /// </summary>
-        public SpectrumEx(int sz)
+        public SpectrumEx(int sz=0)
         {
             DataPointsCount = sz;
             DataPoints = new sCentroid[DataPointsCount];

@@ -13,7 +13,7 @@ namespace ProjectMIDAS.Data.Spectrum
         /// <summary>
         /// Constructor for Spectrum class.
         /// </summary>
-        public Spectrum(int sz)
+        public Spectrum(int sz=0)
         {
             DataPointsCount = sz;
             DataPoints = new sSpecDP[DataPointsCount];

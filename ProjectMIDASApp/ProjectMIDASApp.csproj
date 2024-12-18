@@ -19,4 +19,13 @@
     <ProjectReference Include="..\ProjectMIDAS\ProjectMIDAS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="ThermoFisher.CommonCore.Data">
+      <HintPath>..\..\..\Other\RawFileReader\Libs\NetCore\Net8\Assemblies\ThermoFisher.CommonCore.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="ThermoFisher.CommonCore.RawFileReader">
+      <HintPath>..\..\..\Other\RawFileReader\Libs\NetCore\Net8\Assemblies\ThermoFisher.CommonCore.RawFileReader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

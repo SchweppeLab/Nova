@@ -4,6 +4,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="ThermoFisher.CommonCore.BackgroundSubtraction">
+      <HintPath>..\..\..\Other\RawFileReader\Libs\NetCore\Net8\Assemblies\ThermoFisher.CommonCore.BackgroundSubtraction.dll</HintPath>
+    </Reference>
+    <Reference Include="ThermoFisher.CommonCore.Data">
+      <HintPath>..\..\..\Other\RawFileReader\Libs\NetCore\Net8\Assemblies\ThermoFisher.CommonCore.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="ThermoFisher.CommonCore.MassPrecisionEstimator">
+      <HintPath>..\..\..\Other\RawFileReader\Libs\NetCore\Net8\Assemblies\ThermoFisher.CommonCore.MassPrecisionEstimator.dll</HintPath>
+    </Reference>
+    <Reference Include="ThermoFisher.CommonCore.RawFileReader">
+      <HintPath>..\..\..\Other\RawFileReader\Libs\NetCore\Net8\Assemblies\ThermoFisher.CommonCore.RawFileReader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
 </Project>
