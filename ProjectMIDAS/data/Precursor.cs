@@ -9,10 +9,23 @@ namespace ProjectMIDAS.Data
   public class PrecursorIon
   {
     /// <summary>
-    /// Precursor constructor
+    /// PrecursorIon object constructor
     /// </summary>
     public PrecursorIon()
     {
+    }
+
+    /// <summary>
+    /// PrecursorIon object copy constructor
+    /// </summary>
+    /// <param name="pi"></param>
+    public PrecursorIon(PrecursorIon pi)
+    {
+      MonoisotopicMz=pi.MonoisotopicMz;
+      Intensity=pi.Intensity;
+      Charge=pi.Charge;
+      IsolationMz=pi.IsolationMz;
+      IsolationWidth=pi.IsolationWidth;
     }
 
     /// <summary>
@@ -41,13 +54,13 @@ namespace ProjectMIDAS.Data
     /// </summary>
     public double IsolationWidth { get; set; } = 0;
 
-    //TODO: Determine if this is relevant
+    //TODO: Determine if this is relevant; might be Monocle-specific...
     /// <summary>
     /// Proportion of the intensity in the isolation window
     /// that belongs to the precursor.
     /// 
     /// This should be a value from zero to one.
     /// </summary>
-    //public double IsolationSpecificity { get; set; }
+    public double IsolationSpecificity { get; set; }
   }
 }

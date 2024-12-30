@@ -206,6 +206,7 @@ namespace ProjectMIDAS.io
 
       //Add spectrum information or call functions to process the information already obtained
       spectrum.RetentionTime = RawFile.RetentionTimeFromScanNumber(CurrentScanNumber);
+      spectrum.ScanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber).ToString();
       ProcessSpectrumStatistics(scanStatistics);
       ProcessSpectrumFilter(scanFilter);
       IScanEvent scanEvent = RawFile.GetScanEventForScanNumber(CurrentScanNumber);

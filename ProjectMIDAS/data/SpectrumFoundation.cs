@@ -138,40 +138,40 @@ namespace ProjectMIDAS.Data.Spectrum
     /// </summary>
     public bool Centroid { get; set; } = true;
 
-        /// <summary>
-        /// Total time, including injection time, to acquire the current scan (milliseconds)
-        /// </summary>
-        public double ElapsedScanTime { get; set; } = 0;
+    /// <summary>
+    /// Total time, including injection time, to acquire the current scan (milliseconds)
+    /// </summary>
+    public double ElapsedScanTime { get; set; } = 0;
 
-        /// <summary>
-        /// Injection time used to acquire the scan ions (milliseconds, max = 5000)
-        /// </summary>
-        public double IonInjectionTime { get; set; } = 0;
+    /// <summary>
+    /// Injection time used to acquire the scan ions (milliseconds, max = 5000)
+    /// </summary>
+    public double IonInjectionTime { get; set; } = 0;
 
-        /// <summary>
-        /// The MS level (e.g. 0 = Unknown, 1 = MS1, 2 = MS2, 3 = MS3, MSn)
-        /// </summary>
-        public int MsLevel { get; set; } = 0;
+    /// <summary>
+    /// The MS level (e.g. 0 = Unknown, 1 = MS1, 2 = MS2, 3 = MS3, MSn)
+    /// </summary>
+    public int MsLevel { get; set; } = 0;
 
-        /// <summary>
-        /// Bool representation of polarity (true = positive)
-        /// </summary>
-        public bool Polarity { get; set; } = true;
+    /// <summary>
+    /// Bool representation of polarity (true = positive)
+    /// </summary>
+    public bool Polarity { get; set; } = true;
 
-        /// <summary>
-        /// The current scan description
-        /// </summary>
-        public string ScanDescription { get; set; } = "";
+    /// <summary>
+    /// The current scan description
+    /// </summary>
+    public string ScanDescription { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Scan event order
-        /// </summary>
-        public int ScanEvent { get; set; } = 0;
+    /// <summary>
+    /// Scan event order
+    /// </summary>
+    public int ScanEvent { get; set; } = 0;
 
-        /// <summary>
-        /// Current scan number
-        /// </summary>
-        public int ScanNumber { get; set; } = 0;
+    /// <summary>
+    /// Current scan number
+    /// </summary>
+    public int ScanNumber { get; set; } = 0;
 
         
         /// <summary>
@@ -189,10 +189,10 @@ namespace ProjectMIDAS.Data.Spectrum
         /// </summary>
         //public string ScanType { get; set; }
 
-        /// <summary>
-        /// Scan filter line from RAW file
-        /// </summary>
-        //public string FilterLine { get; set; }
+    /// <summary>
+    /// Scan filter line from RAW file
+    /// </summary>
+    public string ScanFilter { get; set; } = string.Empty;
 
     /// <summary>
     /// Scan retention time (minutes)
@@ -225,10 +225,10 @@ namespace ProjectMIDAS.Data.Spectrum
 
         public double BasePeakIntensity { get; set; }
 
-        /// <summary>
-        /// FAIMS compensation voltage, if used (in volts)
-        /// </summary>
-        public int FaimsCV { get; set; }
+    /// <summary>
+    /// FAIMS compensation voltage, if used (in volts)
+    /// </summary>
+    public int FaimsCV { get; set; } = 0;
 
         /// <summary>
         /// FAIMS state, it's possible to have a CV of 0 which is the int default.
@@ -251,10 +251,10 @@ namespace ProjectMIDAS.Data.Spectrum
     public List<PrecursorIon> Precursors { get; set; }
 
 
-        /// <summary>
-        /// If a dependent scan, the parent scan number
-        /// </summary>
-        public int PrecursorMasterScanNumber { get; set; }
+    /// <summary>
+    /// If a dependent scan, the parent scan number
+    /// </summary>
+    public int PrecursorMasterScanNumber { get; set; }
 
         /// <summary>
         /// If a dependent scan, the activation method used to generate the scan fragments

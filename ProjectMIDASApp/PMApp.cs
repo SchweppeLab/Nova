@@ -53,6 +53,7 @@ class PMApp
       //Display the first spectrum header to screen
       if(count == 0){
         Console.WriteLine("ScanNumber:     " + app.Spec.ScanNumber.ToString());
+        Console.WriteLine("ScanFilter:     " + app.Spec.ScanFilter);
         Console.WriteLine("Retention Time: " + app.Spec.RetentionTime.ToString());
         Console.WriteLine("MS Level:       " + app.Spec.MsLevel.ToString());
         Console.WriteLine("Centoroid:      " + (app.Spec.Centroid ? "yes" : "no"));
