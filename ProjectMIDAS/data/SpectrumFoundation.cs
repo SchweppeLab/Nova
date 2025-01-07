@@ -173,21 +173,21 @@ namespace ProjectMIDAS.Data.Spectrum
     /// </summary>
     public int ScanNumber { get; set; } = 0;
 
-        
-        /// <summary>
-        /// Thermo variable for master scan number
-        /// </summary>
-        //public int MasterIndex { get; set; }
 
-        /// <summary>
-        /// Mass analyzer used
-        /// </summary>
-        //public Analyzer Analyzer { get; set; } = Analyzer.IonTrap;
+    /// <summary>
+    /// Thermo variable for master scan number
+    /// </summary>
+    public int MasterIndex { get; set; }
 
-        /// <summary>
-        /// String description of scan type
-        /// </summary>
-        //public string ScanType { get; set; }
+    /// <summary>
+    /// Mass analyzer used
+    /// </summary>
+    //public Analyzer Analyzer { get; set; } = Analyzer.IonTrap;
+
+    /// <summary>
+    /// String description of scan type
+    /// </summary>
+    public string ScanType { get; set; } = string.Empty;
 
     /// <summary>
     /// Scan filter line from RAW file
@@ -228,7 +228,7 @@ namespace ProjectMIDAS.Data.Spectrum
     /// <summary>
     /// FAIMS compensation voltage, if used (in volts)
     /// </summary>
-    public int FaimsCV { get; set; } = 0;
+    public double FaimsCV { get; set; } = 0;
 
         /// <summary>
         /// FAIMS state, it's possible to have a CV of 0 which is the int default.
@@ -256,9 +256,20 @@ namespace ProjectMIDAS.Data.Spectrum
     /// </summary>
     public int PrecursorMasterScanNumber { get; set; }
 
-        /// <summary>
-        /// If a dependent scan, the activation method used to generate the scan fragments
-        /// </summary>
-        //public string PrecursorActivationMethod { get; set; }
+    /// <summary>
+    /// If a dependent scan, the activation method used to generate the scan fragments
+    /// </summary>
+    public string PrecursorActivationMethod { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Detector or mass analyzer used for the scan.
+    /// e.g. ITMS or FTMS
+    /// </summary>
+    public string DetectorType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// "Scan Description" field from the scan header.
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
   }
 }

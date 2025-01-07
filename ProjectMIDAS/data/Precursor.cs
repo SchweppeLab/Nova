@@ -28,6 +28,13 @@ namespace ProjectMIDAS.Data
       IsolationWidth=pi.IsolationWidth;
     }
 
+    public PrecursorIon(double mz, double intensity = 0, int charge = 0)
+    {
+      MonoisotopicMz = mz;
+      Intensity = intensity;
+      Charge = charge;
+    }
+
     /// <summary>
     /// The putative monoisotopic m/z peak of the isotope envelope that contains the isolation m/z.
     /// </summary>

@@ -20,24 +20,34 @@ namespace ProjectMIDAS.Data.Spectrum
     }
     #endregion
 
-        #region INDEXERS & OPERATORS
-        //=== INDEXERS & OPERATORS ==//
-        #endregion
+    #region INDEXERS & OPERATORS
+    //=== INDEXERS & OPERATORS ==//
+    #endregion
 
-        #region FUNCTIONS
-        //=== FUNCTIONS ===//
-        /// <summary>
-        /// Total number of peaks in the current scan
-        /// </summary>
-        /// 
-        public int Count() { return DataPointsCount; }
-        #endregion
+    #region FUNCTIONS
+    //=== FUNCTIONS ===//
+    /// <summary>
+    /// Total number of peaks in the current scan
+    /// </summary>
+    /// 
+    public int Count() { return DataPointsCount; }
 
-        #region DATA MEMBERS
-        //=== DATA MEMBERS ===//
-        public sSpecDP[] DataPoints;
-        private int DataPointsCount;
-        #endregion
+    /// <summary>
+    /// Resizes the spectrum to a new number of peaks. Does not preserve exisiting data.
+    /// </summary>
+    /// <param name="sz"></param>
+    public void Resize(int sz = 0)
+    {
+      DataPointsCount = sz;
+      DataPoints = new sSpecDP[DataPointsCount];
+    }
+    #endregion
+
+    #region DATA MEMBERS
+    //=== DATA MEMBERS ===//
+    public sSpecDP[] DataPoints;
+    private int DataPointsCount;
+    #endregion
 
         /* START TODO: Fill out the rest of this information after speed testing the above code
 
