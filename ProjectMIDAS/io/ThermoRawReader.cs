@@ -9,14 +9,14 @@ using ThermoFisher.CommonCore.RawFileReader;
 
 using ProjectMIDAS.Data;
 using ProjectMIDAS.Data.Spectrum;
+using System.Collections;
 using System.Collections.Specialized;
 using System.Formats.Tar;
 using ThermoFisher.CommonCore.Data.FilterEnums;
-using ProjectMIDAS.IO;
 
-namespace ProjectMIDAS.io
+namespace ProjectMIDAS.IO
 {
-  internal class ThermoRawReader : ISpectrumFileReader
+  public class ThermoRawReader : ISpectrumFileReader
   {
 
     /// <summary>
@@ -60,13 +60,27 @@ namespace ProjectMIDAS.io
     }
 
     /// <summary>
+    /// Enumerator interface for the ThermoRawReader class. Scan filter by MS level still applies.
+    /// </summary>
+    /// <returns>Spectrum object</returns>
+    public IEnumerator GetEnumerator()
+    {
+      int FirstScan = RawFile.RunHeaderEx.FirstSpectrum;
+      int LastScan = RawFile.RunHeaderEx.LastSpectrum;
+      for (int i = FirstScan; i <= LastScan; i++)
+      {
+        yield return GetSpectrum();
+      }
+    }
+
+    /// <summary>
     /// Returns the requested spectrum from the file. If the desired spectrum could not be read, then an empty spectrum with
     /// a ScanNumber of 0 is returned.
     /// </summary>
     /// <param name="scanNumber">The desired scan number, or -1 to get the next scan in the file.</param>
     /// <param name="centroid">Request centroid data; if centroid data can not be obtained, profile data is returned.</param>
     /// <returns>Spectrum object</returns>
-    public Spectrum GetSpectrum(int scanNumber, bool centroid)
+    public Spectrum GetSpectrum(int scanNumber=-1, bool centroid=true)
     {
       //Set the scan number, or if one wasn't specified (i.e. -1), then go to the next scan.
       if (scanNumber < 0) CurrentScanNumber++;

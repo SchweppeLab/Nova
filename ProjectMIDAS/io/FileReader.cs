@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ProjectMIDAS.Data.Spectrum;
-using ProjectMIDAS.io;
 using ThermoFisher.CommonCore.Data;
 using ThermoFisher.CommonCore.RawFileReader;
 

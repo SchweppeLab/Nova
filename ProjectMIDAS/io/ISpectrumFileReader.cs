@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using ProjectMIDAS.Data.Spectrum;
 
-namespace ProjectMIDAS.io
+namespace ProjectMIDAS.IO
 {
-  internal interface ISpectrumFileReader
+  public interface ISpectrumFileReader : IEnumerable
   {
     //TODO: decide if we want to have general access to the last spectrum loaded
     //Spectrum Spectrum;
