@@ -9,7 +9,7 @@ using ProjectMIDAS.Data.Spectrum;
 using ThermoFisher.CommonCore.Data;
 using ThermoFisher.CommonCore.RawFileReader;
 
-namespace ProjectMIDAS.IO
+namespace ProjectMIDAS.Io
 {
 
   public enum FileFormat
@@ -112,6 +112,10 @@ namespace ProjectMIDAS.IO
       {
         case FileFormat.ThermoRaw:
           fileReader = new ThermoRawReader(Filter);
+          break;
+
+        case FileFormat.MzML:
+          fileReader = new MzMLReader(Filter);
           break;
 
         case FileFormat.Unknown:

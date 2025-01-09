@@ -3,24 +3,15 @@
 using System.Collections.Specialized;
 using System.Security.Cryptography;
 using ProjectMIDAS.Data.Spectrum;
-using ProjectMIDAS.IO;
+using ProjectMIDAS.Io;
 
 class PMApp
 {
-
-  FileReader Reader;
-  Spectrum Spec;
-  ISpectrumFileReader r2;
 
   public const int ScanCount= 100000;
   public const int ScanSize = 5000;
   public const bool Interrupt = false;
   public const bool Echo = false;
-
-#if(GLOBALMEM)
-  public List<Spectrum> spec;
-  public List<SpectrumEx> specEx;
-#endif
 
   static void Main(string[] args)
   {
@@ -72,6 +63,10 @@ class PMApp
           }
         }
         Console.WriteLine("Data points:    " + Spec.Count().ToString());
+        foreach(var dp in Spec.DataPoints)
+        {
+          Console.WriteLine(dp.Mz.ToString() + " " + dp.Intensity.ToString());
+        }
         
       }
       count++;
@@ -94,8 +89,8 @@ class PMApp
     //Set up the new SpectrumFileReader interface. Eventually a factory will be developed once we have more than one file reader.
     MSFilter filter = new MSFilter();
     filter = MSFilter.MS2;
-    ISpectrumFileReader Reader2 = new ThermoRawReader(filter);
-    Reader2.Open(args[0]);
+    ISpectrumFileReader Reader2 = SpectrumFileReaderFactory.GetReader(args[0],filter);
+    //Reader2.Open(args[0]);
 
     //Read the first 10 MS2 filter lines.
     count = 0;

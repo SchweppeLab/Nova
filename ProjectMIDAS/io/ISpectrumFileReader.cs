@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ProjectMIDAS.Data.Spectrum;
 
-namespace ProjectMIDAS.IO
+namespace ProjectMIDAS.Io
 {
   public interface ISpectrumFileReader : IEnumerable
   {

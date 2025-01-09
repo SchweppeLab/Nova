@@ -14,7 +14,7 @@ using System.Collections.Specialized;
 using System.Formats.Tar;
 using ThermoFisher.CommonCore.Data.FilterEnums;
 
-namespace ProjectMIDAS.IO
+namespace ProjectMIDAS.Io
 {
   public class ThermoRawReader : ISpectrumFileReader
   {
@@ -274,6 +274,9 @@ namespace ProjectMIDAS.IO
     {
       for (int i = 0; i < trailerData.Length; i++)
       {
+        //for diagnostics, to see all trailer values
+        //Console.WriteLine("TD: " + trailerData.Labels[i]); 
+        
         if (trailerData.Labels[i] == "Monoisotopic M/Z:")
         {
           spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
@@ -287,6 +290,11 @@ namespace ProjectMIDAS.IO
         if ((trailerData.Labels[i] == "Charge State:"))
         {
           spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
+        }
+
+        if ((trailerData.Labels[i] == "Ion Injection Time (ms):"))
+        {
+          spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
         }
       }
     }

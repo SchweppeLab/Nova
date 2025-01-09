@@ -36,6 +36,18 @@ namespace ProjectMIDAS.Data
     }
 
     /// <summary>
+    /// Resets all variables to 0.
+    /// </summary>
+    public void Clear()
+    {
+      MonoisotopicMz = 0;
+      Intensity = 0;
+      Charge = 0;
+      IsolationMz = 0;
+      IsolationWidth = 0;
+    }
+
+    /// <summary>
     /// The putative monoisotopic m/z peak of the isotope envelope that contains the isolation m/z.
     /// </summary>
     public double MonoisotopicMz { get; set; } = 0;
