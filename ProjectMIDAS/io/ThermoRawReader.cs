@@ -137,7 +137,6 @@ namespace ProjectMIDAS.Io
       //check scan type. If profile, and user wants centroid, see if centroid version is also available.
       if (centroid)
       {
-
         //Regardless of actual scan peak type, see if it contains centroid peak data.
         bool centroidOK = false;
         if (scanStatistics.IsCentroidScan) centroidOK = true;
@@ -212,10 +211,10 @@ namespace ProjectMIDAS.Io
     /// </summary>
     /// <param name="scanFilter">Optionally provide an IScanFilter object if it was previously obtained.</param>
     /// <param name="scanStatistics">Optionally provide a ScanStatistics object if it was previously obtained.</param>
-    private void ProcessSpectrumInformation(IScanFilter scanFilter=null, ScanStatistics scanStatistics = null)
+    private void ProcessSpectrumInformation(IScanFilter scanFilter = null, ScanStatistics scanStatistics = null)
     {
       //If scanFilter or scanStatistics was not provided, grab them now.
-      if(scanFilter == null) scanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber);
+      if (scanFilter == null) scanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber);
       if (scanStatistics == null) scanStatistics = RawFile.GetScanStatsForScanNumber(CurrentScanNumber);
 
       //Add spectrum information or call functions to process the information already obtained
@@ -223,8 +222,12 @@ namespace ProjectMIDAS.Io
       spectrum.ScanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber).ToString();
       ProcessSpectrumStatistics(scanStatistics);
       ProcessSpectrumFilter(scanFilter);
-      IScanEvent scanEvent = RawFile.GetScanEventForScanNumber(CurrentScanNumber);
-      ProcessScanEvent(scanEvent);
+
+      if (scanFilter.MSOrder != MSOrderType.Ms) {
+        IScanEvent scanEvent = RawFile.GetScanEventForScanNumber(CurrentScanNumber);
+        ProcessScanEvent(scanEvent);
+      }
+
       ILogEntryAccess trailerData = RawFile.GetTrailerExtraInformation(CurrentScanNumber);
       ProcessTrailerExtraInformation(trailerData);
     }
@@ -263,6 +266,7 @@ namespace ProjectMIDAS.Io
     {
       spectrum.ScanNumber = scanStatistics.ScanNumber;
       spectrum.Centroid = scanStatistics.IsCentroidScan;
+      spectrum.TotalIonCurrent = scanStatistics.TIC;
     }
 
     //TODO: Reassess these values closely. Some trailer information applies to multiple precursors. Other trailer information to only the first precursor.
@@ -277,24 +281,24 @@ namespace ProjectMIDAS.Io
         //for diagnostics, to see all trailer values
         //Console.WriteLine("TD: " + trailerData.Labels[i]); 
         
-        if (trailerData.Labels[i] == "Monoisotopic M/Z:")
+        switch (trailerData.Labels[i])
         {
-          spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
-        }
-
-        if ((trailerData.Labels[i] == "Master Scan Number:") || (trailerData.Labels[i] == "Master Scan Number") || (trailerData.Labels[i] == "Master Index:"))
-        {
-          spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
-        }
-
-        if ((trailerData.Labels[i] == "Charge State:"))
-        {
-          spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
-        }
-
-        if ((trailerData.Labels[i] == "Ion Injection Time (ms):"))
-        {
-          spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
+          case "Charge State:":
+            spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
+            break;
+          case "Ion Injection Time (ms):":
+            spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
+            break;
+          case "Master Index:":
+          case "Master Scan Number:":
+          case "Master Scan Number":
+            spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
+            break;
+          case "Monoisotopic M/Z:":
+            spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
+            break;
+          default:
+            break;
         }
       }
     }

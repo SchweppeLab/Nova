@@ -164,7 +164,7 @@ namespace ProjectMIDAS.Io
         Console.WriteLine($"Failed to open {ex.Message}");
         return false;
       }
-      Console.WriteLine("Last scan number: " + lastScanNumber.ToString());
+      //Console.WriteLine("Last scan number: " + lastScanNumber.ToString());
       return true;
     }
 
@@ -354,6 +354,9 @@ namespace ProjectMIDAS.Io
         case "MS:1000041": //charge state
           precursorIon.Charge = Convert.ToInt32(val);
           break;
+        case "MS:1000285": //total ion current
+          spectrum.TotalIonCurrent = Convert.ToDouble(val);
+          break;
         case "MS:1000511": //ms level
           spectrum.MsLevel = Convert.ToInt32(val);
           break;
@@ -386,6 +389,9 @@ namespace ProjectMIDAS.Io
           break;
         case "MS:1000829": //isolation window upper offset
           precursorIon.IsolationWidth += Convert.ToDouble(val);
+          break;
+        case "MS:1000927": //ion injection time
+          spectrum.IonInjectionTime += Convert.ToDouble(val);
           break;
 
         default: break;
