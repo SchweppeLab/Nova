@@ -13,6 +13,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.Formats.Tar;
 using ThermoFisher.CommonCore.Data.FilterEnums;
+using ProjectMIDAS.data;
 
 namespace ProjectMIDAS.Io
 {
@@ -219,7 +220,7 @@ namespace ProjectMIDAS.Io
 
       //Add spectrum information or call functions to process the information already obtained
       spectrum.RetentionTime = RawFile.RetentionTimeFromScanNumber(CurrentScanNumber);
-      spectrum.ScanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber).ToString();
+      spectrum.ScanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber).ToString();  //TODO: consider processing the ScanFilter
       ProcessSpectrumStatistics(scanStatistics);
       ProcessSpectrumFilter(scanFilter);
 
@@ -276,30 +277,44 @@ namespace ProjectMIDAS.Io
     /// <param name="trailerData">ILogEntryAccess object</param>
     private void ProcessTrailerExtraInformation(ILogEntryAccess trailerData)
     {
+
       for (int i = 0; i < trailerData.Length; i++)
       {
         //for diagnostics, to see all trailer values
         //Console.WriteLine("TD: " + trailerData.Labels[i]); 
-        
-        switch (trailerData.Labels[i])
+
+        switch (MetaDictionary.FindMeta(trailerData.Labels[i]))
         {
-          case "Charge State:":
-            spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
-            break;
-          case "Ion Injection Time (ms):":
+          case MetaClass.IIT:
             spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
             break;
-          case "Master Index:":
-          case "Master Scan Number:":
-          case "Master Scan Number":
-            spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
-            break;
-          case "Monoisotopic M/Z:":
-            spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
-            break;
           default:
+
+            //TODO: comment this out to disable notifications. But also maybe consider if any of these additional values are
+            //worth capturing.
+            Console.WriteLine("Uncaptured trailerData: " + trailerData.Labels[i] + " " + trailerData.Values[i]);
             break;
         }
+
+        //switch (trailerData.Labels[i])
+        //{
+        //  case "Charge State:":
+        //    spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
+        //    break;
+        //  case "Ion Injection Time (ms):":
+        //    spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
+        //    break;
+        //  case "Master Index:":
+        //  case "Master Scan Number:":
+        //  case "Master Scan Number":
+        //    spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
+        //    break;
+        //  case "Monoisotopic M/Z:":
+        //    spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
+        //    break;
+        //  default:
+        //    break;
+        //}
       }
     }
 

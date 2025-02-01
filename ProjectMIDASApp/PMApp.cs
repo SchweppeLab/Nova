@@ -62,7 +62,7 @@ class PMApp
             Console.WriteLine("  Charge:          " + Spec.Precursors[i].Charge.ToString());
           }
         }
-        Console.WriteLine("Data points:    " + Spec.Count().ToString());
+        Console.WriteLine("Data points:    " + Spec.Count.ToString());
         foreach(var dp in Spec.DataPoints)
         {
           Console.WriteLine(dp.Mz.ToString() + " " + dp.Intensity.ToString());
@@ -103,9 +103,9 @@ class PMApp
 
     //Try reading two spectra, and MS2 and an MS1.
     Spec = Reader2.GetSpectrum(891);  //note that random-access for a specific spectrum must fall within our filter. Otherwise an empty spectrum is returned
-    Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count()+")");
+    Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count+")");
     Spec = Reader2.GetSpectrum(892);  //see...told you so. 892 is MS1, but filter is for MS2
-    Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count() + ")");
+    Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count + ")");
 
   }
 

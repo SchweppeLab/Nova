@@ -149,6 +149,11 @@ namespace ProjectMIDAS.Data.Spectrum
     public double IonInjectionTime { get; set; } = 0;
 
     /// <summary>
+    /// Generic key/value dictionary to contain whatever information might not be in a direct data member.
+    /// </summary>
+    public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>();
+
+    /// <summary>
     /// The MS level (e.g. 0 = Unknown, 1 = MS1, 2 = MS2, 3 = MS3, MSn)
     /// </summary>
     public int MsLevel { get; set; } = 0;

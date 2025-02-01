@@ -1,11 +1,12 @@
 ﻿using System.Runtime.InteropServices;
+using ProjectMIDAS.data;
 
 namespace ProjectMIDAS.Data.Spectrum
 {
     /// <summary>
     /// The struct-based contents of a single spectrum/scan event
     /// </summary>
-  public class Spectrum : SpectrumFoundation, IDisposable
+  public class Spectrum : SpectrumFoundation, IMIDASSpectrum
   {
 
     #region CONSTRUCTORS
@@ -15,8 +16,17 @@ namespace ProjectMIDAS.Data.Spectrum
     /// </summary>
     public Spectrum(int sz=0) : base()
     {
-      DataPointsCount = sz;
-      DataPoints = new sSpecDP[DataPointsCount];
+      Count = sz;
+      DataPoints = new sSpecDP[Count];
+    }
+
+    /// <summary>
+    /// Construct a Spectrum from a serialized data stream.
+    /// </summary>
+    /// <param name="str">The UTF data stream</param>
+    public Spectrum(byte[] arr)
+    {
+      Deserialize(arr);
     }
     #endregion
 
@@ -26,11 +36,29 @@ namespace ProjectMIDAS.Data.Spectrum
 
     #region FUNCTIONS
     //=== FUNCTIONS ===//
-    /// <summary>
-    /// Total number of peaks in the current scan
-    /// </summary>
-    /// 
-    public int Count() { return DataPointsCount; }
+
+    public void Deserialize(byte[] data)
+    {
+      using (MemoryStream m = new MemoryStream(data))
+      using (BinaryReader reader = new BinaryReader(m,System.Text.Encoding.Unicode))
+      {
+        ScanNumber = reader.ReadInt32();
+        MsLevel = reader.ReadInt32();
+        Centroid = reader.ReadBoolean();
+        RetentionTime = reader.ReadDouble();
+        ScanFilter = reader.ReadString();
+
+        Count = reader.ReadInt32();
+        Resize(Count);
+        for (int a = 0; a < Count; a++)
+        {
+          DataPoints[a].Mz = reader.ReadDouble();
+          DataPoints[a].Intensity = reader.ReadDouble();
+        }
+        
+      }
+    }
+ 
 
     /// <summary>
     /// Resizes the spectrum to a new number of peaks. Does not preserve exisiting data.
@@ -38,15 +66,43 @@ namespace ProjectMIDAS.Data.Spectrum
     /// <param name="sz"></param>
     public void Resize(int sz = 0)
     {
-      DataPointsCount = sz;
-      DataPoints = new sSpecDP[DataPointsCount];
+      Count = sz;
+      DataPoints = new sSpecDP[Count];
+    }
+
+    public byte[] Serialize()
+    {
+      using (MemoryStream m = new MemoryStream())
+      using (BinaryWriter writer = new BinaryWriter(m,System.Text.Encoding.Unicode))
+      {
+        writer.Write(ScanNumber);
+        writer.Write(MsLevel);
+        writer.Write(Centroid);
+        writer.Write(RetentionTime);
+        writer.Write(ScanFilter);
+        
+        writer.Write(Count);
+        for (int a = 0; a < Count; a++)
+        {
+          writer.Write(DataPoints[a].Mz);
+          writer.Write(DataPoints[a].Intensity);
+        }
+        
+        return m.ToArray();
+      }
     }
     #endregion
 
     #region DATA MEMBERS
     //=== DATA MEMBERS ===//
+    /// <summary>
+    /// Total number of peaks in the current scan
+    /// </summary>
+    /// 
+    public int Count { get; private set; } = 0;
+
     public sSpecDP[] DataPoints;
-    private int DataPointsCount;
+    //private int DataPointsCount;
     #endregion
 
         /* START TODO: Fill out the rest of this information after speed testing the above code
