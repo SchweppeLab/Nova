@@ -51,7 +51,7 @@ class PMApp
         Console.WriteLine("ScanFilter:     " + Spec.ScanFilter);
         Console.WriteLine("Retention Time: " + Spec.RetentionTime.ToString());
         Console.WriteLine("MS Level:       " + Spec.MsLevel.ToString());
-        Console.WriteLine("Centoroid:      " + (Spec.Centroid ? "yes" : "no"));
+        Console.WriteLine("Centroid:       " + (Spec.Centroid ? "yes" : "no"));
         if (Spec.MsLevel > 1)
         {
           for (int i = 0; i < Spec.Precursors.Count; i++) {

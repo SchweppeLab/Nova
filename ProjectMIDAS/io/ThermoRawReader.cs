@@ -281,18 +281,24 @@ namespace ProjectMIDAS.Io
       for (int i = 0; i < trailerData.Length; i++)
       {
         //for diagnostics, to see all trailer values
-        //Console.WriteLine("TD: " + trailerData.Labels[i]); 
+        //Console.WriteLine("TD: " + trailerData.Labels[i] + " = " + trailerData.Values[i]); 
 
         switch (MetaDictionary.FindMeta(trailerData.Labels[i]))
         {
+          case MetaClass.ChargeState:
+            if (spectrum.Precursors.Count > 0) spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
+            break;
           case MetaClass.IIT:
             spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
+            break;
+          case MetaClass.MonoisotopicMZ:
+            if(spectrum.Precursors.Count > 0) spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]); 
             break;
           default:
 
             //TODO: comment this out to disable notifications. But also maybe consider if any of these additional values are
             //worth capturing.
-            Console.WriteLine("Uncaptured trailerData: " + trailerData.Labels[i] + " " + trailerData.Values[i]);
+            //Console.WriteLine("Uncaptured trailerData: " + trailerData.Labels[i] + " " + trailerData.Values[i]);
             break;
         }
 

@@ -9,8 +9,10 @@ namespace ProjectMIDAS.data
   public enum MetaClass
   {
     None,
+    ChargeState,
     Header,
     IIT,
+    MonoisotopicMZ,
     ScanNumber,
     TIC,
     Trailer,
@@ -64,12 +66,12 @@ namespace ProjectMIDAS.data
       { new MetaItem("Elapsed Scan Time (sec)", "", new string[]{ "Elapsed Scan Time", "Elapsed Scan Time (sec)" }, MetaClass.Trailer) },
       { new MetaItem("Ion Injection Time (ms):", "", new string[]{ "Ion Injection Time (ms):" }, MetaClass.IIT) },
       { new MetaItem("Scan Description", "", new string[]{ "Scan Description", "ScanDesc" }, MetaClass.Trailer) },
-      { new MetaItem("Monoisotopic M/Z", "", new string[]{ "Monoisotopic M/Z", "Monoisotopic", "Mono M/Z" }, MetaClass.Trailer) },
+      { new MetaItem("Monoisotopic M/Z", "", new string[]{ "Monoisotopic M/Z:", "Monoisotopic", "Mono M/Z" }, MetaClass.MonoisotopicMZ) },
       { new MetaItem("SPS Masses", "", new string[]{ "SPS Masses" }, MetaClass.Trailer) },
       { new MetaItem("SPS Masses Continued", "", new string[]{ "SPS Masses Continued" }, MetaClass.Trailer) },
       { new MetaItem("FAIMS Voltage On", "", new string[]{ "FAIMS Voltage On", "FAIMS Voltage On:" }, MetaClass.Trailer) },
       { new MetaItem("FAIMS Voltage", "", new string[]{ "FAIMS CV", "FAIMS Voltage" }, MetaClass.Trailer) },
-      { new MetaItem("Charge State", "", new string[]{ "Charge State", "Charge", "Z" }, MetaClass.Trailer) },
+      { new MetaItem("Charge State", "", new string[]{ "Charge State:", "Charge", "Z" }, MetaClass.ChargeState) },
     };
 
     public static MetaClass FindMeta(string label)

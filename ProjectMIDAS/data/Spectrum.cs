@@ -48,6 +48,17 @@ namespace ProjectMIDAS.Data.Spectrum
         RetentionTime = reader.ReadDouble();
         ScanFilter = reader.ReadString();
 
+        int pre= reader.ReadInt32();
+        for (int a = 0; a < pre; a++)
+        {
+          PrecursorIon pi = new PrecursorIon();
+          pi.IsolationMz=reader.ReadDouble();
+          pi.IsolationWidth= reader.ReadDouble();
+          pi.MonoisotopicMz=reader.ReadDouble();
+          pi.Charge = reader.ReadInt32();
+          Precursors.Add(pi);
+        }
+
         Count = reader.ReadInt32();
         Resize(Count);
         for (int a = 0; a < Count; a++)
@@ -80,6 +91,15 @@ namespace ProjectMIDAS.Data.Spectrum
         writer.Write(Centroid);
         writer.Write(RetentionTime);
         writer.Write(ScanFilter);
+
+        writer.Write(Precursors.Count);
+        for(int a = 0; a < Precursors.Count; a++)
+        {
+          writer.Write(Precursors[a].IsolationMz);
+          writer.Write(Precursors[a].IsolationWidth);
+          writer.Write(Precursors[a].MonoisotopicMz);
+          writer.Write(Precursors[a].Charge);
+        }
         
         writer.Write(Count);
         for (int a = 0; a < Count; a++)
