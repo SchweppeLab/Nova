@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ProjectMIDAS.Data.Spectrum;
+using Nova.Data.Spectrum;
 using ThermoFisher.CommonCore.Data;
 using ThermoFisher.CommonCore.RawFileReader;
 
-namespace ProjectMIDAS.Io
+namespace Nova.Io
 {
 
   public enum FileFormat

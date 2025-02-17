@@ -1,6 +1,7 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
-namespace ProjectMIDAS.Data.Spectrum
+namespace Nova.Data.Spectrum
 {
     /// <summary>
     /// An expanded version of the Spectrum object that uses the sCentroid structure for the data array.

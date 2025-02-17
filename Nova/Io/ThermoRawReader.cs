@@ -1,21 +1,22 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using ThermoFisher.CommonCore.Data.Business;
+using ThermoFisher.CommonCore.Data.FilterEnums;
 using ThermoFisher.CommonCore.Data.Interfaces;
 using ThermoFisher.CommonCore.RawFileReader;
 
-using ProjectMIDAS.Data;
-using ProjectMIDAS.Data.Spectrum;
-using System.Collections;
-using System.Collections.Specialized;
-using System.Formats.Tar;
-using ThermoFisher.CommonCore.Data.FilterEnums;
-using ProjectMIDAS.data;
+using Nova.Data;
+using Nova.Data.Spectrum;
 
-namespace ProjectMIDAS.Io
+
+
+
+namespace Nova.Io
 {
   public class ThermoRawReader : ISpectrumFileReader
   {
@@ -229,7 +230,7 @@ namespace ProjectMIDAS.Io
         ProcessScanEvent(scanEvent);
       }
 
-      ILogEntryAccess trailerData = RawFile.GetTrailerExtraInformation(CurrentScanNumber);
+      LogEntry trailerData = RawFile.GetTrailerExtraInformation(CurrentScanNumber);
       ProcessTrailerExtraInformation(trailerData);
     }
 
@@ -275,7 +276,7 @@ namespace ProjectMIDAS.Io
     /// Processes the Trailer Extra Information attached to the Scan Header.
     /// </summary>
     /// <param name="trailerData">ILogEntryAccess object</param>
-    private void ProcessTrailerExtraInformation(ILogEntryAccess trailerData)
+    private void ProcessTrailerExtraInformation(LogEntry trailerData)
     {
 
       for (int i = 0; i < trailerData.Length; i++)

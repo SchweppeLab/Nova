@@ -1,11 +1,12 @@
 ﻿#define GLOBALMEM
 
+using System;
 using System.Collections.Specialized;
 using System.Security.Cryptography;
-using ProjectMIDAS.Data.Spectrum;
-using ProjectMIDAS.Io;
+using Nova.Data.Spectrum;
+using Nova.Io;
 
-class PMApp
+class NovaApp
 {
 
   public const int ScanCount= 100000;

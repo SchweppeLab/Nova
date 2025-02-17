@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProjectMIDAS.data
+namespace Nova.Data
 {
   public interface IMIDASSpectrum : IDisposable
   {
-    public Dictionary<string,string> MetaData { get; }
+    Dictionary<string,string> MetaData { get; }
 
-    public void Deserialize(byte[] data);
-    public byte[] Serialize();
+    void Deserialize(byte[] data);
+    byte[] Serialize();
   }
 }

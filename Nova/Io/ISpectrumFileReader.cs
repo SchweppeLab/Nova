@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Formats.Asn1;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ProjectMIDAS.Data.Spectrum;
+using Nova.Data.Spectrum;
 
-namespace ProjectMIDAS.Io
+namespace Nova.Io
 {
   public interface ISpectrumFileReader : IEnumerable
   {
@@ -22,7 +21,7 @@ namespace ProjectMIDAS.Io
     /// <param name="centroid">Indicates the preferred peak type. Note that this preference is not guaranteed and should be checked 
     /// using the Spectrum.Centroid property. </param>
     /// <returns>Spectrum object</returns>
-    public Spectrum GetSpectrum(int scanNumber=-1, bool centroid=true);
+    Spectrum GetSpectrum(int scanNumber=-1, bool centroid=true);
 
     /// <summary>
     /// Open data file and hold new scan information.

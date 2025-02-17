@@ -1,7 +1,8 @@
-﻿using System.Runtime.InteropServices;
-using ProjectMIDAS.data;
+﻿using System.IO;
+using System.Runtime.InteropServices;
+using Nova.Data;
 
-namespace ProjectMIDAS.Data.Spectrum
+namespace Nova.Data.Spectrum
 {
     /// <summary>
     /// The struct-based contents of a single spectrum/scan event
