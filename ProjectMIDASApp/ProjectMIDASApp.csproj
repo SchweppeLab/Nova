@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+	<Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;0162</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <NoWarn>1701;1702;0162</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;0162</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <NoWarn>1701;1702;0162</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="8.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ProjectMIDAS\ProjectMIDAS.csproj" />
+  </ItemGroup>
+
+</Project>
