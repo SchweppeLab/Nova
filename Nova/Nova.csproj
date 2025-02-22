@@ -75,11 +75,6 @@
     <Compile Include="Data\Spectrum.cs" />
     <Compile Include="Data\SpectrumEx.cs" />
     <Compile Include="Data\SpectrumFoundation.cs" />
-    <Compile Include="IO\FileReader.cs" />
-    <Compile Include="IO\ISpectrumFileReader.cs" />
-    <Compile Include="IO\MzMLReader.cs" />
-    <Compile Include="IO\SpectrumFileReaderFactory.cs" />
-    <Compile Include="IO\ThermoRawReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

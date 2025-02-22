@@ -38,7 +38,7 @@ namespace Nova.Io
     /// Identifies the format of the most recently opened file.
     /// </summary>
     public FileFormat Format {  get; } = FileFormat.Unknown;
-    private ISpectrumFileReader fileReader { get; set; }
+    private ISpectrumFileReader? fileReader { get; set; }
 
     /// <summary>
     /// Filters out scans when reading scan-by-scan. For example, to read only MS2 scans, set filter=MSFilter.MS2. By default, all 

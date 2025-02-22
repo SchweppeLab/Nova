@@ -34,12 +34,12 @@ namespace Nova.Io
     /// <summary>
     /// The interface to the Raw file.
     /// </summary>
-    private IRawDataExtended RawFile;
+    private IRawDataExtended? RawFile;
 
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
     /// </summary>
-    private MSFilter Filter { get; set; } 
+    private MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
     /// <summary>
     /// The ScanNumber of the last scan in the file.
@@ -213,7 +213,7 @@ namespace Nova.Io
     /// </summary>
     /// <param name="scanFilter">Optionally provide an IScanFilter object if it was previously obtained.</param>
     /// <param name="scanStatistics">Optionally provide a ScanStatistics object if it was previously obtained.</param>
-    private void ProcessSpectrumInformation(IScanFilter scanFilter = null, ScanStatistics scanStatistics = null)
+    private void ProcessSpectrumInformation(IScanFilter? scanFilter = null, ScanStatistics? scanStatistics = null)
     {
       //If scanFilter or scanStatistics was not provided, grab them now.
       if (scanFilter == null) scanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber);
@@ -230,7 +230,7 @@ namespace Nova.Io
         ProcessScanEvent(scanEvent);
       }
 
-      LogEntry trailerData = RawFile.GetTrailerExtraInformation(CurrentScanNumber);
+      ILogEntryAccess trailerData = RawFile.GetTrailerExtraInformation(CurrentScanNumber);
       ProcessTrailerExtraInformation(trailerData);
     }
 
@@ -276,7 +276,7 @@ namespace Nova.Io
     /// Processes the Trailer Extra Information attached to the Scan Header.
     /// </summary>
     /// <param name="trailerData">ILogEntryAccess object</param>
-    private void ProcessTrailerExtraInformation(LogEntry trailerData)
+    private void ProcessTrailerExtraInformation(ILogEntryAccess trailerData)
     {
 
       for (int i = 0; i < trailerData.Length; i++)

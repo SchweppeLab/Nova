@@ -33,12 +33,12 @@ namespace Nova.Io
     /// <summary>
     /// The XmlReader interface to the mzML file.
     /// </summary>
-    private XmlReader XmlFile;
+    private XmlReader? XmlFile;
 
     /// <summary>
     /// The mzML FileStream, which is essential for random access.
     /// </summary>
-    private FileStream XmlFS;
+    private FileStream? XmlFS;
 
     /// <summary>
     /// List of offsets for each spectrum in the mzML file. The position in the index equals the scan number, and a value of zero
@@ -49,7 +49,7 @@ namespace Nova.Io
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
     /// </summary>
-    private MSFilter Filter { get; set; }
+    private MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
     /// <summary>
     /// The ScanNumber of the last scan in the file.
