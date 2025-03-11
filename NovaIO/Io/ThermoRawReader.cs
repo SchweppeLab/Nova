@@ -258,6 +258,24 @@ namespace Nova.Io
       if(filter.Polarity==PolarityType.Positive) spectrum.Polarity = true;
       else spectrum.Polarity = false;
 
+      switch (filter.MassAnalyzer)
+      {
+        case MassAnalyzerType.MassAnalyzerFTMS:
+          spectrum.Analyzer = "FTMS";
+          break;
+        case MassAnalyzerType.MassAnalyzerITMS:
+          spectrum.Analyzer = "ITMS";
+          break;
+        case MassAnalyzerType.MassAnalyzerASTMS:
+          spectrum.Analyzer = "Astral";
+          break;
+        default:
+          spectrum.Analyzer = "Unknown";
+          break;
+      }
+      
+      spectrum.ScanType = filter.ScanMode.ToString();
+
     }
 
     /// <summary>
@@ -269,6 +287,9 @@ namespace Nova.Io
       spectrum.ScanNumber = scanStatistics.ScanNumber;
       spectrum.Centroid = scanStatistics.IsCentroidScan;
       spectrum.TotalIonCurrent = scanStatistics.TIC;
+      spectrum.BasePeakIntensity = scanStatistics.BasePeakIntensity;
+      spectrum.StartMz = scanStatistics.LowMass;
+      spectrum.EndMz = scanStatistics.HighMass;
     }
 
     //TODO: Reassess these values closely. Some trailer information applies to multiple precursors. Other trailer information to only the first precursor.
@@ -283,11 +304,18 @@ namespace Nova.Io
       {
         //for diagnostics, to see all trailer values
         //Console.WriteLine("TD: " + trailerData.Labels[i] + " = " + trailerData.Values[i]); 
-
+       
         switch (MetaDictionary.FindMeta(trailerData.Labels[i]))
         {
           case MetaClass.ChargeState:
             if (spectrum.Precursors.Count > 0) spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
+            break;
+          case MetaClass.FaimsCV:
+            spectrum.FaimsCV = Convert.ToDouble(trailerData.Values[i]);
+            break;
+          case MetaClass.FaimsState:
+            if (trailerData.Values[i] == "true" || trailerData.Values[i] == "True") spectrum.FaimsState = true;
+            else spectrum.FaimsState = false;
             break;
           case MetaClass.IIT:
             spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
@@ -299,7 +327,7 @@ namespace Nova.Io
 
             //TODO: comment this out to disable notifications. But also maybe consider if any of these additional values are
             //worth capturing.
-            //Console.WriteLine("Uncaptured trailerData: " + trailerData.Labels[i] + " " + trailerData.Values[i]);
+            //Console.WriteLine("Uncaptured trailerData: '" + trailerData.Labels[i] + "' " + trailerData.Values[i]);
             break;
         }
 

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Messaging;
 using Nova.Data;
 
 namespace Nova.Data.Spectrum
@@ -47,6 +48,16 @@ namespace Nova.Data.Spectrum
         MsLevel = reader.ReadInt32();
         Centroid = reader.ReadBoolean();
         RetentionTime = reader.ReadDouble();
+        StartMz = reader.ReadDouble();
+        EndMz = reader.ReadDouble();
+        TotalIonCurrent = reader.ReadDouble();
+        BasePeakIntensity = reader.ReadDouble();
+        FaimsState = reader.ReadBoolean();
+        FaimsCV = reader.ReadDouble();
+        Analyzer = reader.ReadString();
+        IonInjectionTime = reader.ReadDouble();
+        ScanType = reader.ReadString();
+
         ScanFilter = reader.ReadString();
 
         int pre= reader.ReadInt32();
@@ -91,6 +102,16 @@ namespace Nova.Data.Spectrum
         writer.Write(MsLevel);
         writer.Write(Centroid);
         writer.Write(RetentionTime);
+        writer.Write(StartMz);
+        writer.Write(EndMz);
+        writer.Write(TotalIonCurrent);
+        writer.Write(BasePeakIntensity);
+        writer.Write(FaimsState);
+        writer.Write(FaimsCV);
+        writer.Write(Analyzer);
+        writer.Write(IonInjectionTime);
+        writer.Write(ScanType);
+
         writer.Write(ScanFilter);
 
         writer.Write(Precursors.Count);

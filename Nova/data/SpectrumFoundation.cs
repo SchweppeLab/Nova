@@ -187,7 +187,7 @@ namespace Nova.Data.Spectrum
     /// <summary>
     /// Mass analyzer used
     /// </summary>
-    //public Analyzer Analyzer { get; set; } = Analyzer.IonTrap;
+    public string Analyzer { get; set; }
 
     /// <summary>
     /// String description of scan type
@@ -235,10 +235,10 @@ namespace Nova.Data.Spectrum
     /// </summary>
     public double FaimsCV { get; set; } = 0;
 
-        /// <summary>
-        /// FAIMS state, it's possible to have a CV of 0 which is the int default.
-        /// </summary>
-        //public TriState FaimsState { get; set; } = TriState.Off;
+    /// <summary>
+    /// FAIMS state, true = on. FaimsState can be on, and FaimsCV can still be 0.
+    /// </summary>
+    public bool FaimsState { get; set; } = false;
 
         /// <summary>
         /// Total ion current for the current scan
