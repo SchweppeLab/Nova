@@ -18,6 +18,11 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
+
+    - name: Setup RawFileReader
+      uses: actions/checkout@main
+      with:
+        name: thermofisherlsms/RawFileReader
         
     - name: Restore dependencies
       run: dotnet restore Nova\Nova.sln
