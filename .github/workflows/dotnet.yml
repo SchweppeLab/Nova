@@ -20,6 +20,7 @@ jobs:
     - name: Setup RawFileReader
       uses: actions/checkout@main
       with:
+        path: .\RawFileReader
         repository: thermofisherlsms/RawFileReader
     
     - name: Setup .NET
