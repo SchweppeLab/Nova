@@ -27,13 +27,7 @@ jobs:
       uses: actions/setup-dotnet@v2
 
     - name: Point NuGet to RawFileReader
-      run: dotnet nuget add source .\RawFileReader\Libs\NetCore\Net8
-
-    - name: Save me NuGet...
-      run: dotnet nuget locals all --list
-      
-    - name: Ugh NuGet
-      run: dotnet nuget list source
+      run: set NUGET_PACKAGES="D:\a\RawFileReader\Libs\NetCore\Net8"             #dotnet nuget add source .\RawFileReader\Libs\NetCore\Net8
 
     - name: NuGet is lying
       run: dir C:\Users\runneradmin\AppData\Roaming\NuGet\RawFileReader\Libs\NetCore\Net8
