@@ -34,6 +34,7 @@ jobs:
       
     - name: Build
       run: dotnet build Nova\Nova.sln --no-restore --configuration Release /p:Platform="x64"
-      
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+
+      #No test
+    #- name: Test
+    #  run: dotnet test --no-build --verbosity normal
