@@ -24,9 +24,12 @@ jobs:
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
+
+    - name: Figure out WTF I am
+      run: dir
         
     - name: Restore dependencies
-      run: dotnet restore Nova\Nova.sln
+      run: dotnet restore .\Nova\Nova.sln
       
     - name: Build
       run: dotnet build Nova\Nova.sln --no-restore --framework net482 --configuration Release --arch x64 /p:Platform="x64"
