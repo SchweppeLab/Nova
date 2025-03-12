@@ -1,9 +1,7 @@
 ﻿#define GLOBALMEM
 
 using System;
-using System.Collections.Specialized;
-using System.Security.Cryptography;
-using Nova.Data.Spectrum;
+using Nova.Data;
 using Nova.Io;
 
 class NovaApp

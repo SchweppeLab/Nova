@@ -1,14 +1,13 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
-using Nova.Data;
 
-namespace Nova.Data.Spectrum
+namespace Nova.Data
 {
     /// <summary>
     /// The struct-based contents of a single spectrum/scan event
     /// </summary>
-  public class Spectrum : SpectrumFoundation, IMIDASSpectrum
+  public class Spectrum : SpectrumFoundation
   {
 
     #region CONSTRUCTORS

@@ -1,20 +1,8 @@
 ﻿using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 using Nova.Data;
-using Nova.Data.Spectrum;
-using ThermoFisher.CommonCore.Data.Business;
-using ThermoFisher.CommonCore.Data.FilterEnums;
-using ThermoFisher.CommonCore.Data.Interfaces;
-using ThermoFisher.CommonCore.RawFileReader;
 
 namespace Nova.Io
 {

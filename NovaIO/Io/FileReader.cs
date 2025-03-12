@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Nova.Data.Spectrum;
+using Nova.Data;
 using ThermoFisher.CommonCore.Data;
 using ThermoFisher.CommonCore.RawFileReader;
 

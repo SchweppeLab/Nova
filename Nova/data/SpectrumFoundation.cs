@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Nova.Data.Spectrum
+namespace Nova.Data
 {
   /// <summary>
   /// The spectrum data point structure defines the basic contents of a mass spectrum.
