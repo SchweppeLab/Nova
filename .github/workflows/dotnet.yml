@@ -27,7 +27,7 @@ jobs:
       uses: actions/setup-dotnet@v2
 
     - name: Point NuGet to RawFileReader
-      run: nuget add source .\RawFileReader\Libs\NetCore\Net8
+      run: dotnet nuget add source .\RawFileReader\Libs\NetCore\Net8
 
     - name: Everything NuGet sucks
       run: set NUGET_PACKAGES="D:\a\RawFileReader\Libs\NetCore\Net8"
