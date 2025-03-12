@@ -22,7 +22,7 @@ jobs:
     - name: Setup RawFileReader
       uses: actions/checkout@main
       with:
-        name: thermofisherlsms/RawFileReader
+        repository: thermofisherlsms/RawFileReader
         
     - name: Restore dependencies
       run: dotnet restore Nova\Nova.sln
