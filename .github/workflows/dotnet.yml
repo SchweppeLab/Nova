@@ -36,7 +36,7 @@ jobs:
       uses: actions/setup-dotnet@v2
 
     - name: Point NuGet to RawFileReader
-      run: dotnet nuget add source .\RawFileReader\Libs\NetCore\Net8
+      run: dotnet nuget add source D:\a\RawFileReader\Libs\NetCore\Net8
       
     - name: WTF4
       run: dir c:\Users\runneradmin\AppData\Roaming\NuGet
