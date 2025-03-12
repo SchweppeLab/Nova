@@ -24,13 +24,13 @@ jobs:
         repository: thermofisherlsms/RawFileReader
 
     - name: WTF
-      run: dir c:\
+      run: dir D:\
 
     - name: WTF2
-      run: dir c:\Users
+      run: dir D:\a
 
     - name: WTF3
-      run: dir c:\Users\runneradmin\AppData\Roaming
+      run: dir D:\a\RawFileReader
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
