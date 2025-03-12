@@ -42,7 +42,7 @@ jobs:
       run: dir c:\Users\runneradmin\AppData\Roaming\NuGet
 
     - name: WTF4
-      run: dir c:\Users\runneradmin\AppData\Roaming\NuGet\RawFileReader
+      run: type c:\Users\runneradmin\AppData\Roaming\NuGet\NuGet.config
       
     - name: Everything NuGet sucks
       run: set NUGET_PACKAGES="D:\a\RawFileReader\Libs\NetCore\Net8"
