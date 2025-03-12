@@ -30,7 +30,7 @@ jobs:
       run: dotnet nuget add source .\RawFileReader\Libs\NetCore\Net8
 
     - name: Save me NuGet...
-      run: dotnet nuget locals
+      run: dotnet nuget locals all
       
     - name: Ugh NuGet
       run: dotnet nuget list source
