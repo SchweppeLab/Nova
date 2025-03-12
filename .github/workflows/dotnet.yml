@@ -33,7 +33,7 @@ jobs:
       run: dotnet restore .\Nova\Nova.sln
       
     - name: Build
-      run: dotnet build Nova\Nova.sln --no-restore --framework net482 --configuration Release --arch x64 /p:Platform="x64"
+      run: dotnet build Nova\Nova.sln --no-restore --configuration Release /p:Platform="x64"
       
     - name: Test
       run: dotnet test --no-build --verbosity normal
