@@ -25,13 +25,25 @@ jobs:
 
     - name: WTF
       run: dir c:\
-    
+
+    - name: WTF2
+      run: dir c:\Users
+
+    - name: WTF3
+      run: dir c:\Users\runneradmin\AppData\Roaming
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
 
     - name: Point NuGet to RawFileReader
       run: dotnet nuget add source .\RawFileReader\Libs\NetCore\Net8
+      
+    - name: WTF4
+      run: dir c:\Users\runneradmin\AppData\Roaming\NuGet
 
+    - name: WTF4
+      run: dir c:\Users\runneradmin\AppData\Roaming\NuGet\RawFileReader
+      
     - name: Everything NuGet sucks
       run: set NUGET_PACKAGES="D:\a\RawFileReader\Libs\NetCore\Net8"
         
