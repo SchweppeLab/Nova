@@ -26,8 +26,8 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
 
-    - name: Figure out WTF I am
-      run: dir
+    - name: Point NuGet to RawFileReader
+      run: dotnet nuget add source .\RawFileReader\Libs\NetCore\Net8
         
     - name: Restore dependencies
       run: dotnet restore .\Nova\Nova.sln
