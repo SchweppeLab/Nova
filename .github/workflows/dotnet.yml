@@ -34,6 +34,9 @@ jobs:
       
     - name: Ugh NuGet
       run: dotnet nuget list source
+
+    - name: NuGet is lying
+      run: dir C:\Users\runneradmin\AppData\Roaming\NuGet\RawFileReader\Libs\NetCore\Net8
         
     - name: Restore dependencies
       run: dotnet restore .\Nova\Nova.sln
