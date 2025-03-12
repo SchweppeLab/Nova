@@ -22,30 +22,12 @@ jobs:
       with:
         path: .\RawFileReader
         repository: thermofisherlsms/RawFileReader
-
-    - name: WTF
-      run: dir D:\
-
-    - name: WTF2
-      run: dir D:\a
-
-    - name: WTF3
-      run: dir D:\a\Nova\Nova\
-
+        
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
 
     - name: Point NuGet to RawFileReader
       run: dotnet nuget add source D:\a\Nova\Nova\RawFileReader\Libs\NetCore\Net8
-      
-    - name: WTF4
-      run: dir c:\Users\runneradmin\AppData\Roaming\NuGet
-
-    - name: WTF4
-      run: type c:\Users\runneradmin\AppData\Roaming\NuGet\NuGet.config
-      
-    - name: Everything NuGet sucks
-      run: dir D:\a\Nova\RawFileReader\Libs\NetCore\Net8
         
     - name: Restore dependencies
       run: dotnet restore .\Nova\Nova.sln
