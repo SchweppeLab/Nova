@@ -28,6 +28,12 @@ jobs:
 
     - name: Point NuGet to RawFileReader
       run: dotnet nuget add source .\RawFileReader\Libs\NetCore\Net8
+
+    - name: Save me NuGet...
+      run: dotnet nuget locals
+      
+    - name: Ugh NuGet
+      run: dotnet nuget list source
         
     - name: Restore dependencies
       run: dotnet restore .\Nova\Nova.sln
