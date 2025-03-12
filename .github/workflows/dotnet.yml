@@ -45,7 +45,7 @@ jobs:
       run: type c:\Users\runneradmin\AppData\Roaming\NuGet\NuGet.config
       
     - name: Everything NuGet sucks
-      run: set NUGET_PACKAGES="D:\a\RawFileReader\Libs\NetCore\Net8"
+      run: dir D:\a\RawFileReader\Libs\NetCore\Net8
         
     - name: Restore dependencies
       run: dotnet restore .\Nova\Nova.sln
