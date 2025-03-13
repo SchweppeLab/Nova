@@ -60,25 +60,21 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="ThermoFisher.CommonCore.Data">
-      <HintPath>..\..\..\..\Other\RawFileReader\Libs\Net471\ThermoFisher.CommonCore.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="ThermoFisher.CommonCore.RawFileReader">
-      <HintPath>..\..\..\..\Other\RawFileReader\Libs\Net471\ThermoFisher.CommonCore.RawFileReader.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\IMIDASSpectrum.cs" />
-    <Compile Include="Data\MetaDictionary.cs" />
-    <Compile Include="Data\MetaItem.cs" />
     <Compile Include="Data\Precursor.cs" />
     <Compile Include="Data\Spectrum.cs" />
     <Compile Include="Data\SpectrumEx.cs" />
     <Compile Include="Data\SpectrumFoundation.cs" />
+    <Compile Include="IPC\Pipes\PipesClient.cs" />
+    <Compile Include="IPC\Pipes\PipesConnection.cs" />
+    <Compile Include="IPC\Pipes\PipesServer.cs" />
+    <Compile Include="IPC\Pipes\TaskQueue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

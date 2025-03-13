@@ -1,0 +1,40 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    branches: [ "Reorg4Helios" ]
+  pull_request:
+    branches: [ "Reorg4Helios" ]
+
+jobs:
+  build:
+
+    runs-on: windows-2022
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup RawFileReader
+      uses: actions/checkout@main
+      with:
+        path: .\RawFileReader
+        repository: thermofisherlsms/RawFileReader
+        
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+
+    - name: Point NuGet to RawFileReader
+      run: dotnet nuget add source D:\a\Nova\Nova\RawFileReader\Libs\NetCore\Net8
+        
+    - name: Restore dependencies
+      run: dotnet restore .\Nova\Nova.sln
+      
+    - name: Build
+      run: dotnet build Nova\Nova.sln --no-restore --configuration Release /p:Platform="x64"
+
+      #No test
+    #- name: Test
+    #  run: dotnet test --no-build --verbosity normal

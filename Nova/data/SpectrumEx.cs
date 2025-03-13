@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Nova.Data.Spectrum
+namespace Nova.Data
 {
     /// <summary>
     /// An expanded version of the Spectrum object that uses the sCentroid structure for the data array.
