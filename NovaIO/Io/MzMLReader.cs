@@ -3,6 +3,8 @@ using System.Collections;
 using System.Xml;
 
 using Nova.Data;
+using System.Runtime.InteropServices;
+using System;
 
 namespace Nova.Io
 {
@@ -68,6 +70,8 @@ namespace Nova.Io
     /// For storing precursor ion information while parsing the mzML file.
     /// </summary>
     private PrecursorIon precursorIon;
+
+    private bool hasMonoMz = false;
 
     /// <summary>
     /// Constructor for MzMLReader
@@ -242,8 +246,14 @@ namespace Nova.Io
 
     private void ParseSpectrum(int scanNumber)
     {
+
+      //Reset spectrum. TODO: put this in its own code. Possibly spectrum object
       //Always reset our scan number
       spectrum.ScanNumber = 0;
+      spectrum.Centroid = false;
+      spectrum.Polarity = true;
+      
+      hasMonoMz = false;
 
       //some local variables as we process
       int encLen = 0; //encoded length of a binaryDataArray
@@ -257,29 +267,7 @@ namespace Nova.Io
         {
           if (XmlFile.Name == "binary")
           {
-            //TODO: Consider wrapping this code in a function to make ParseSpectrum() more readable.
-            byte[] buffer = new byte[encLen];
-            XmlFile.ReadElementContentAsBase64(buffer,0,encLen);
-            int sz = bit64 ? 8 : 4;
-            if (zlib) {          
-              buffer = Decompress(buffer, defArrLen * sz);
-            }
-            if (mzArray)
-            {
-              for(int a = 0; a < defArrLen; a++)
-              {
-                if (bit64) spectrum.DataPoints[a].Mz = BitConverter.ToDouble(buffer, a * sz);
-                else spectrum.DataPoints[a].Mz = BitConverter.ToSingle(buffer, a * sz);
-              }
-            } 
-            else
-            {
-              for (int a = 0; a < defArrLen; a++)
-              {
-                if (bit64) spectrum.DataPoints[a].Intensity = BitConverter.ToDouble(buffer, a * sz);
-                else spectrum.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
-              }
-            }
+            ProcessBinaryData(encLen,defArrLen);
           }
           else if(XmlFile.Name == "binaryDataArray")
           {
@@ -297,7 +285,10 @@ namespace Nova.Io
           {
             precursorIon.Clear();
             string spectrumRef = XmlFile.GetAttribute("spectrumRef");
-            spectrum.PrecursorMasterScanNumber = Convert.ToInt32(spectrumRef.Substring(spectrumRef.IndexOf("scan=") + 5));
+            if (spectrumRef != null)
+            {
+              spectrum.PrecursorMasterScanNumber = Convert.ToInt32(spectrumRef.Substring(spectrumRef.IndexOf("scan=") + 5));
+            }
           }
           else if (XmlFile.Name == "spectrum")
           {
@@ -307,6 +298,15 @@ namespace Nova.Io
             spectrum.Resize(defArrLen);
             spectrum.Precursors.Clear();
           } 
+          else if( XmlFile.Name == "userParam")
+          {
+            string name = XmlFile.GetAttribute("name");
+            string val = XmlFile.GetAttribute("value");
+            if(name=="[Thermo Trailer Extra]Monoisotopic M/Z:")
+            {
+              if(Convert.ToDouble(val)>1) hasMonoMz = true;
+            }
+          }
         } 
         
 
@@ -324,15 +324,40 @@ namespace Nova.Io
       }
     }
 
-    private void ProcessBinaryData(string dat)
+    private void ProcessBinaryData(int encLen, int defArrLen)
     {
-
+      byte[] buffer = new byte[encLen];
+      XmlFile.ReadElementContentAsBase64(buffer, 0, encLen);
+      int sz = bit64 ? 8 : 4;
+      if (zlib)
+      {
+        buffer = Decompress(buffer, defArrLen * sz);
+      }
+      if (mzArray)
+      {
+        for (int a = 0; a < defArrLen; a++)
+        {
+          if (bit64) spectrum.DataPoints[a].Mz = BitConverter.ToDouble(buffer, a * sz);
+          else spectrum.DataPoints[a].Mz = BitConverter.ToSingle(buffer, a * sz);
+        }
+      }
+      else
+      {
+        for (int a = 0; a < defArrLen; a++)
+        {
+          if (bit64) spectrum.DataPoints[a].Intensity = BitConverter.ToDouble(buffer, a * sz);
+          else spectrum.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
+        }
+      }
     }
 
     private void ProcessCvParam(ref XmlReader xml)
     {
       string acc = xml.GetAttribute("accession");
       string val = xml.GetAttribute("value");
+      //TODO: Maybe consider a dictionary, if this becomes burdensome or slow
+      //TODO: or not...but considere building the dictionary from an ontology file. Something I'm less happy to do
+      //because ontology files are generally overloaded with obsolete terms or simply useless crap.
       switch (acc)
       {
         case "MS:1000016": //scan start time
@@ -343,8 +368,39 @@ namespace Nova.Io
         case "MS:1000041": //charge state
           precursorIon.Charge = Convert.ToInt32(val);
           break;
+        case "MS:1000045": //collision energy
+          precursorIon.CollisionEnergy = Convert.ToDouble(val);
+          break;
+        case "MS:1000127": //centorid spectrum
+          spectrum.Centroid = true;
+          break;
+        case "MS:1000129": //negative scan
+          spectrum.Polarity = false;
+          break;
+        case "MS:1000130": //positive scan
+          spectrum.Polarity = true;
+          break;
+        case "MS:1000133":
+          precursorIon.FramentationMethod = FramentationType.CID;
+          break;
         case "MS:1000285": //total ion current
           spectrum.TotalIonCurrent = Convert.ToDouble(val);
+          break;
+        case "MS:1000421": //high energy collision (obsolete)
+        case "MS:1000422": //beam-type collision-induced dissociation
+          precursorIon.FramentationMethod = FramentationType.HCD;
+          break;
+        case "MS:1000500": //scan window upper limit
+          spectrum.EndMz = Convert.ToDouble(val);
+          break;
+        case "MS:1000501": //scan window lower limit
+          spectrum.StartMz = Convert.ToDouble(val);
+          break;
+        case "MS:1000504": //base peak m/z
+          spectrum.BasePeakMz = Convert.ToDouble(val);
+          break;
+        case "MS:1000505": //base peak intensity
+          spectrum.BasePeakIntensity = Convert.ToDouble(val);
           break;
         case "MS:1000511": //ms level
           spectrum.MsLevel = Convert.ToInt32(val);
@@ -364,11 +420,30 @@ namespace Nova.Io
         case "MS:1000523": //64-bit double
           bit64 = true;
           break;
+        case "MS:1000527": //highest observed m/z
+          spectrum.HighestMz = Convert.ToDouble(val);
+          break;
+        case "MS:1000528": //lowest observed m/z
+          spectrum.LowestMz = Convert.ToDouble(val);
+          break;
         case "MS:1000574": //zlib compression
           zlib = true;
           break;
+        //Redundant with MS:1000511, and less useful.
+        //case "MS:1000579": //MS1 spectrum
+        //  spectrum.MsLevel = 1;
+        //  break;
+
+        case "MS:1000598": //electron transfer dissociation
+          precursorIon.FramentationMethod = FramentationType.ETD;
+          break;
+        case "MS:1000599": //pulsed q dissociation
+          precursorIon.FramentationMethod = FramentationType.PQD;
+          break;
         case "MS:1000744": //selected ion m/z
-          precursorIon.MonoisotopicMz = Convert.ToDouble(val);
+          //Note that in ProteoWizard mzML files, this value may be set with the IsolationMz if the MonoisotopicMz
+          //was not determined. Therefore don't set this unless we know the MonoisotopicMz value is correct.
+          if (hasMonoMz) precursorIon.MonoisotopicMz = Convert.ToDouble(val);
           break;
         case "MS:1000827": //isolation window target m/z
           precursorIon.IsolationMz = Convert.ToDouble(val);
@@ -386,5 +461,6 @@ namespace Nova.Io
         default: break;
       }
     }
+
   }
 }

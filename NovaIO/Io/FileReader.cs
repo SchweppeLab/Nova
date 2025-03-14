@@ -136,6 +136,7 @@ namespace Nova.Io
           //close the existing file, if open
           if (!FileName.IsNullOrEmpty())
           {
+            FileName = String.Empty;
             fileReader.Close();
           }
 
@@ -162,6 +163,12 @@ namespace Nova.Io
       }
 
       return new Spectrum(0);
+    }
+
+    public void Reset()
+    {
+      FileName = String.Empty;
+      fileReader.Close();
     }
 
   }

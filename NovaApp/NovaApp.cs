@@ -3,6 +3,7 @@
 using System;
 using Nova.Data;
 using Nova.Io;
+using Nova.Io.Write;
 
 class NovaApp
 {
@@ -105,6 +106,26 @@ class NovaApp
     Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count+")");
     Spec = Reader2.GetSpectrum(892);  //see...told you so. 892 is MS1, but filter is for MS2
     Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count + ")");
+
+    Pause();
+
+    Console.WriteLine(Environment.NewLine + "Third test opens the file with the FileReader then exports it to an mzML with the MzMLWriter.");
+    Console.WriteLine("Optionally the file is named to any additional command line parameter given. Otherwise 'testWriter' is used for the filename.");
+
+    string outFile = "testWriter";
+    if(args.Length>1) outFile = args[1];
+    MzMLWriter mzMLWriter = new MzMLWriter();
+    mzMLWriter.AddRun(outFile);
+
+    Reader.Reset(); //Reset the reader to the beginning of the file.
+    Reader.Filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
+    Spec = Reader.ReadSpectrum(args[0]);
+    while (Spec.ScanNumber > 0)
+    {
+      mzMLWriter.AddSpectrum(Spec);
+      Spec = Reader.ReadSpectrum();
+    }
+    mzMLWriter.Write(outFile+".mzML");
 
   }
 

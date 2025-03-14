@@ -6,6 +6,20 @@ using System.Threading.Tasks;
 
 namespace Nova.Data
 {
+  public enum FramentationType
+  {
+    None,
+    CID,
+    ECD,
+    ETD,
+    EThcD,
+    ETDSA,
+    HCD,   
+    IRMPD,
+    PQD,
+    SID
+  }
+
   /// <summary>
   /// The spectrum data point structure defines the basic contents of a mass spectrum.
   /// </summary>
@@ -178,7 +192,6 @@ namespace Nova.Data
     /// </summary>
     public int ScanNumber { get; set; } = 0;
 
-
     /// <summary>
     /// Thermo variable for master scan number
     /// </summary>
@@ -204,31 +217,35 @@ namespace Nova.Data
     /// </summary>
     public double RetentionTime { get; set; } = 0;
 
-        /// <summary>
-        /// Mz that scan starts at
-        /// </summary>
-        public double StartMz { get; set; } = 0;
+    /// <summary>
+    /// Mz that scan starts at
+    /// </summary>
+    public double StartMz { get; set; } = 0;
 
-        /// <summary>
-        /// Mz that scan ends at
-        /// </summary>
-        public double EndMz { get; set; } = 0;
+    /// <summary>
+    /// Mz that scan ends at
+    /// </summary>
+    public double EndMz { get; set; } = 0;
 
-        /// <summary>
-        /// Lowest Mz observed in scan
-        /// </summary>
-        public double LowestMz { get; set; }
+    /// <summary>
+    /// Lowest Mz observed in scan
+    /// </summary>
+    public double LowestMz { get; set; } = 0;
 
-        /// <summary>
-        /// Highest Mz observed in scan
-        /// </summary>
-        public double HighestMz { get; set; }
-        /// <summary>
-        /// The most intense Mz peak in the scan
-        /// </summary>
-        public double BasePeakMz { get; set; }
+    /// <summary>
+    /// Highest Mz observed in scan
+    /// </summary>
+    public double HighestMz { get; set; } = 0;
 
-        public double BasePeakIntensity { get; set; }
+    /// <summary>
+    /// The m/z of the most intense peak in the scan.
+    /// </summary>
+    public double BasePeakMz { get; set; } = 0;
+
+    /// <summary>
+    /// The abundance of the most intense peak in the scan.
+    /// </summary>
+    public double BasePeakIntensity { get; set; } = 0;
 
     /// <summary>
     /// FAIMS compensation voltage, if used (in volts)
@@ -240,21 +257,15 @@ namespace Nova.Data
     /// </summary>
     public bool FaimsState { get; set; } = false;
 
-        /// <summary>
-        /// Total ion current for the current scan
-        /// </summary>
-        public double TotalIonCurrent { get; set; }
-
-        /// <summary>
-        /// If a dependent scan, the fragmentation energy used
-        /// </summary>
-        public double CollisionEnergy { get; set; }
+    /// <summary>
+    /// Total ion current for the current scan
+    /// </summary>
+    public double TotalIonCurrent { get; set; } = 0;
 
     /// <summary>
     /// Zero or more precursor ions associated with this spectrum.
     /// </summary>
     public List<PrecursorIon> Precursors { get; set; }
-
 
     /// <summary>
     /// If a dependent scan, the parent scan number

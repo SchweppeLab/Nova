@@ -62,12 +62,19 @@ namespace Nova.Data
     /// </summary>
     public int Charge { get; set; } = 0;
 
+    /// <summary>
+    /// If a dependent scan, the fragmentation energy used
+    /// </summary>
+    public double CollisionEnergy { get; set; } = 0;
+
+    public FramentationType FramentationMethod { get; set; } = FramentationType.None;
 
     /// <summary>
     /// The m/z that the instrument targeted for isolation.
     /// </summary>
     public double IsolationMz { get; set; } = 0;
 
+    //TODO: Update this to allow for asymmetric isolation windows.
     /// <summary>
     /// The size of the window that the instrument targeted for isolation.
     /// </summary>
