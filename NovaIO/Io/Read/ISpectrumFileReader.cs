@@ -6,13 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Nova.Data;
 
-namespace Nova.Io
+namespace Nova.Io.Read
 {
   public interface ISpectrumFileReader : IEnumerable
   {
     //TODO: decide if we want to have general access to the last spectrum loaded
     //Spectrum Spectrum;
     //SpectrumEx SpectrumEx;
+
+    int ScanCount { get; }
 
     /// <summary>
     /// Reads a spectrum from the currently open MS data file. 
@@ -21,7 +23,9 @@ namespace Nova.Io
     /// <param name="centroid">Indicates the preferred peak type. Note that this preference is not guaranteed and should be checked 
     /// using the Spectrum.Centroid property. </param>
     /// <returns>Spectrum object</returns>
-    Spectrum GetSpectrum(int scanNumber=-1, bool centroid=true);
+    Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true);
+
+    SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true);
 
     /// <summary>
     /// Open data file and hold new scan information.

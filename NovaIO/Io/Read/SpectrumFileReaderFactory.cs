@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Nova.Io
+namespace Nova.Io.Read
 {
   public class SpectrumFileReaderFactory
   {
@@ -14,7 +14,9 @@ namespace Nova.Io
       string extension = Path.GetExtension(file).ToUpper();
       if (extension == ".MZXML")
       {
-        throw new ArgumentException("Unsupported file extension: " + extension);
+        MzXMLReader r = new MzXMLReader(filter);
+        r.Open(file);
+        return r;
       }
       else if (extension == ".RAW")
       {
@@ -23,6 +25,10 @@ namespace Nova.Io
         return r;
       }
       else if (extension == ".MZDB")
+      {
+        throw new ArgumentException("Unsupported file extension: " + extension);
+      }
+      else if (extension == ".MGF")
       {
         throw new ArgumentException("Unsupported file extension: " + extension);
       }

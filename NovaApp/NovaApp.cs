@@ -2,8 +2,8 @@
 
 using System;
 using Nova.Data;
-using Nova.Io;
 using Nova.Io.Write;
+using Nova.Io.Read;
 
 class NovaApp
 {
@@ -15,13 +15,12 @@ class NovaApp
 
   static void Main(string[] args)
   {
-
     Console.WriteLine("First test opens the file with the FileReader class and outputs the scan header of the first MS2 scan.");
     Console.WriteLine("The test then proceeds to count all MS2 and MS3 scans in the file.");
 
     //Test code accepts a Thermo raw file as a parameter, then reads all MS2 & MS3 scans from the file.
     FileReader Reader = new FileReader();
-    Spectrum Spec = new Spectrum();
+    SpectrumEx Spec = new SpectrumEx();
     Reader.Filter = MSFilter.MS2 | MSFilter.MS3;
     
 
@@ -31,7 +30,7 @@ class NovaApp
     //the existence of the file can be thrown. But I'm not convinced of the utility.
     try
     {
-      Spec = Reader.ReadSpectrum(args[0]);
+      Spec = Reader.ReadSpectrumEx(args[0]);
     }
     catch (Exception ex)
     {
@@ -72,7 +71,7 @@ class NovaApp
       count++;
 
       //Reading the next spectrum is just another call to ReadSpectrum() without any parameters.
-      Spec = Reader.ReadSpectrum();
+      Spec = Reader.ReadSpectrumEx();
     }
 
     //Give some output to indicate success.
@@ -102,9 +101,13 @@ class NovaApp
     }
 
     //Try reading two spectra, and MS2 and an MS1.
-    Spec = Reader2.GetSpectrum(891);  //note that random-access for a specific spectrum must fall within our filter. Otherwise an empty spectrum is returned
-    Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count+")");
-    Spec = Reader2.GetSpectrum(892);  //see...told you so. 892 is MS1, but filter is for MS2
+    Spec = Reader2.GetSpectrumEx(891);  //note that random-access for a specific spectrum must fall within our filter. Otherwise an empty spectrum is returned
+    Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count+", first 5 shown)");
+    for (int i = 0; i < Spec.Count && i < 5; i++)
+    {
+      Console.WriteLine("\tm/z: " + Spec.DataPoints[i].Mz.ToString() + "  abun: " + Spec.DataPoints[i].Intensity.ToString());
+    }
+    Spec = Reader2.GetSpectrumEx(892);  //see...told you so. 892 is MS1, but filter is for MS2
     Console.WriteLine(Environment.NewLine + Spec.ScanNumber.ToString() + " " + Spec.ScanFilter + " (Peaks = " + Spec.Count + ")");
 
     Pause();
@@ -115,15 +118,16 @@ class NovaApp
     string outFile = "testWriter";
     if(args.Length>1) outFile = args[1];
     MzMLWriter mzMLWriter = new MzMLWriter();
-    mzMLWriter.AddRun(outFile);
+    mzMLWriter.AddInstrumentConfiguration("IC1",null);
+    mzMLWriter.AddRun(outFile,"IC1");
 
     Reader.Reset(); //Reset the reader to the beginning of the file.
     Reader.Filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
-    Spec = Reader.ReadSpectrum(args[0]);
-    while (Spec.ScanNumber > 0)
+    Spectrum Spec2 = Reader.ReadSpectrum(args[0]);
+    while (Spec2.ScanNumber > 0)
     {
-      mzMLWriter.AddSpectrum(Spec);
-      Spec = Reader.ReadSpectrum();
+      mzMLWriter.AddSpectrum(Spec2);
+      Spec2 = Reader.ReadSpectrum();
     }
     mzMLWriter.Write(outFile+".mzML");
 

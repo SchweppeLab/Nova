@@ -5,15 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Nova.Data;
+using Nova.Io;
 using ThermoFisher.CommonCore.Data;
 using ThermoFisher.CommonCore.RawFileReader;
 
-namespace Nova.Io
+namespace Nova.Io.Read
 {
 
   public enum FileFormat
   {
     Unknown,    //Default format until otherwise determined.
+    MGF,
     MzML,
     MzXML,
     ThermoRaw,
@@ -26,9 +28,9 @@ namespace Nova.Io
   public enum MSFilter
   {
     None = 0,
-    MS1=1,
-    MS2=2,
-    MS3=4
+    MS1 = 1,
+    MS2 = 2,
+    MS3 = 4
   }
 
   public class FileReader
@@ -37,7 +39,7 @@ namespace Nova.Io
     /// <summary>
     /// Identifies the format of the most recently opened file.
     /// </summary>
-    public FileFormat Format {  get; } = FileFormat.Unknown;
+    public FileFormat Format { get; } = FileFormat.Unknown;
     private ISpectrumFileReader? fileReader { get; set; }
 
     /// <summary>
@@ -50,6 +52,8 @@ namespace Nova.Io
     /// The name of the file currently being read.
     /// </summary>
     public string FileName { get; set; } = "";
+
+    public int ScanCount { get; private set; } = 0;
 
 
     /// <summary>
@@ -71,12 +75,12 @@ namespace Nova.Io
         }
         return true;
       }
-      
+
       //next, check if we're reading the same file
       if (fileName == FileName) return true;
 
       //finally, check if this file exists
-      if(!File.Exists(fileName)) 
+      if (!File.Exists(fileName))
       {
         throw new FileNotFoundException("file not found", fileName);
       }
@@ -92,13 +96,14 @@ namespace Nova.Io
     public FileFormat CheckFileFormat(string fileName)
     {
       string ext = Path.GetExtension(fileName);
-      if(ext == null) throw new FormatException("file extension required.");
-      else 
+      if (ext == null) throw new FormatException("file extension required.");
+      else
       {
         ext = ext.ToLower();
         if (ext == ".raw") return FileFormat.ThermoRaw;
         if (ext == ".mzml") return FileFormat.MzML;
         if (ext == ".mzxml") return FileFormat.MzXML;
+        if (ext == ".mgf") return FileFormat.MGF;
       }
       throw new FormatException(ext + " not recognized.");
     }
@@ -117,15 +122,20 @@ namespace Nova.Io
           fileReader = new MzMLReader(Filter);
           break;
 
+        case FileFormat.MzXML:
+          fileReader = new MzXMLReader(Filter);
+          break;
+
         case FileFormat.Unknown:
           return false;
       }
       FileName = fileName;
       fileReader.Open(fileName);
+      ScanCount = fileReader.ScanCount;
       return true;
     }
 
-    public Spectrum ReadSpectrum(string fileName="", int scanNumber = -1, bool centroid = true)
+    public Spectrum ReadSpectrum(string fileName = "", int scanNumber = -1, bool centroid = true)
     {
       try
       {
@@ -136,7 +146,7 @@ namespace Nova.Io
           //close the existing file, if open
           if (!FileName.IsNullOrEmpty())
           {
-            FileName = String.Empty;
+            FileName = string.Empty;
             fileReader.Close();
           }
 
@@ -156,7 +166,7 @@ namespace Nova.Io
         }
 
       }
-      catch (Exception ex) 
+      catch (Exception ex)
       {
         //TODO: Handle file checking exceptions
         Console.WriteLine(ex.ToString());
@@ -165,9 +175,49 @@ namespace Nova.Io
       return new Spectrum(0);
     }
 
+    public SpectrumEx ReadSpectrumEx(string fileName = "", int scanNumber = -1, bool centroid = true)
+    {
+      try
+      {
+
+        //If CheckFile returns false, that means we need to open a new file
+        if (!CheckFile(fileName))
+        {
+          //close the existing file, if open
+          if (!FileName.IsNullOrEmpty())
+          {
+            FileName = string.Empty;
+            fileReader.Close();
+          }
+
+          //Open the new file and set the FileName
+          OpenSpectrumFile(fileName);
+        }
+
+        //Try to read the spectrum
+        try
+        {
+          return fileReader.GetSpectrumEx(scanNumber, centroid);
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine(ex.Message);
+          return new SpectrumEx(0);
+        }
+
+      }
+      catch (Exception ex)
+      {
+        //TODO: Handle file checking exceptions
+        Console.WriteLine(ex.ToString());
+      }
+
+      return new SpectrumEx(0);
+    }
+
     public void Reset()
     {
-      FileName = String.Empty;
+      FileName = string.Empty;
       fileReader.Close();
     }
 

@@ -13,6 +13,7 @@ using System.Xml.Schema;
 using System.Collections.Specialized;
 using System.Xml.Xsl;
 using System.Reflection;
+using ThermoFisher.CommonCore.Data;
 
 namespace Nova.Io.Write
 {
@@ -316,8 +317,8 @@ namespace Nova.Io.Write
       NovaXmlElement scanElement = new NovaXmlElement("scan");
       scanElement.AddElement(MakeCvParam("MS", "MS:1000016", "scan start time", spec.RetentionTime.ToString(), "UO", "UO:0000031", "minute"));
       //scanElement.AddElement(MakeCvParam("MS", "MS:1000800", "mass resolving power", spec.Resolution.ToString()));
-      scanElement.AddElement(MakeCvParam("MS", "MS:1000512", "filter string", spec.ScanFilter.ToString()));
-      scanElement.AddElement(MakeCvParam("MS", "MS:1000927", "ion injection time", spec.IonInjectionTime.ToString(), "UO", "UO:0000028", "millisecond"));
+      if(!spec.ScanFilter.IsNullOrEmpty()) scanElement.AddElement(MakeCvParam("MS", "MS:1000512", "filter string", spec.ScanFilter.ToString()));
+      if(spec.IonInjectionTime>0) scanElement.AddElement(MakeCvParam("MS", "MS:1000927", "ion injection time", spec.IonInjectionTime.ToString(), "UO", "UO:0000028", "millisecond"));
       
       NovaXmlElement scanWindowList = new NovaXmlElement("scanWindowList");
       scanWindowList.AddAttribute("count", "1");

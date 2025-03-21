@@ -16,28 +16,38 @@ namespace Nova.Data
     /// </summary>
     public SpectrumEx(int sz=0) : base()
     {
-      DataPointsCount = sz;
-      DataPoints = new sCentroid[DataPointsCount];
+      Count = sz;
+      DataPoints = new sCentroid[Count];
     }
-        #endregion
+    #endregion
 
-        #region INDEXERS & OPERATORS
-        //=== INDEXERS & OPERATORS ==//
-        #endregion
+    #region INDEXERS & OPERATORS
+    //=== INDEXERS & OPERATORS ==//
+    #endregion
 
-        #region FUNCTIONS
-        //=== FUNCTIONS ===//
-        /// <summary>
-        /// Total number of peaks in the current scan
-        /// </summary>
-        /// 
-        public int Count() { return DataPointsCount; }
-        #endregion
+    #region FUNCTIONS
+    //=== FUNCTIONS ===//
+    /// <summary>
+    /// Resizes the spectrum to a new number of peaks. Does not preserve exisiting data.
+    /// </summary>
+    /// <param name="sz"></param>
+    public void Resize(int sz = 0)
+    {
+      Count = sz;
+      DataPoints = new sCentroid[Count];
+    }
+    #endregion
 
-        #region DATA MEMBERS
-        //=== DATA MEMBERS ===//
-        public sCentroid[] DataPoints;
-        private int DataPointsCount;
+    #region DATA MEMBERS
+    //=== DATA MEMBERS ===//
+    /// <summary>
+    /// Total number of peaks in the current scan
+    /// </summary>
+    /// 
+    public int Count { get; private set; } = 0;
+
+    public sCentroid[] DataPoints;
+        //private int DataPointsCount;
         #endregion
 
         /* START TODO: Fill out the rest of this information after speed testing the above code

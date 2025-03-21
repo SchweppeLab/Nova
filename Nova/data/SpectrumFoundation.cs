@@ -195,12 +195,12 @@ namespace Nova.Data
     /// <summary>
     /// Thermo variable for master scan number
     /// </summary>
-    public int MasterIndex { get; set; }
+    public int MasterIndex { get; set; } = 0;
 
     /// <summary>
     /// Mass analyzer used
     /// </summary>
-    public string Analyzer { get; set; }
+    public string Analyzer { get; set; } = string.Empty;
 
     /// <summary>
     /// String description of scan type
@@ -270,7 +270,7 @@ namespace Nova.Data
     /// <summary>
     /// If a dependent scan, the parent scan number
     /// </summary>
-    public int PrecursorMasterScanNumber { get; set; }
+    public int PrecursorMasterScanNumber { get; set; } = 0;
 
     /// <summary>
     /// If a dependent scan, the activation method used to generate the scan fragments

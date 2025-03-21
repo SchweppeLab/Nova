@@ -6,7 +6,7 @@ using Nova.Data;
 using System.Runtime.InteropServices;
 using System;
 
-namespace Nova.Io
+namespace Nova.Io.Read
 {
   internal class MzMLReader : ISpectrumFileReader
   {
@@ -53,7 +53,7 @@ namespace Nova.Io
     /// <summary>
     /// Number of bits (64 if true, 32 otherwise) per value in a binary data array
     /// </summary>
-    private bool bit64= false;
+    private bool bit64 = false;
 
     /// <summary>
     /// True if binary data array is zlib compressed.
@@ -72,6 +72,8 @@ namespace Nova.Io
     private PrecursorIon precursorIon;
 
     private bool hasMonoMz = false;
+
+    public int ScanCount { get; private set; } = 0;
 
     /// <summary>
     /// Constructor for MzMLReader
@@ -104,7 +106,11 @@ namespace Nova.Io
         string block = System.Text.Encoding.Default.GetString(bytes);
         int indexA = block.IndexOf("<indexListOffset>");
         int indexB = block.IndexOf("</indexListOffset>");
-        offset = Int32.Parse(block.Substring(indexA + 17, (indexB - indexA - 17)));
+        if (indexA < 0 || indexB < 0)
+        {
+          throw new Exception("No index found. Please index your mzXML file.");
+        }
+        offset = int.Parse(block.Substring(indexA + 17, indexB - indexA - 17));
 
         //read the whole damn index
         scanIndex.Clear();
@@ -115,11 +121,14 @@ namespace Nova.Io
         {
           if (XmlFile.NodeType == XmlNodeType.Element)
           {
-            if (XmlFile.Name == "index") {
+            if (XmlFile.Name == "index")
+            {
               //TODO: do a better job reading the index
               //Only read the spectrum index. Assumes that it is always first
               if (XmlFile.GetAttribute("name") != "spectrum") break;
-            } else if (XmlFile.Name == "offset") {
+            }
+            else if (XmlFile.Name == "offset")
+            {
               string idRef = XmlFile.GetAttribute("idRef");
               if (idRef != null)
               {
@@ -138,7 +147,7 @@ namespace Nova.Io
           }
           else if (XmlFile.NodeType == XmlNodeType.EndElement)
           {
-            if (XmlFile.Name=="indexList") break;
+            if (XmlFile.Name == "indexList") break;
           }
         }
 
@@ -151,6 +160,7 @@ namespace Nova.Io
         {
           lastScanNumber = scanNum;
         }
+        ScanCount = scanIndex.Count;
       }
       catch (Exception ex)
       {
@@ -217,6 +227,54 @@ namespace Nova.Io
       return spectrum;
     }
 
+    public SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true)
+    {
+      if (scanNumber < 0) CurrentScanNumber++;
+      else CurrentScanNumber = scanNumber;
+      if (CurrentScanNumber > lastScanNumber)
+      {
+        spectrumEx = new SpectrumEx(0);
+        return spectrumEx;
+      }
+
+      bool matchScanType = false;
+      while (!matchScanType)
+      {
+        ParseSpectrumEx(CurrentScanNumber);
+        switch (spectrumEx.MsLevel)
+        {
+          case 1:
+            if (Filter.HasFlag(MSFilter.MS1)) matchScanType = true; break;
+          case 2:
+            if (Filter.HasFlag(MSFilter.MS2)) matchScanType = true; break;
+          case 3:
+            if (Filter.HasFlag(MSFilter.MS3)) matchScanType = true; break;
+          default: break;
+        }
+
+        //We did not match the filter, so advance the scan number and get the next filter.
+        if (!matchScanType)
+        {
+          if (scanNumber < 0)
+          {
+            CurrentScanNumber++;
+            if (CurrentScanNumber > lastScanNumber)
+            {
+              spectrumEx = new SpectrumEx(0);
+              return spectrumEx;
+            }
+          }
+          else //special case where a specific scan number was requested, and did not pass the filter.
+          {
+            spectrumEx = new SpectrumEx(0);
+            return spectrumEx;
+          }
+        }
+      }
+
+      return spectrumEx;
+    }
+
     /// <summary>
     ///
     /// </summary>
@@ -252,7 +310,7 @@ namespace Nova.Io
       spectrum.ScanNumber = 0;
       spectrum.Centroid = false;
       spectrum.Polarity = true;
-      
+
       hasMonoMz = false;
 
       //some local variables as we process
@@ -267,9 +325,9 @@ namespace Nova.Io
         {
           if (XmlFile.Name == "binary")
           {
-            ProcessBinaryData(encLen,defArrLen);
+            ProcessBinaryData(encLen, defArrLen);
           }
-          else if(XmlFile.Name == "binaryDataArray")
+          else if (XmlFile.Name == "binaryDataArray")
           {
             //Set some default assumptions in case these aren't specified in the following cvParams
             bit64 = false;
@@ -277,11 +335,11 @@ namespace Nova.Io
             mzArray = true;
             encLen = Convert.ToInt32(XmlFile.GetAttribute("encodedLength"));
           }
-          else if(XmlFile.Name == "cvParam")
+          else if (XmlFile.Name == "cvParam")
           {
             ProcessCvParam(ref XmlFile);
-          } 
-          else if(XmlFile.Name == "precursor")
+          }
+          else if (XmlFile.Name == "precursor")
           {
             precursorIon.Clear();
             string spectrumRef = XmlFile.GetAttribute("spectrumRef");
@@ -297,20 +355,20 @@ namespace Nova.Io
             defArrLen = Convert.ToInt32(XmlFile.GetAttribute("defaultArrayLength"));
             spectrum.Resize(defArrLen);
             spectrum.Precursors.Clear();
-          } 
-          else if( XmlFile.Name == "userParam")
+          }
+          else if (XmlFile.Name == "userParam")
           {
             string name = XmlFile.GetAttribute("name");
             string val = XmlFile.GetAttribute("value");
-            if(name=="[Thermo Trailer Extra]Monoisotopic M/Z:")
+            if (name == "[Thermo Trailer Extra]Monoisotopic M/Z:")
             {
-              if(Convert.ToDouble(val)>1) hasMonoMz = true;
+              if (Convert.ToDouble(val) > 1) hasMonoMz = true;
             }
           }
-        } 
-        
+        }
 
-        else if(XmlFile.NodeType == XmlNodeType.EndElement)
+
+        else if (XmlFile.NodeType == XmlNodeType.EndElement)
         {
           switch (XmlFile.Name)
           {
@@ -324,7 +382,87 @@ namespace Nova.Io
       }
     }
 
-    private void ProcessBinaryData(int encLen, int defArrLen)
+    private void ParseSpectrumEx(int scanNumber)
+    {
+
+      //Reset spectrum. TODO: put this in its own code. Possibly spectrum object
+      //Always reset our scan number
+      spectrumEx.ScanNumber = 0;
+      spectrumEx.Centroid = false;
+      spectrumEx.Polarity = true;
+
+      hasMonoMz = false;
+
+      //some local variables as we process
+      int encLen = 0; //encoded length of a binaryDataArray
+      int defArrLen = 0; //default array length, or the number of datapoints in the spectrum.
+
+      XmlFS.Seek(scanIndex[scanNumber], SeekOrigin.Begin);
+      XmlFile = XmlReader.Create(XmlFS);
+      while (XmlFile.Read())
+      {
+        if (XmlFile.NodeType == XmlNodeType.Element)
+        {
+          if (XmlFile.Name == "binary")
+          {
+            ProcessBinaryData(encLen, defArrLen, true);
+          }
+          else if (XmlFile.Name == "binaryDataArray")
+          {
+            //Set some default assumptions in case these aren't specified in the following cvParams
+            bit64 = false;
+            zlib = false;
+            mzArray = true;
+            encLen = Convert.ToInt32(XmlFile.GetAttribute("encodedLength"));
+          }
+          else if (XmlFile.Name == "cvParam")
+          {
+            ProcessCvParam(ref XmlFile, true);
+          }
+          else if (XmlFile.Name == "precursor")
+          {
+            precursorIon.Clear();
+            string spectrumRef = XmlFile.GetAttribute("spectrumRef");
+            if (spectrumRef != null)
+            {
+              spectrumEx.PrecursorMasterScanNumber = Convert.ToInt32(spectrumRef.Substring(spectrumRef.IndexOf("scan=") + 5));
+            }
+          }
+          else if (XmlFile.Name == "spectrum")
+          {
+            string id = XmlFile.GetAttribute("id");
+            spectrumEx.ScanNumber = Convert.ToInt32(id.Substring(id.IndexOf("scan=") + 5));
+            defArrLen = Convert.ToInt32(XmlFile.GetAttribute("defaultArrayLength"));
+            spectrumEx.Resize(defArrLen);
+            spectrumEx.Precursors.Clear();
+          }
+          else if (XmlFile.Name == "userParam")
+          {
+            string name = XmlFile.GetAttribute("name");
+            string val = XmlFile.GetAttribute("value");
+            if (name == "[Thermo Trailer Extra]Monoisotopic M/Z:")
+            {
+              if (Convert.ToDouble(val) > 1) hasMonoMz = true;
+            }
+          }
+        }
+
+
+        else if (XmlFile.NodeType == XmlNodeType.EndElement)
+        {
+          switch (XmlFile.Name)
+          {
+            case "precursor":
+              spectrumEx.Precursors.Add(precursorIon);
+              break;
+            case "spectrum": return;
+            default: break;
+          }
+        }
+      }
+    }
+
+    private void ProcessBinaryData(int encLen, int defArrLen, bool ext = false)
     {
       byte[] buffer = new byte[encLen];
       XmlFile.ReadElementContentAsBase64(buffer, 0, encLen);
@@ -333,25 +471,48 @@ namespace Nova.Io
       {
         buffer = Decompress(buffer, defArrLen * sz);
       }
-      if (mzArray)
+
+      if (ext)
       {
-        for (int a = 0; a < defArrLen; a++)
+        if (mzArray)
         {
-          if (bit64) spectrum.DataPoints[a].Mz = BitConverter.ToDouble(buffer, a * sz);
-          else spectrum.DataPoints[a].Mz = BitConverter.ToSingle(buffer, a * sz);
+          for (int a = 0; a < defArrLen; a++)
+          {
+            if (bit64) spectrumEx.DataPoints[a].Mz = BitConverter.ToDouble(buffer, a * sz);
+            else spectrumEx.DataPoints[a].Mz = BitConverter.ToSingle(buffer, a * sz);
+          }
+        }
+        else
+        {
+          for (int a = 0; a < defArrLen; a++)
+          {
+            if (bit64) spectrumEx.DataPoints[a].Intensity = BitConverter.ToDouble(buffer, a * sz);
+            else spectrumEx.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
+          }
         }
       }
       else
       {
-        for (int a = 0; a < defArrLen; a++)
+        if (mzArray)
         {
-          if (bit64) spectrum.DataPoints[a].Intensity = BitConverter.ToDouble(buffer, a * sz);
-          else spectrum.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
+          for (int a = 0; a < defArrLen; a++)
+          {
+            if (bit64) spectrum.DataPoints[a].Mz = BitConverter.ToDouble(buffer, a * sz);
+            else spectrum.DataPoints[a].Mz = BitConverter.ToSingle(buffer, a * sz);
+          }
+        }
+        else
+        {
+          for (int a = 0; a < defArrLen; a++)
+          {
+            if (bit64) spectrum.DataPoints[a].Intensity = BitConverter.ToDouble(buffer, a * sz);
+            else spectrum.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
+          }
         }
       }
     }
 
-    private void ProcessCvParam(ref XmlReader xml)
+    private void ProcessCvParam(ref XmlReader xml, bool ext = false)
     {
       string acc = xml.GetAttribute("accession");
       string val = xml.GetAttribute("value");
@@ -361,9 +522,11 @@ namespace Nova.Io
       switch (acc)
       {
         case "MS:1000016": //scan start time
-          spectrum.RetentionTime=Convert.ToDouble(val);
+          double rt = Convert.ToDouble(val);
           string ua = xml.GetAttribute("unitAccession");
-          if (ua == "UO:0000030") spectrum.RetentionTime /= 60;
+          if (ua == "UO:0000030") rt /= 60;
+          if (ext) spectrumEx.RetentionTime = rt;
+          else spectrum.RetentionTime = rt;
           break;
         case "MS:1000041": //charge state
           precursorIon.Charge = Convert.ToInt32(val);
@@ -372,41 +535,62 @@ namespace Nova.Io
           precursorIon.CollisionEnergy = Convert.ToDouble(val);
           break;
         case "MS:1000127": //centorid spectrum
-          spectrum.Centroid = true;
+          if (ext) spectrumEx.Centroid = true;
+          else spectrum.Centroid = true;
           break;
         case "MS:1000129": //negative scan
-          spectrum.Polarity = false;
+          if (ext) spectrumEx.Polarity = false;
+          else spectrum.Polarity = false;
           break;
         case "MS:1000130": //positive scan
-          spectrum.Polarity = true;
+          if (ext) spectrumEx.Polarity = true;
+          else spectrum.Polarity = true;
           break;
         case "MS:1000133":
           precursorIon.FramentationMethod = FramentationType.CID;
           break;
         case "MS:1000285": //total ion current
-          spectrum.TotalIonCurrent = Convert.ToDouble(val);
+          if (ext) spectrumEx.TotalIonCurrent = Convert.ToDouble(val);
+          else spectrum.TotalIonCurrent = Convert.ToDouble(val);
           break;
         case "MS:1000421": //high energy collision (obsolete)
         case "MS:1000422": //beam-type collision-induced dissociation
           precursorIon.FramentationMethod = FramentationType.HCD;
           break;
         case "MS:1000500": //scan window upper limit
-          spectrum.EndMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.EndMz = Convert.ToDouble(val);
+          else spectrum.EndMz = Convert.ToDouble(val);
           break;
         case "MS:1000501": //scan window lower limit
-          spectrum.StartMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.StartMz = Convert.ToDouble(val);
+          else spectrum.StartMz = Convert.ToDouble(val);
           break;
         case "MS:1000504": //base peak m/z
-          spectrum.BasePeakMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.BasePeakMz = Convert.ToDouble(val);
+          else spectrum.BasePeakMz = Convert.ToDouble(val);
           break;
         case "MS:1000505": //base peak intensity
-          spectrum.BasePeakIntensity = Convert.ToDouble(val);
+          if (ext) spectrumEx.BasePeakIntensity = Convert.ToDouble(val);
+          else spectrum.BasePeakIntensity = Convert.ToDouble(val);
           break;
         case "MS:1000511": //ms level
-          spectrum.MsLevel = Convert.ToInt32(val);
+          if (ext) spectrumEx.MsLevel = Convert.ToInt32(val);
+          else spectrum.MsLevel = Convert.ToInt32(val);
           break;
         case "MS:1000512": //filter string
-          spectrum.ScanFilter = val;
+          if (ext) spectrumEx.ScanFilter = val;
+          else spectrum.ScanFilter = val;
+
+          if (val.Contains("FTMS"))
+          {
+            if (ext) spectrumEx.Analyzer = "FTMS";
+            else spectrum.Analyzer = "FTMS";
+          }
+          else if (val.Contains("ITMS"))
+          {
+            if (ext) spectrumEx.Analyzer = "ITMS";
+            else spectrum.Analyzer = "OTMS";
+          }
           break;
         case "MS:1000514": //m/z array
           mzArray = true;
@@ -421,10 +605,12 @@ namespace Nova.Io
           bit64 = true;
           break;
         case "MS:1000527": //highest observed m/z
-          spectrum.HighestMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.HighestMz = Convert.ToDouble(val);
+          else spectrum.HighestMz = Convert.ToDouble(val);
           break;
         case "MS:1000528": //lowest observed m/z
-          spectrum.LowestMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.LowestMz = Convert.ToDouble(val);
+          else spectrum.LowestMz = Convert.ToDouble(val);
           break;
         case "MS:1000574": //zlib compression
           zlib = true;
@@ -455,7 +641,8 @@ namespace Nova.Io
           precursorIon.IsolationWidth += Convert.ToDouble(val);
           break;
         case "MS:1000927": //ion injection time
-          spectrum.IonInjectionTime += Convert.ToDouble(val);
+          if (ext) spectrumEx.IonInjectionTime += Convert.ToDouble(val);
+          else spectrum.IonInjectionTime += Convert.ToDouble(val);
           break;
 
         default: break;
