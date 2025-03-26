@@ -143,14 +143,17 @@ namespace Nova.Io.Read
         if (centroidOK)
         {
           var centroidStream = RawFile.GetCentroidStream(CurrentScanNumber, false);
-          spectrum = new Spectrum(centroidStream.Length);
-          for (int i = 0; i < centroidStream.Length; i++)
+          if (centroidStream.Length > 0)
           {
-            spectrum.DataPoints[i].Mz = centroidStream.Masses[i];
-            spectrum.DataPoints[i].Intensity = centroidStream.Intensities[i];
+            spectrum = new Spectrum(centroidStream.Length);
+            for (int i = 0; i < centroidStream.Length; i++)
+            {
+              spectrum.DataPoints[i].Mz = centroidStream.Masses[i];
+              spectrum.DataPoints[i].Intensity = centroidStream.Intensities[i];
+            }
+            ProcessSpectrumInformation(scanFilter, scanStatistics);
+            return spectrum;
           }
-          ProcessSpectrumInformation(scanFilter, scanStatistics);
-          return spectrum;
         }
 
       }
@@ -241,17 +244,20 @@ namespace Nova.Io.Read
         if (centroidOK)
         {
           var centroidStream = RawFile.GetCentroidStream(CurrentScanNumber, false);
-          spectrumEx = new SpectrumEx(centroidStream.Length);
-          for (int i = 0; i < centroidStream.Length; i++)
+          if (centroidStream.Length > 0)
           {
-            spectrumEx.DataPoints[i].Mz = centroidStream.Masses[i];
-            spectrumEx.DataPoints[i].Intensity = centroidStream.Intensities[i];
-            spectrumEx.DataPoints[i].Resolution = centroidStream.Resolutions[i];
-            spectrumEx.DataPoints[i].Noise = centroidStream.Noises[i];
-            spectrumEx.DataPoints[i].Z = Convert.ToInt32(centroidStream.Charges[i]);
+            spectrumEx = new SpectrumEx(centroidStream.Length);
+            for (int i = 0; i < centroidStream.Length; i++)
+            {
+              spectrumEx.DataPoints[i].Mz = centroidStream.Masses[i];
+              spectrumEx.DataPoints[i].Intensity = centroidStream.Intensities[i];
+              spectrumEx.DataPoints[i].Resolution = centroidStream.Resolutions[i];
+              spectrumEx.DataPoints[i].Noise = centroidStream.Noises[i];
+              spectrumEx.DataPoints[i].Z = Convert.ToInt32(centroidStream.Charges[i]);
+            }
+            ProcessSpectrumInformation(scanFilter, scanStatistics, true);
+            return spectrumEx;
           }
-          ProcessSpectrumInformation(scanFilter, scanStatistics, true);
-          return spectrumEx;
         }
 
       }
@@ -412,6 +418,7 @@ namespace Nova.Io.Read
         spectrumEx.ScanNumber = scanStatistics.ScanNumber;
         spectrumEx.Centroid = scanStatistics.IsCentroidScan;
         spectrumEx.TotalIonCurrent = scanStatistics.TIC;
+        spectrumEx.BasePeakMz = scanStatistics.BasePeakMass;
         spectrumEx.BasePeakIntensity = scanStatistics.BasePeakIntensity;
         spectrumEx.StartMz = scanStatistics.LowMass;
         spectrumEx.EndMz = scanStatistics.HighMass;
@@ -421,6 +428,7 @@ namespace Nova.Io.Read
         spectrum.ScanNumber = scanStatistics.ScanNumber;
         spectrum.Centroid = scanStatistics.IsCentroidScan;
         spectrum.TotalIonCurrent = scanStatistics.TIC;
+        spectrum.BasePeakMz = scanStatistics.BasePeakMass;
         spectrum.BasePeakIntensity = scanStatistics.BasePeakIntensity;
         spectrum.StartMz = scanStatistics.LowMass;
         spectrum.EndMz = scanStatistics.HighMass;

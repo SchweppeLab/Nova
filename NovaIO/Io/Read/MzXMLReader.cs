@@ -154,11 +154,11 @@ namespace Nova.Io.Read
         {
           lastScanNumber = scanNum;
         }
-        ScanCount = scanIndex.Count;
+        ScanCount = scanIndex.Count-1;
       }
       catch (Exception ex)
       {
-        Console.WriteLine($"Failed to open {ex.Message}");
+        Console.WriteLine($"Failed to open: {ex.Message}");
         return false;
       }
       //Console.WriteLine("Last scan number: " + lastScanNumber.ToString());
@@ -299,15 +299,11 @@ namespace Nova.Io.Read
       //Always reset our scan number
       if (extended)
       {
-        spectrumEx.ScanNumber = 0;
-        spectrumEx.Centroid = false;
-        spectrumEx.Polarity = false;
+        spectrumEx = new SpectrumEx(0);
       }
       else
       {
-        spectrum.ScanNumber = 0;
-        spectrum.Centroid = false;
-        spectrum.Polarity = true;
+        spectrum = new Spectrum(0);
       }
 
       //some local variables as we process
@@ -427,6 +423,20 @@ namespace Nova.Io.Read
             case "precursorMz":
               break;
             case "scan":
+              if (extended)
+              {
+                if (spectrumEx.TotalIonCurrent == 0 || spectrumEx.BasePeakMz == 0 || spectrumEx.BasePeakIntensity == 0)
+                {
+                  ProcessScanStats(extended);
+                }
+              }
+              else 
+              {
+                if (spectrum.TotalIonCurrent == 0 || spectrum.BasePeakMz == 0 || spectrum.BasePeakIntensity == 0)
+                {
+                  ProcessScanStats(extended);
+                }
+              }
               return;
             default: break;
           }
@@ -436,13 +446,27 @@ namespace Nova.Io.Read
 
     private void ProcessBinaryData(int encLen, int defArrLen, bool ext = false)
     {
-      byte[] buffer = new byte[encLen];
-      XmlFile.ReadElementContentAsBase64(buffer, 0, encLen);
       int sz = bit64 ? 8 : 4;
+
+      byte[] buffer;
+      int readSz;
+      if (encLen > 0)
+      {
+        readSz = encLen;
+        buffer = new byte[readSz];
+      }
+      else
+      {
+        readSz = defArrLen * sz * 2;
+        buffer = new byte[readSz];
+      }
+      XmlFile.ReadElementContentAsBase64(buffer, 0, readSz);
+      
       if (zlib)
       {
-        buffer = Decompress(buffer, defArrLen * sz*2);
+        buffer = Decompress(buffer, defArrLen * sz * 2);
       }
+
       int a = 0;
       int pos = 0;
       if (ext)
@@ -487,6 +511,49 @@ namespace Nova.Io.Read
             pos += sz;
             a++;
           }
+        }
+      }
+    }
+
+    private void ProcessScanStats(bool extended)
+    {
+      double TIC = 0;
+      double BPI = 0;
+      double BPMZ = 0;
+      if (extended)
+      {
+        foreach (sCentroid c in spectrumEx.DataPoints)
+        {
+          TIC += c.Intensity;
+          if (c.Intensity > BPI)
+          {
+            BPI = c.Intensity;
+            BPMZ += c.Mz;
+          }
+        }
+        if (spectrumEx.TotalIonCurrent == 0) spectrumEx.TotalIonCurrent = TIC;
+        if (spectrumEx.BasePeakIntensity == 0 || spectrumEx.BasePeakMz == 0)
+        {
+          spectrumEx.BasePeakIntensity = BPI;
+          spectrumEx.BasePeakMz = BPMZ;
+        }
+      }
+      else
+      {
+        foreach (sSpecDP c in spectrum.DataPoints)
+        {
+          TIC += c.Intensity;
+          if (c.Intensity > BPI)
+          {
+            BPI = c.Intensity;
+            BPMZ += c.Mz;
+          }
+        }
+        if (spectrum.TotalIonCurrent == 0) spectrum.TotalIonCurrent = TIC;
+        if (spectrum.BasePeakIntensity == 0 || spectrum.BasePeakMz == 0)
+        {
+          spectrum.BasePeakIntensity = BPI;
+          spectrum.BasePeakMz = BPMZ;
         }
       }
     }

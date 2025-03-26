@@ -51,6 +51,8 @@ class NovaApp
         Console.WriteLine("Retention Time: " + Spec.RetentionTime.ToString());
         Console.WriteLine("MS Level:       " + Spec.MsLevel.ToString());
         Console.WriteLine("Centroid:       " + (Spec.Centroid ? "yes" : "no"));
+        Console.WriteLine("Base Peak Mz:   " + Spec.BasePeakMz.ToString());
+        Console.WriteLine("Base Peak Int:  " + Spec.BasePeakIntensity.ToString());
         if (Spec.MsLevel > 1)
         {
           for (int i = 0; i < Spec.Precursors.Count; i++) {

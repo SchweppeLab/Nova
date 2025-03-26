@@ -181,6 +181,7 @@ namespace Nova.Io.Read
 
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)
     {
+      
       if (scanNumber < 0) CurrentScanNumber++;
       else CurrentScanNumber = scanNumber;
       if (CurrentScanNumber > lastScanNumber)
@@ -305,11 +306,8 @@ namespace Nova.Io.Read
     private void ParseSpectrum(int scanNumber)
     {
 
-      //Reset spectrum. TODO: put this in its own code. Possibly spectrum object
-      //Always reset our scan number
-      spectrum.ScanNumber = 0;
-      spectrum.Centroid = false;
-      spectrum.Polarity = true;
+      //Reset spectrum
+      spectrum = new Spectrum(0);  
 
       hasMonoMz = false;
 
@@ -385,11 +383,8 @@ namespace Nova.Io.Read
     private void ParseSpectrumEx(int scanNumber)
     {
 
-      //Reset spectrum. TODO: put this in its own code. Possibly spectrum object
-      //Always reset our scan number
-      spectrumEx.ScanNumber = 0;
-      spectrumEx.Centroid = false;
-      spectrumEx.Polarity = true;
+      //Reset spectrum.
+      spectrumEx = new SpectrumEx(0);
 
       hasMonoMz = false;
 

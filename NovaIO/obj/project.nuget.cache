@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "KWWbhZS4xP4=",
+  "dgSpecHash": "Cn/1bnNXMs8=",
   "success": true,
   "projectFilePath": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\NovaIO.csproj",
   "expectedPackageFiles": [
@@ -51,7 +51,8 @@
     "C:\\Users\\Hoopmann\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
     "C:\\Users\\Hoopmann\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512",
     "C:\\Users\\Hoopmann\\.nuget\\packages\\thermofisher.commoncore.data\\8.0.6\\thermofisher.commoncore.data.8.0.6.nupkg.sha512",
-    "C:\\Users\\Hoopmann\\.nuget\\packages\\thermofisher.commoncore.rawfilereader\\8.0.6\\thermofisher.commoncore.rawfilereader.8.0.6.nupkg.sha512"
+    "C:\\Users\\Hoopmann\\.nuget\\packages\\thermofisher.commoncore.rawfilereader\\8.0.6\\thermofisher.commoncore.rawfilereader.8.0.6.nupkg.sha512",
+    "C:\\Users\\Hoopmann\\.nuget\\packages\\nova\\1.0.0\\nova.1.0.0.nupkg.sha512"
   ],
   "logs": []
 }

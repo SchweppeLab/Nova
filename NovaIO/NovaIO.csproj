@@ -5,6 +5,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64</Platforms>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Title>Nova.IO for mass spectrometry data input and output.</Title>
+    <Authors>Michael Hoopmann, Devin Schweppe</Authors>
+    <Company>University of Washington, Schweppe Lab</Company>
+    <PackageId>Nova.IO</PackageId>
+    <Description>Mass spectrometry data input and output.</Description>
+    <Copyright>Copyright 2025</Copyright>
+    <PackageProjectUrl>https://github.com/SchweppeLab/Nova</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/SchweppeLab/Nova</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>mass spectrometry;spectrum</PackageTags>
+    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Version>1.0.0.2</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

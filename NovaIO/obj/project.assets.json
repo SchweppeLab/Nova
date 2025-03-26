@@ -2530,10 +2530,10 @@
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0",
+    "version": "1.0.0.2",
     "restore": {
       "projectUniqueName": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\NovaIO.csproj",
-      "projectName": "NovaIO",
+      "projectName": "Nova.IO",
       "projectPath": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\NovaIO.csproj",
       "packagesPath": "C:\\Users\\Hoopmann\\.nuget\\packages\\",
       "outputPath": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\obj\\",
@@ -2552,6 +2552,7 @@
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "D:\\Software\\Other\\RawFileReader\\Libs\\NetCore\\Net8": {},
+        "D:\\Software\\SchweppeLab\\NuGet": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
