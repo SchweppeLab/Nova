@@ -287,5 +287,11 @@ namespace Nova.Data
     /// "Scan Description" field from the scan header.
     /// </summary>
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// This is the activation energy for a fragmentation event. I'm not sure if it belongs
+    /// here or with the precursor ions. But it is here for now for compatibility with existing tools.
+    /// </summary>
+    public double CollisionEnergy { get; set; } = 0;
   }
 }
