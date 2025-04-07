@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Cn/1bnNXMs8=",
+  "dgSpecHash": "QmU0t97tXN4=",
   "success": true,
-  "projectFilePath": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\NovaIO.csproj",
+  "projectFilePath": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\NovaIO\\NovaIO.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Hoopmann\\.nuget\\packages\\commandlineparser\\2.9.1\\commandlineparser.2.9.1.nupkg.sha512",
     "C:\\Users\\Hoopmann\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\8.0.0\\microsoft.aspnetcore.jsonpatch.8.0.0.nupkg.sha512",

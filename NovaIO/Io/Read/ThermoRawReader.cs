@@ -32,7 +32,7 @@ namespace Nova.Io.Read
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
     /// </summary>
-    private MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
+    public MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
     /// <summary>
     /// The ScanNumber of the last scan in the file.
@@ -66,6 +66,7 @@ namespace Nova.Io.Read
       int LastScan = RawFile.RunHeaderEx.LastSpectrum;
       for (int i = FirstScan; i <= LastScan; i++)
       {
+        if (i == FirstScan) yield return GetSpectrum(i);
         yield return GetSpectrum();
       }
     }
@@ -253,7 +254,7 @@ namespace Nova.Io.Read
               spectrumEx.DataPoints[i].Intensity = centroidStream.Intensities[i];
               spectrumEx.DataPoints[i].Resolution = centroidStream.Resolutions[i];
               spectrumEx.DataPoints[i].Noise = centroidStream.Noises[i];
-              spectrumEx.DataPoints[i].Z = Convert.ToInt32(centroidStream.Charges[i]);
+              spectrumEx.DataPoints[i].Charge = Convert.ToInt32(centroidStream.Charges[i]);
             }
             ProcessSpectrumInformation(scanFilter, scanStatistics, true);
             return spectrumEx;
@@ -518,6 +519,11 @@ namespace Nova.Io.Read
         //    break;
         //}
       }
+    }
+
+    public void Reset()
+    {
+      CurrentScanNumber = 0;
     }
 
   }

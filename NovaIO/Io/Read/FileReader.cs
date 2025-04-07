@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,7 +34,7 @@ namespace Nova.Io.Read
     MS3 = 4
   }
 
-  public class FileReader
+  public class FileReader : IEnumerable
   {
 
     /// <summary>
@@ -46,7 +47,7 @@ namespace Nova.Io.Read
     /// Filters out scans when reading scan-by-scan. For example, to read only MS2 scans, set filter=MSFilter.MS2. By default, all 
     /// supported scan levels are set (Filter=MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3).
     /// </summary>
-    public MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
+    private MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
     /// <summary>
     /// The name of the file currently being read.
@@ -55,6 +56,22 @@ namespace Nova.Io.Read
 
     public int ScanCount { get; private set; } = 0;
 
+    //private int FirstScan = 0;
+    //private int LastScan = 0;
+
+    public FileReader (MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3)
+    {
+      Filter = filter;
+    }
+
+    public FileReader(string filename,MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3)
+    {
+      Filter = filter;
+      if (!OpenSpectrumFile(filename))
+      {
+        throw new FileNotFoundException(filename);
+      }
+    }
 
     /// <summary>
     /// Checks to see if we requested, or already have, a valid file from which to read a spectrum. Use null to specify reading
@@ -106,6 +123,25 @@ namespace Nova.Io.Read
         if (ext == ".mgf") return FileFormat.MGF;
       }
       throw new FormatException(ext + " not recognized.");
+    }
+
+    public IEnumerator GetEnumerator()
+    {
+      fileReader.Reset();
+      Spectrum spec = fileReader.GetSpectrum();
+      while (spec.ScanNumber > 0)
+      {
+        yield return spec;
+        spec = fileReader.GetSpectrum();
+      }
+      fileReader.Reset();
+      //int FirstScan = fileReader.FirstScan;// RawFile.RunHeaderEx.FirstSpectrum;
+      //int LastScan = fileReader.LastScan;
+      //for (int i = FirstScan; i <= LastScan; i++)
+      //{
+      //  if (i == FirstScan) yield return fileReader.GetSpectrum(i);
+      //  yield return fileReader.GetSpectrum();
+      //}
     }
 
     public bool OpenSpectrumFile(string fileName)
@@ -217,8 +253,15 @@ namespace Nova.Io.Read
 
     public void Reset()
     {
-      FileName = string.Empty;
-      fileReader.Close();
+      fileReader?.Reset();
+      //FileName = string.Empty;
+      //fileReader.Close();
+    }
+
+    public void SetFilter(MSFilter filter)
+    {
+      Filter = filter;
+      if (fileReader != null) fileReader.Filter = filter;
     }
 
   }

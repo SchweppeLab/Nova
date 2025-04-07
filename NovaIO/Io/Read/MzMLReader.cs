@@ -39,7 +39,9 @@ namespace Nova.Io.Read
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
     /// </summary>
-    private MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
+    public MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
+
+    private int firstScanNumber { get; set; } = 0;
 
     /// <summary>
     /// The ScanNumber of the last scan in the file.
@@ -136,6 +138,7 @@ namespace Nova.Io.Read
                 if (scanNum != -1)
                 {
                   scanNum = Convert.ToInt32(idRef.Substring(scanNum + 5));
+                  if(scanIndex.Count==0) firstScanNumber = scanNum;
                   while (scanIndex.Count < scanNum)
                   {
                     scanIndex.Add(0);
@@ -282,12 +285,22 @@ namespace Nova.Io.Read
     /// <returns>Spectrum object</returns>
     public IEnumerator GetEnumerator()
     {
-      int FirstScan = 1;// RawFile.RunHeaderEx.FirstSpectrum;
-      int LastScan = lastScanNumber;
-      for (int i = FirstScan; i <= LastScan; i++)
+      Reset();
+      Spectrum spec = GetSpectrum();
+      while (spec.ScanNumber>0)
       {
-        yield return GetSpectrum();
+        yield return spec;
+        spec = GetSpectrum();
       }
+      Reset();
+
+      //int FirstScan = firstScanNumber;// RawFile.RunHeaderEx.FirstSpectrum;
+      //int LastScan = lastScanNumber;
+      //for (int i = FirstScan; i <= LastScan; i++)
+      //{
+      //  if (i == FirstScan) yield return GetSpectrum(i);
+      //  yield return GetSpectrum();
+      //}
     }
 
     private byte[] Decompress(byte[] data, int length)
@@ -642,6 +655,13 @@ namespace Nova.Io.Read
 
         default: break;
       }
+    }
+
+
+    public void Reset()
+    {
+      CurrentScanNumber = 0;
+
     }
 
   }
