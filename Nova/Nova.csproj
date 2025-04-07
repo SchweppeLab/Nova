@@ -59,9 +59,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\IChromatDataPoint.cs" />
+    <Compile Include="Data\ISpecDataPoint.cs" />
+    <Compile Include="Data\ISpectrum.cs" />
     <Compile Include="Data\Precursor.cs" />
-    <Compile Include="Data\Spectrum.cs" />
-    <Compile Include="Data\SpectrumEx.cs" />
     <Compile Include="Data\SpectrumFoundation.cs" />
     <Compile Include="IPC\Pipes\PipesClient.cs" />
     <Compile Include="IPC\Pipes\PipesConnection.cs" />

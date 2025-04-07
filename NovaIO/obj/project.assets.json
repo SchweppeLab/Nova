@@ -2532,11 +2532,11 @@
   "project": {
     "version": "1.0.0.2",
     "restore": {
-      "projectUniqueName": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\NovaIO.csproj",
+      "projectUniqueName": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\NovaIO\\NovaIO.csproj",
       "projectName": "Nova.IO",
-      "projectPath": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\NovaIO.csproj",
+      "projectPath": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\NovaIO\\NovaIO.csproj",
       "packagesPath": "C:\\Users\\Hoopmann\\.nuget\\packages\\",
-      "outputPath": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\obj\\",
+      "outputPath": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\NovaIO\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2559,8 +2559,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\Nova\\Nova.csproj": {
-              "projectPath": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\Nova\\Nova.csproj"
+            "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\Nova\\Nova.csproj": {
+              "projectPath": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\Nova\\Nova.csproj"
             }
           }
         }

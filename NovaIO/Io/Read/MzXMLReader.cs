@@ -45,7 +45,7 @@ namespace Nova.Io.Read
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
     /// </summary>
-    private MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
+    public MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
     /// <summary>
     /// The ScanNumber of the last scan in the file.
@@ -272,12 +272,22 @@ namespace Nova.Io.Read
     /// <returns>Spectrum object</returns>
     public IEnumerator GetEnumerator()
     {
-      int FirstScan = 1;// RawFile.RunHeaderEx.FirstSpectrum;
-      int LastScan = lastScanNumber;
-      for (int i = FirstScan; i <= LastScan; i++)
+      Reset();
+      Spectrum spec = GetSpectrum();
+      while (spec.ScanNumber > 0)
       {
-        yield return GetSpectrum();
+        yield return spec;
+        spec = GetSpectrum();
       }
+      Reset();
+
+      //int FirstScan = 1;// RawFile.RunHeaderEx.FirstSpectrum;
+      //int LastScan = lastScanNumber;
+      //for (int i = FirstScan; i <= LastScan; i++)
+      //{
+      //  if (i == FirstScan) yield return GetSpectrum(i);
+      //  yield return GetSpectrum();
+      //}
     }
 
     private byte[] Decompress(byte[] data, int length)
@@ -522,7 +532,7 @@ namespace Nova.Io.Read
       double BPMZ = 0;
       if (extended)
       {
-        foreach (sCentroid c in spectrumEx.DataPoints)
+        foreach (var c in spectrumEx.DataPoints)
         {
           TIC += c.Intensity;
           if (c.Intensity > BPI)
@@ -540,7 +550,7 @@ namespace Nova.Io.Read
       }
       else
       {
-        foreach (sSpecDP c in spectrum.DataPoints)
+        foreach (var c in spectrum.DataPoints)
         {
           TIC += c.Intensity;
           if (c.Intensity > BPI)
@@ -556,6 +566,11 @@ namespace Nova.Io.Read
           spectrum.BasePeakMz = BPMZ;
         }
       }
+    }
+
+    public void Reset()
+    {
+      CurrentScanNumber = 0;
     }
 
     private double ReverseEndianness(double d)

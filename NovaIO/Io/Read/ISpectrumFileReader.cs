@@ -14,6 +14,8 @@ namespace Nova.Io.Read
     //Spectrum Spectrum;
     //SpectrumEx SpectrumEx;
 
+    MSFilter Filter { get; set; }
+
     int ScanCount { get; }
 
     /// <summary>
@@ -44,5 +46,10 @@ namespace Nova.Io.Read
     /// Performs any cleanup.
     /// </summary>
     void Close();
+
+    /// <summary>
+    /// Resets the file reader to the beginning of the file when iteratively reading.
+    /// </summary>
+    void Reset();
   }
 }

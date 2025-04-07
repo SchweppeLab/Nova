@@ -36,7 +36,7 @@ namespace Nova.Io.Read
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
     /// </summary>
-    private MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
+    public MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
     /// <summary>
     /// The ScanNumber of the last scan in the file.
@@ -173,6 +173,11 @@ namespace Nova.Io.Read
       {
         yield return GetSpectrum();
       }
+    }
+
+    public void Reset()
+    {
+
     }
 
   }
