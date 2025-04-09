@@ -16,7 +16,25 @@ namespace Nova.Io.Read
 
     MSFilter Filter { get; set; }
 
+    /// <summary>
+    /// Total number of scan events in the file
+    /// </summary>
     int ScanCount { get; }
+
+    /// <summary>
+    /// Number of the first scan event in the file.
+    /// </summary>
+    int FirstScanNumber { get; }
+
+    /// <summary>
+    /// Number of the last scan event in the file.
+    /// </summary>
+    int LastScanNumber { get; }
+
+    /// <summary>
+    /// Retention time (in minutes) of the last scan event in the file.
+    /// </summary>
+    double MaxRetentionTime { get; }
 
     /// <summary>
     /// Reads a spectrum from the currently open MS data file. 

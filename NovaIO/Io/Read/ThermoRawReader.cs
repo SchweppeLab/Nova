@@ -35,15 +35,19 @@ namespace Nova.Io.Read
     public MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
     /// <summary>
-    /// The ScanNumber of the last scan in the file.
-    /// </summary>
-    private int lastScanNumber { get; set; } = 0;
-    /// <summary>
     /// The ScanNumber of the most recent scan that was read. A value of 0 means a scan has not yet been read.
     /// </summary>
     private int CurrentScanNumber = 0;
 
+    #region Inherited interface properties.
+    public int FirstScanNumber { get; private set; } = 0;
+
+    public int LastScanNumber { get; private set; } = 0;
+
+    public double MaxRetentionTime { get; private set; } = 0;
+
     public int ScanCount { get; private set; } = 0;
+    #endregion
 
     /// <summary>
     /// Constructor for ThermoRawReader
@@ -83,7 +87,7 @@ namespace Nova.Io.Read
       //Set the scan number, or if one wasn't specified (i.e. -1), then go to the next scan.
       if (scanNumber < 0) CurrentScanNumber++;
       else CurrentScanNumber = scanNumber;
-      if (CurrentScanNumber > lastScanNumber)
+      if (CurrentScanNumber > LastScanNumber)
       {
         spectrum = new Spectrum(0);
         return spectrum;
@@ -113,7 +117,7 @@ namespace Nova.Io.Read
           if (scanNumber < 0)
           {
             CurrentScanNumber++;
-            if (CurrentScanNumber > lastScanNumber)
+            if (CurrentScanNumber > LastScanNumber)
             {
               spectrum = new Spectrum(0);
               return spectrum;
@@ -184,7 +188,7 @@ namespace Nova.Io.Read
       //Set the scan number, or if one wasn't specified (i.e. -1), then go to the next scan.
       if (scanNumber < 0) CurrentScanNumber++;
       else CurrentScanNumber = scanNumber;
-      if (CurrentScanNumber > lastScanNumber)
+      if (CurrentScanNumber > LastScanNumber)
       {
         spectrumEx = new SpectrumEx(0);
         return spectrumEx;
@@ -214,7 +218,7 @@ namespace Nova.Io.Read
           if (scanNumber < 0)
           {
             CurrentScanNumber++;
-            if (CurrentScanNumber > lastScanNumber)
+            if (CurrentScanNumber > LastScanNumber)
             {
               spectrumEx = new SpectrumEx(0);
               return spectrumEx;
@@ -286,8 +290,10 @@ namespace Nova.Io.Read
       if (!RawFile.IsOpen) return false;
       RawFile.SelectInstrument(Device.MS, 1);
       CurrentScanNumber = 0;
-      lastScanNumber = RawFile.RunHeaderEx.LastSpectrum;
+      FirstScanNumber = RawFile.RunHeaderEx.FirstSpectrum;
+      LastScanNumber = RawFile.RunHeaderEx.LastSpectrum;
       ScanCount = RawFile.RunHeaderEx.SpectraCount;
+      MaxRetentionTime = RawFile.RetentionTimeFromScanNumber(LastScanNumber);
       return true;
     }
 

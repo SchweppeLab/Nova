@@ -54,7 +54,10 @@ namespace Nova.Io.Read
     /// </summary>
     public string FileName { get; set; } = "";
 
-    public int ScanCount { get; private set; } = 0;
+    public int FirstScanNumber { get => fileReader==null?0:fileReader.FirstScanNumber; } 
+    public int LastScanNumber { get => fileReader == null ? 0 : fileReader.LastScanNumber; }
+    public double MaxRetentionTime { get => fileReader == null ? 0 : fileReader.MaxRetentionTime; }
+    public int ScanCount { get => fileReader == null ? 0 : fileReader.ScanCount; }
 
     //private int FirstScan = 0;
     //private int LastScan = 0;
@@ -167,7 +170,6 @@ namespace Nova.Io.Read
       }
       FileName = fileName;
       fileReader.Open(fileName);
-      ScanCount = fileReader.ScanCount;
       return true;
     }
 

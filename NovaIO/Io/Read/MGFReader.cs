@@ -39,10 +39,6 @@ namespace Nova.Io.Read
     public MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
     /// <summary>
-    /// The ScanNumber of the last scan in the file.
-    /// </summary>
-    private int lastScanNumber { get; set; } = 0;
-    /// <summary>
     /// The ScanNumber of the most recent scan that was read. A value of 0 means a scan has not yet been read.
     /// </summary>
     private int CurrentScanNumber = 0;
@@ -52,7 +48,15 @@ namespace Nova.Io.Read
     /// </summary>
     private PrecursorIon precursorIon;
 
+    #region Inherited interface properties.
+    public int FirstScanNumber { get; private set; } = 0;
+
+    public int LastScanNumber { get; private set; } = 0;
+
+    public double MaxRetentionTime { get; private set; } = 0;
+
     public int ScanCount { get; private set; } = 0;
+    #endregion
 
     /// <summary>
     /// Constructor for MGFReader
@@ -168,7 +172,7 @@ namespace Nova.Io.Read
     public IEnumerator GetEnumerator()
     {
       int FirstScan = 1;// RawFile.RunHeaderEx.FirstSpectrum;
-      int LastScan = lastScanNumber;
+      int LastScan = LastScanNumber;
       for (int i = FirstScan; i <= LastScan; i++)
       {
         yield return GetSpectrum();

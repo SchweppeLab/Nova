@@ -35,6 +35,10 @@ class NovaApp
     try
     {
       Spec = Reader.ReadSpectrumEx(args[0]);
+      Console.WriteLine("Spectra in file:   " + Reader.ScanCount.ToString());
+      Console.WriteLine("Max RT (min):      " + Reader.MaxRetentionTime.ToString());
+      Console.WriteLine("First Scan:        " + Reader.FirstScanNumber.ToString());
+      Console.WriteLine("Last Scan:         " + Reader.LastScanNumber.ToString() + Environment.NewLine);
     }
     catch (Exception ex)
     {

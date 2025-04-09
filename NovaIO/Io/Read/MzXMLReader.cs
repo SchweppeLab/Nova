@@ -47,10 +47,7 @@ namespace Nova.Io.Read
     /// </summary>
     public MSFilter Filter { get; set; } = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3;
 
-    /// <summary>
-    /// The ScanNumber of the last scan in the file.
-    /// </summary>
-    private int lastScanNumber { get; set; } = 0;
+
     /// <summary>
     /// The ScanNumber of the most recent scan that was read. A value of 0 means a scan has not yet been read.
     /// </summary>
@@ -71,7 +68,15 @@ namespace Nova.Io.Read
     /// </summary>
     private PrecursorIon precursorIon;
 
+    #region Inherited interface properties.
+    public int FirstScanNumber { get; private set; } = 0;
+
+    public int LastScanNumber { get; private set; } = 0;
+
+    public double MaxRetentionTime { get; private set; } = 0;
+
     public int ScanCount { get; private set; } = 0;
+    #endregion
 
     /// <summary>
     /// Constructor for MzXMLReader
@@ -96,6 +101,7 @@ namespace Nova.Io.Read
       {
         //Get the offset of the index.
         //TODO: Check to make sure the mzXML is indeed indexed.
+        FirstScanNumber = 0;
         int offset = 0;
         XmlFS = new FileStream(fileName, FileMode.Open, FileAccess.Read);
         byte[] bytes = new byte[200];
@@ -131,6 +137,7 @@ namespace Nova.Io.Read
               if (idRef != null)
               {
                 scanNum = Convert.ToInt32(idRef);
+                if (FirstScanNumber == 0) FirstScanNumber = scanNum;
                 while (scanIndex.Count < scanNum)
                 {
                   scanIndex.Add(0);
@@ -144,17 +151,21 @@ namespace Nova.Io.Read
             if (XmlFile.Name == "index") break;
           }
         }
-
-        CurrentScanNumber = 0;
+        
         if (scanNum == -1)
         {
-          lastScanNumber = scanIndex.Count;
+          LastScanNumber = scanIndex.Count;
         }
         else
         {
-          lastScanNumber = scanNum;
+          LastScanNumber = scanNum;
         }
         ScanCount = scanIndex.Count-1;
+
+        //Read last spectrum to get maximum retention time
+        ParseSpectrum(LastScanNumber,false);
+        MaxRetentionTime = spectrum.RetentionTime;
+        CurrentScanNumber = 0;
       }
       catch (Exception ex)
       {
@@ -174,7 +185,7 @@ namespace Nova.Io.Read
     {
       if (scanNumber < 0) CurrentScanNumber++;
       else CurrentScanNumber = scanNumber;
-      if (CurrentScanNumber > lastScanNumber)
+      if (CurrentScanNumber > LastScanNumber)
       {
         spectrum = new Spectrum(0);
         return spectrum;
@@ -201,7 +212,7 @@ namespace Nova.Io.Read
           if (scanNumber < 0)
           {
             CurrentScanNumber++;
-            if (CurrentScanNumber > lastScanNumber)
+            if (CurrentScanNumber > LastScanNumber)
             {
               spectrum = new Spectrum(0);
               return spectrum;
@@ -222,7 +233,7 @@ namespace Nova.Io.Read
     {
       if (scanNumber < 0) CurrentScanNumber++;
       else CurrentScanNumber = scanNumber;
-      if (CurrentScanNumber > lastScanNumber)
+      if (CurrentScanNumber > LastScanNumber)
       {
         spectrumEx = new SpectrumEx(0);
         return spectrumEx;
@@ -249,7 +260,7 @@ namespace Nova.Io.Read
           if (scanNumber < 0)
           {
             CurrentScanNumber++;
-            if (CurrentScanNumber > lastScanNumber)
+            if (CurrentScanNumber > LastScanNumber)
             {
               spectrumEx = new SpectrumEx(0);
               return spectrumEx;

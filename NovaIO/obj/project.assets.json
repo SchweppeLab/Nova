@@ -2530,7 +2530,7 @@
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0.2",
+    "version": "1.0.0.4",
     "restore": {
       "projectUniqueName": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\NovaIO\\NovaIO.csproj",
       "projectName": "Nova.IO",
