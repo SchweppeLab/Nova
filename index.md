@@ -27,5 +27,5 @@ foreach(Spectrum spec in reader)
     MS2Count++;
   }
 }
-Console.WriteLine("There are " + MS1Count + " MS scans and " + MS2Count + " MS/MS scan.");
+Console.WriteLine("There are " + MS1Count + " MS scans and " + MS2Count + " MS/MS scans.");
 ```
