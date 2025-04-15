@@ -15,7 +15,7 @@ Fail
 ### Structs
 {% for page in site.ns_data %}
 {% if page.class == 'struct' %}
-<a href="/Nova{{ page.url }}"> {{ page.title }}</a><br/>  
+<a href="{{ "/" | absolute_url }}{{ page.url }}"> {{ page.title }}</a><br/>  
 {% endif %}
 {% endfor %}
 
