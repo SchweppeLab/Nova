@@ -5,6 +5,5 @@ description: ugh...
 collections:
   namespaces:
     output: true
-    permalink: /:collection/:name
 
 include: ['_namespaces']
