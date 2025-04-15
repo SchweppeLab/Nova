@@ -24,7 +24,7 @@
         <p>{{ site.description | default: site.github.project_tagline }}</p>
 
         <ul>
-          {% for ns in namespaces %}
+          {% for ns in site.namespaces %}
             <li>
               <a href="{{ ns.url }}"> {{ ns.name }}</a>
             </li>  
