@@ -23,12 +23,11 @@
 
         <p>{{ site.description | default: site.github.project_tagline }}</p>
 
-        <h4>Namespaces</h4>
+        <h4>Namespaces
         {% for ns in site.namespaces %}
-          <h5>
-            <a href="/Nova{{ ns.url }}"> {{ ns.name }}</a>
-          </h5>  
+          <br/><a href="/Nova{{ ns.url }}"> {{ ns.name }}</a>  
         {% endfor %}
+        </h4>
       
           
         {% if site.github.is_project_page %}
