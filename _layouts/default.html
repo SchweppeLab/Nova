@@ -24,8 +24,11 @@
         <p>{{ site.description | default: site.github.project_tagline }}</p>
 
         <ul>
-          <li>Item 1</li>
-          <li>Item 2</li>
+          {% for page in site.pages %}
+            <li>
+              <a href="{{ page.url }}"> {{ page.title }}</a>
+            </li>  
+          {% endfor %}
         </ul>
           
         {% if site.github.is_project_page %}
