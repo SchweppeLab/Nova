@@ -5,5 +5,7 @@ description: ugh...
 collections:
   namespaces:
     output: true
+  ns_data:
+    output: true
 
 include: ['_namespaces']

@@ -48,6 +48,20 @@
       </header>
       <section>
 
+	  <h2>page.title</h2>
+
+	  {% for m in page.menu %}
+	    {% if m.collection == 'namespaces' %}
+		  {% for ns in site.namespaces %}
+		    {% if ns.name == m.name %}
+			  <br/><a href="{{ absolute_url }}{{ ns.url }}">Return to {{ ns.name }} Namespace</a>  
+			{% endif %}
+          {% endfor %}
+		{% else %}
+		  <p>Unknown namespace</p>
+		{% endif %}
+	  {% endfor %}
+
       {{ content }}
 
       </section>
