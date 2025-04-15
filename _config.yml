@@ -5,4 +5,5 @@ description: ugh...
 collections:
   namespaces:
     output: true
-    
+
+include: ['_namespaces']
