@@ -48,8 +48,12 @@
       </header>
       <section>
 
-	  <h2>{{ page.title }}</h2>
+	  <h1>{{ page.title }}
+	  <h3>{{ page.description}}
+	  </h3>
+	  </h1>
 
+      <h4>Quick Menu
 	  {% for m in page.menu %}
 	    {% if m.collection == 'namespaces' %}
 		  {% for ns in site.namespaces %}
@@ -57,13 +61,23 @@
 			  <br/><a href="{{ "/" | absolute_url }}{{ ns.url }}">Return to {{ ns.name }} Namespace</a>  
 			{% endif %}
           {% endfor %}
-		{% else %}
-		  <p>Unknown namespace</p>
 		{% endif %}
 	  {% endfor %}
+	  </h4>
 
       {{ content }}
 
+	  <h4>
+	  {% for m in page.menu %}
+	    {% if m.collection == 'ns_data' %}
+		  {% for ns in site.ns_data %}
+		    {% if ns.name == m.name %}
+			  <br/><a href="{{ "/" | absolute_url }}{{ ns.url }}">{{ ns.name }}</a> ({{ ns.class }})  
+			{% endif %}
+          {% endfor %}
+		{% endif %}
+	  {% endfor %}
+	  </h4>
       </section>
       <footer>
         {% if site.github.is_project_page %}
