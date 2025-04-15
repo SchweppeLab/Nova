@@ -18,7 +18,7 @@ int MS2Count=0;
 FileReader reader = new FileReader("TheBestDataEver.mzML",MSFilter.MS1|MSFilter.MS2);
 foreach(Spectrum spec in reader)
 {
-  if(spec.msLevel==1)
+  if(spec.MsLevel==1)
   {
     MS1Count++;
   }
