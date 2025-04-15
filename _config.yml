@@ -5,6 +5,6 @@ description: ugh...
 collections:
   namespaces:
     output: true
-    permalink: /Nova/:collection/:name
+    permalink: /Nova/:collection/:name:output_ext
 
 include: ['_namespaces']
