@@ -12,7 +12,7 @@ on:
     branches: ["gh-pages"]
 
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch: ["gh-pages"]
+  workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
