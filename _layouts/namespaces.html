@@ -35,7 +35,7 @@ layout: page
             <i class="far fa-folder fa-fw"></i>
 
             {% capture _sub_ctg_url %}/{{ item.url }}/{% endcapture %}
-            <a href="{{ _sub_ctg_url | absolute_url }}" class="mx-2">{{ item.name }}</a>
+            <a href="{{ _sub_ctg_url | slugify | relative_url }}" class="mx-2">{{ item.name }}</a>
 
             <span class="text-muted small font-weight-light">
 			<!--
