@@ -2,8 +2,13 @@
 name: SpecDataPoint
 title: SpecDataPoint
 description: The basic unit of information in a spectrum (i.e., m/z and intensity).
-class: struct
-layout: namespace
+date: 2025-04-15 11:18:14 -0700
+layout: post
+tags: [favicon]
+namespaces: Data
+type: Struct
+interfaces: [ISpecDataPoint]
+siblings: [SpecDataPointEx]
 menu:
   - item1:
     name: Data
@@ -45,6 +50,3 @@ Some remarks beyond the short description.
 
 * * *
 ## Example
-
-* * *
-## See also...

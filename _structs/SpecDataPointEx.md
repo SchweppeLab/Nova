@@ -2,8 +2,13 @@
 name: SpecDataPointEx
 title: SpecDataPointEx
 description: An extended unit of information in a spectrum (i.e., m/z, intensity, and more).
-class: struct
-layout: namespace
+date: 2025-04-15 11:18:14 -0700
+layout: post
+tags: [favicon]
+namespaces: Data
+type: Struct
+interfaces: [ISpecDataPoint]
+siblings: [SpecDataPoint]
 menu:
   - item1:
     name: Data
@@ -54,4 +59,4 @@ will contain zero values.
 | CompareTo (SpecDataPoint)| int    | Performs the CompareTo function on the Mz of two SpecDataPointsEx to identify the lower value.   |
 
 * * *
-## See also...
+## Example
