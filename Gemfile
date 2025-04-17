@@ -6,7 +6,7 @@ gem "jekyll", "~> 4.2"
 
 gemspec
 
-gem "jekyll-theme-chirpy","."
+gem "jekyll-theme-chirpy","/github/workspace"
 
 gem "html-proofer", "~> 5.0", group: :test
 
