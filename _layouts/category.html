@@ -1,0 +1,112 @@
+---
+layout: page
+# The Category layout
+---
+
+{% include lang.html %}
+
+<div id="page-category">
+  <h1 class="ps-lg-2">
+    <i class="far fa-folder-open fa-fw text-muted"></i>
+    {{ page.title }}
+    <!-- <span class="lead text-muted ps-2">{{ page.posts | size }}</span> -->
+  </h1>
+</div>
+
+{% assign a = site.structs | where:"namespaces",page.namespaces | sort %}
+{% assign sz = a | size %}
+{% if sz > 0 %} 
+<div class="card categories">
+  <div
+    id="{{ HEAD_PREFIX }}{{ group_index }}"
+    class="card-header d-flex justify-content-between hide-border-bottom"
+  >
+    <span class="ms-2">
+      Structs
+    </span>
+  </div>
+
+  <!-- contents -->
+  <div id="{{ LIST_PREFIX }}{{ group_index }}" class="collapse show" aria-expanded="true">
+    <ul class="list-group">
+      {% for item in a %}
+	    
+        <li class="list-group-item">
+          <i class="far fa-folder fa-fw"></i>
+          <a href="{{ item.url | relative_url }}" class="mx-2">{{ item.title }}</a>
+
+          {% assign posts_size = site.categories[sub_category] | size %}
+          <span class="text-muted small font-weight-light">
+		    {{ item.description }}
+          </span>
+        </li>
+		
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+ 
+{% assign a = site.classes | where:"namespaces",page.namespaces | sort %}
+{% assign sz = a | size %}
+{% if sz > 0 %} 
+ <div class="card categories">
+  <div
+    id="{{ HEAD_PREFIX }}{{ group_index }}"
+    class="card-header d-flex justify-content-between hide-border-bottom"
+  >
+    <span class="ms-2">
+      Classes
+    </span>
+  </div>
+
+  <!-- contents -->
+  <div id="{{ LIST_PREFIX }}{{ group_index }}" class="collapse show" aria-expanded="true">
+    <ul class="list-group">
+      {% for item in a %}
+        <li class="list-group-item">
+          <i class="far fa-folder fa-fw"></i>
+          <a href="{{ item.url | relative_url }}" class="mx-2">{{ item.title }}</a>
+
+          {% assign posts_size = site.categories[sub_category] | size %}
+          <span class="text-muted small font-weight-light">
+		    {{ item.description }}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+ 
+{% assign a = site.interfaces | where:"namespaces",page.namespaces | sort %}
+{% assign sz = a | size %}
+{% if sz > 0 %} 
+<div class="card categories">
+  <div
+    id="{{ HEAD_PREFIX }}{{ group_index }}"
+    class="card-header d-flex justify-content-between hide-border-bottom"
+  >
+    <span class="ms-2">
+      Interfaces
+    </span>
+  </div>
+
+  <!-- contents -->
+  <div id="{{ LIST_PREFIX }}{{ group_index }}" class="collapse show" aria-expanded="true">
+    <ul class="list-group">
+      {% for item in a %}
+        <li class="list-group-item">
+          <i class="far fa-folder fa-fw"></i>
+          <a href="{{ item.url | relative_url }}" class="mx-2">{{ item.title }}</a>
+
+          {% assign posts_size = site.categories[sub_category] | size %}
+          <span class="text-muted small font-weight-light">
+		    {{ item.description }}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}

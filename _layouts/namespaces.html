@@ -1,0 +1,54 @@
+---
+layout: page
+# All the Categories of posts
+---
+
+{% include lang.html %}
+
+{% assign HEAD_PREFIX = 'h_' %}
+{% assign LIST_PREFIX = 'l_' %}
+
+{% assign group_index = 0 %}
+
+
+{% assign ns = site.namespaces | sort %}
+{% assign y = ns | size %}
+
+
+<div class="card categories">
+  <!-- top-category -->
+  <div
+    id="{{ HEAD_PREFIX }}{{ group_index }}"
+    class="card-header d-flex justify-content-between hide-border-bottom"
+  >
+    <span class="ms-2">
+    </span>
+  </div>
+  <!-- .card-header -->
+
+  <!-- Sub-categories -->
+  {% if y > 0 %}
+    <div id="{{ LIST_PREFIX }}{{ group_index }}" class="collapse show" aria-expanded="true">
+      <ul class="list-group">
+        {% for item in ns %}
+          <li class="list-group-item">
+            <i class="far fa-folder fa-fw"></i>
+
+            {% capture _sub_ctg_url %}/{{ item.url }}/{% endcapture %}
+            <a href="{{ _sub_ctg_url | absolute_url }}" class="mx-2">{{ item.name }}</a>
+
+            <span class="text-muted small font-weight-light">
+			<!--
+              someday, I'll put descriptions here.
+			  -->
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+<!-- .card -->
+
+{% assign group_index = group_index | plus: 1 %}
+
