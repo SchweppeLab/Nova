@@ -29,6 +29,9 @@ show_downloads: true
 
 github:
   username: SchweppeLab # change to your GitHub username
+  
+plugins:
+  - "jekyll-github-metadata"
 
 twitter:
   username: twitter_username # change to your Twitter username
