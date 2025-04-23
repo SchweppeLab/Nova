@@ -110,3 +110,35 @@ layout: page
   </div>
 </div>
 {% endif %}
+
+{% assign a = site.enums | where:"namespaces",page.namespaces | sort %}
+{% assign sz = a | size %}
+{% if sz > 0 %} 
+<div class="card categories">
+  <div
+    id="{{ HEAD_PREFIX }}{{ group_index }}"
+    class="card-header d-flex justify-content-between hide-border-bottom"
+  >
+    <span class="ms-2">
+      Enums
+    </span>
+  </div>
+
+  <!-- contents -->
+  <div id="{{ LIST_PREFIX }}{{ group_index }}" class="collapse show" aria-expanded="true">
+    <ul class="list-group">
+      {% for item in a %}
+        <li class="list-group-item">
+          <i class="far fa-folder fa-fw"></i>
+          <a href="{{ item.url | relative_url }}" class="mx-2">{{ item.title }}</a>
+
+          {% assign posts_size = site.categories[sub_category] | size %}
+          <span class="text-muted small font-weight-light">
+		    {{ item.description }}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}

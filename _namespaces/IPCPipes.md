@@ -1,8 +1,8 @@
 ---
-name: IPC
-title: IPC
+name: IPC.Pipes
+title: IPC.Pipes
 description: none
-namespaces: IPC
+namespaces: IPC.Pipes
 type: Namespace
 layout: category
 ---

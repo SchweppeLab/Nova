@@ -26,7 +26,7 @@ layout: page
 
   <h4>Release History</h4>
 </div>
-<div id="downloads" class="pl-xl-3">
+<div id="archives" class="pl-xl-3">
   {% for item in site.downloads %}
     {% assign cur_year = item.date | date: '%Y' %}
 
@@ -46,7 +46,7 @@ layout: page
         {{ item.date | date: df_strftime_m }}
       </span>
       <span class="downloads">
-	    {{ item.title }} <a href="{{ item.zip | relative_url }}">zip</a> | <a href="{{ item.gh | relative_url }}">GitHub</a>
+	    {{ item.title }} <a class="downloads" href="{{ item.zip | relative_url }}">zip</a> | <a class="downloads" href="{{ item.gh | relative_url }}">GitHub</a>
 	  </span>
     </li>
 
