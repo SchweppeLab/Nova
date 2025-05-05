@@ -16,7 +16,7 @@ timezone: America/Los_Angeles
 
 title: Nova # the main title
 
-tagline: so much work to do... # it will display as the subtitle
+tagline: Brilliant! # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
   Schweppe Lab software for C#
