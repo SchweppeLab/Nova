@@ -29,6 +29,7 @@ show_downloads: true
 
 github:
   username: SchweppeLab # change to your GitHub username
+  repo: Nova
   
 plugins:
   - "jekyll-github-metadata"
