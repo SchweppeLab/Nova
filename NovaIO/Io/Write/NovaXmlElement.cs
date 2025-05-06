@@ -13,7 +13,7 @@ namespace Nova.Io.Write
   internal class NovaXmlElement
   {
     public readonly string Name;
-    public string Contents;
+    public string? Contents;
     public List<Tuple<string, string>> Attributes = new List<Tuple<string, string>>();
     public List<NovaXmlElement> Elements = new List<NovaXmlElement>();
 

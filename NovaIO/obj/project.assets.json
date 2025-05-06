@@ -2532,11 +2532,11 @@
   "project": {
     "version": "1.0.0.2",
     "restore": {
-      "projectUniqueName": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\NovaIO\\NovaIO.csproj",
+      "projectUniqueName": "D:\\Software\\SchweppeLab\\Nova\\NovaIO\\NovaIO.csproj",
       "projectName": "Nova.IO",
-      "projectPath": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\NovaIO\\NovaIO.csproj",
+      "projectPath": "D:\\Software\\SchweppeLab\\Nova\\NovaIO\\NovaIO.csproj",
       "packagesPath": "C:\\Users\\Hoopmann\\.nuget\\packages\\",
-      "outputPath": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\NovaIO\\obj\\",
+      "outputPath": "D:\\Software\\SchweppeLab\\Nova\\NovaIO\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2551,16 +2551,15 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "D:\\Software\\Other\\RawFileReader\\Libs\\NetCore\\Net8": {},
-        "D:\\Software\\SchweppeLab\\NuGet": {},
+        "D:\\Software\\NuGet": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\Nova\\Nova.csproj": {
-              "projectPath": "D:\\Software\\SchweppeLab\\Framework-48\\NovaMikeSandbox\\Nova\\Nova.csproj"
+            "D:\\Software\\SchweppeLab\\Nova\\Nova\\Nova.csproj": {
+              "projectPath": "D:\\Software\\SchweppeLab\\Nova\\Nova\\Nova.csproj"
             }
           }
         }
@@ -2573,7 +2572,7 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "direct"
+        "auditMode": "all"
       },
       "SdkAnalysisLevel": "9.0.100"
     },
@@ -2610,8 +2609,30 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-8g4q-xg66-9fp4",
+      "libraryId": "System.Text.Json",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-hh2w-p6rv-4g7w",
+      "libraryId": "System.Text.Json",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }
