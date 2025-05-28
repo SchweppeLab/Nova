@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\IChromatDataPoint.cs" />
+    <Compile Include="Data\IChromatogram.cs" />
     <Compile Include="Data\ISpecDataPoint.cs" />
     <Compile Include="Data\ISpectrum.cs" />
     <Compile Include="Data\Precursor.cs" />
@@ -73,6 +74,5 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

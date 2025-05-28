@@ -8,8 +8,21 @@ using System;
 
 namespace Nova.Io.Read
 {
+
+  internal enum BinaryArrayType
+  {
+    Unknown,
+    Mz,
+    Intensity,
+    Time,
+    NonStandard
+  }
+
   internal class MzMLReader : ISpectrumFileReader
   {
+
+    private Chromatogram chromatogram;
+
     /// <summary>
     /// A basic spectrum type reading only mz and intensity values for each data point.
     /// </summary>
@@ -36,6 +49,8 @@ namespace Nova.Io.Read
     /// </summary>
     private List<int> scanIndex = new List<int>();
 
+    private List<int> chrIndex = new List<int>();
+
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
     /// </summary>
@@ -52,6 +67,9 @@ namespace Nova.Io.Read
     /// </summary>
     private int CurrentScanNumber = 0;
 
+    private int CurrentChromatIndex = -1;
+    private int lastChromatIndex { get; set; } = 0;
+
     /// <summary>
     /// Number of bits (64 if true, 32 otherwise) per value in a binary data array
     /// </summary>
@@ -62,11 +80,7 @@ namespace Nova.Io.Read
     /// </summary>
     private bool zlib = false;
 
-    /// <summary>
-    /// True if binary data array is for the m/z values, false for intensity values.
-    /// One day there might be other data arrays, so consider using an enum here.
-    /// </summary>
-    private bool mzArray = false;
+    private BinaryArrayType arrayType = BinaryArrayType.Unknown;
 
     /// <summary>
     /// For storing precursor ion information while parsing the mzML file.
@@ -76,6 +90,12 @@ namespace Nova.Io.Read
     private bool hasMonoMz = false;
 
     public int ScanCount { get; private set; } = 0;
+
+    public int FirstScan { get; private set; } = 0;
+    public int LastScan { get; private set; } = 0;
+    public double MaxRetentionTime { get; private set; } = 0;
+
+    public int ChromatCount { get; private set; } = 0;
 
     /// <summary>
     /// Constructor for MzMLReader
@@ -87,6 +107,7 @@ namespace Nova.Io.Read
       spectrum = new Spectrum();
       spectrumEx = new SpectrumEx();
       precursorIon = new PrecursorIon();
+      chromatogram = new Chromatogram();
     }
 
     /// <summary>
@@ -119,6 +140,7 @@ namespace Nova.Io.Read
         XmlFS.Seek(offset, SeekOrigin.Begin);
         XmlFile = XmlReader.Create(XmlFS);
         int scanNum = -1;
+        int indexSet = 0; //1=spectrum,2=chromatogram
         while (XmlFile.Read())
         {
           if (XmlFile.NodeType == XmlNodeType.Element)
@@ -126,26 +148,35 @@ namespace Nova.Io.Read
             if (XmlFile.Name == "index")
             {
               //TODO: do a better job reading the index
-              //Only read the spectrum index. Assumes that it is always first
-              if (XmlFile.GetAttribute("name") != "spectrum") break;
+              string tmp = XmlFile.GetAttribute("name");
+              if (tmp == "spectrum") indexSet = 1;
+              else if (tmp == "chromatogram") indexSet = 2;
+              else indexSet = 0;
             }
             else if (XmlFile.Name == "offset")
             {
-              string idRef = XmlFile.GetAttribute("idRef");
-              if (idRef != null)
+              if (indexSet == 1) //spectrum offset
               {
-                scanNum = idRef.IndexOf("scan=");
-                if (scanNum != -1)
+                string idRef = XmlFile.GetAttribute("idRef");
+                if (idRef != null)
                 {
-                  scanNum = Convert.ToInt32(idRef.Substring(scanNum + 5));
-                  if(scanIndex.Count==0) firstScanNumber = scanNum;
-                  while (scanIndex.Count < scanNum)
+                  scanNum = idRef.IndexOf("scan=");
+                  if (scanNum != -1)
                   {
-                    scanIndex.Add(0);
+                    scanNum = Convert.ToInt32(idRef.Substring(scanNum + 5));
+                    if (scanIndex.Count == 0) FirstScan = firstScanNumber = scanNum;
+                    while (scanIndex.Count < scanNum)
+                    {
+                      scanIndex.Add(0);
+                    }
                   }
                 }
+                scanIndex.Add(Convert.ToInt32(XmlFile.ReadElementContentAsString()));
               }
-              scanIndex.Add(Convert.ToInt32(XmlFile.ReadElementContentAsString()));
+              else if (indexSet == 2) //chromatogram offset
+              {
+                chrIndex.Add(Convert.ToInt32(XmlFile.ReadElementContentAsString()));
+              }
             }
           }
           else if (XmlFile.NodeType == XmlNodeType.EndElement)
@@ -157,13 +188,24 @@ namespace Nova.Io.Read
         CurrentScanNumber = 0;
         if (scanNum == -1)
         {
-          lastScanNumber = scanIndex.Count;
+          LastScan = lastScanNumber = scanIndex.Count;
         }
         else
         {
-          lastScanNumber = scanNum;
+          LastScan = lastScanNumber = scanNum;
         }
         ScanCount = scanIndex.Count;
+
+        CurrentChromatIndex = -1;
+        lastChromatIndex= chrIndex.Count-1;
+        ChromatCount = chrIndex.Count;
+        //Console.WriteLine(ChromatCount.ToString());
+
+        //Read the last spectrum to get the max retention time
+        ParseSpectrum(LastScan);
+        MaxRetentionTime = spectrum.RetentionTime;
+        Reset();
+
       }
       catch (Exception ex)
       {
@@ -180,6 +222,22 @@ namespace Nova.Io.Read
     public void Close()
     {
       //if (RawFile != null) RawFile.Dispose();
+    }
+
+    public Chromatogram GetChromatogram(int chromatIndex = -1)
+    {
+
+      if (chromatIndex < 0) CurrentChromatIndex++;
+      else CurrentChromatIndex = chromatIndex;
+      if (CurrentChromatIndex > lastChromatIndex)
+      {
+        chromatogram = new Chromatogram(0);
+        return chromatogram;
+      }
+
+      ParseChromatogram(CurrentChromatIndex);
+
+      return chromatogram;
     }
 
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)
@@ -316,6 +374,58 @@ namespace Nova.Io.Read
       return decompressed;
     }
 
+    private void ParseChromatogram(int chromatIndex)
+    {
+
+      //Reset spectrum
+      chromatogram = new Chromatogram(0);
+
+      //some local variables as we process
+      int encLen = 0; //encoded length of a binaryDataArray
+      int defArrLen = 0; //default array length, or the number of datapoints in the spectrum.
+
+      XmlFS.Seek(chrIndex[chromatIndex], SeekOrigin.Begin);
+      XmlFile = XmlReader.Create(XmlFS);
+      while (XmlFile.Read())
+      {
+        if (XmlFile.NodeType == XmlNodeType.Element)
+        {
+          if (XmlFile.Name == "binary")
+          {
+            ProcessBinaryData(encLen, defArrLen,false,true);
+          }
+          else if (XmlFile.Name == "binaryDataArray")
+          {
+            //Set some default assumptions in case these aren't specified in the following cvParams
+            bit64 = false;
+            zlib = false;
+            arrayType = BinaryArrayType.Unknown;
+            encLen = Convert.ToInt32(XmlFile.GetAttribute("encodedLength"));
+          }
+          else if (XmlFile.Name == "cvParam")
+          {
+            ProcessCvParam(ref XmlFile);
+          }
+          else if (XmlFile.Name == "chromatogram")
+          {
+            chromatogram.ID = XmlFile.GetAttribute("id");
+            defArrLen = Convert.ToInt32(XmlFile.GetAttribute("defaultArrayLength"));
+            chromatogram.Resize(defArrLen);
+          }
+        }
+
+
+        else if (XmlFile.NodeType == XmlNodeType.EndElement)
+        {
+          switch (XmlFile.Name)
+          {
+            case "chromatogram": return;
+            default: break;
+          }
+        }
+      }
+    }
+
     private void ParseSpectrum(int scanNumber)
     {
 
@@ -343,7 +453,7 @@ namespace Nova.Io.Read
             //Set some default assumptions in case these aren't specified in the following cvParams
             bit64 = false;
             zlib = false;
-            mzArray = true;
+            arrayType = BinaryArrayType.Unknown;
             encLen = Convert.ToInt32(XmlFile.GetAttribute("encodedLength"));
           }
           else if (XmlFile.Name == "cvParam")
@@ -420,7 +530,7 @@ namespace Nova.Io.Read
             //Set some default assumptions in case these aren't specified in the following cvParams
             bit64 = false;
             zlib = false;
-            mzArray = true;
+            arrayType = BinaryArrayType.Unknown;
             encLen = Convert.ToInt32(XmlFile.GetAttribute("encodedLength"));
           }
           else if (XmlFile.Name == "cvParam")
@@ -470,7 +580,7 @@ namespace Nova.Io.Read
       }
     }
 
-    private void ProcessBinaryData(int encLen, int defArrLen, bool ext = false)
+    private void ProcessBinaryData(int encLen, int defArrLen, bool ext = false, bool chromat=false)
     {
       byte[] buffer = new byte[encLen];
       XmlFile.ReadElementContentAsBase64(buffer, 0, encLen);
@@ -482,7 +592,7 @@ namespace Nova.Io.Read
 
       if (ext)
       {
-        if (mzArray)
+        if (arrayType==BinaryArrayType.Mz)
         {
           for (int a = 0; a < defArrLen; a++)
           {
@@ -490,7 +600,7 @@ namespace Nova.Io.Read
             else spectrumEx.DataPoints[a].Mz = BitConverter.ToSingle(buffer, a * sz);
           }
         }
-        else
+        else if(arrayType == BinaryArrayType.Intensity)
         {
           for (int a = 0; a < defArrLen; a++)
           {
@@ -498,10 +608,22 @@ namespace Nova.Io.Read
             else spectrumEx.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
           }
         }
+        else
+        {
+          //ignoring unknown arrays for now.
+        }
       }
       else
       {
-        if (mzArray)
+        if (arrayType==BinaryArrayType.Time)
+        {
+          for (int a = 0; a < defArrLen; a++)
+          {
+            if (bit64) chromatogram.DataPoints[a].RT = BitConverter.ToDouble(buffer, a * sz);
+            else chromatogram.DataPoints[a].RT = BitConverter.ToSingle(buffer, a * sz);
+          }
+        }
+        else if (arrayType==BinaryArrayType.Mz)
         {
           for (int a = 0; a < defArrLen; a++)
           {
@@ -509,13 +631,28 @@ namespace Nova.Io.Read
             else spectrum.DataPoints[a].Mz = BitConverter.ToSingle(buffer, a * sz);
           }
         }
+        else if (arrayType == BinaryArrayType.Intensity)
+        {
+          if (chromat)
+          {
+            for (int a = 0; a < defArrLen; a++)
+            {
+              if (bit64) chromatogram.DataPoints[a].Intensity = BitConverter.ToDouble(buffer, a * sz);
+              else chromatogram.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
+            }
+          }
+          else
+          {
+            for (int a = 0; a < defArrLen; a++)
+            {
+              if (bit64) spectrum.DataPoints[a].Intensity = BitConverter.ToDouble(buffer, a * sz);
+              else spectrum.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
+            }
+          }
+        }
         else
         {
-          for (int a = 0; a < defArrLen; a++)
-          {
-            if (bit64) spectrum.DataPoints[a].Intensity = BitConverter.ToDouble(buffer, a * sz);
-            else spectrum.DataPoints[a].Intensity = BitConverter.ToSingle(buffer, a * sz);
-          }
+          //ignoring other values
         }
       }
     }
@@ -601,10 +738,10 @@ namespace Nova.Io.Read
           }
           break;
         case "MS:1000514": //m/z array
-          mzArray = true;
+          arrayType=BinaryArrayType.Mz;
           break;
         case "MS:1000515": //intensity array
-          mzArray = false;
+          arrayType=BinaryArrayType.Intensity;
           break;
         case "MS:1000521": //32-bit float
           bit64 = false;
@@ -627,6 +764,9 @@ namespace Nova.Io.Read
         //case "MS:1000579": //MS1 spectrum
         //  spectrum.MsLevel = 1;
         //  break;
+        case "MS:1000595": //time array
+          arrayType = BinaryArrayType.Time;
+          break;
 
         case "MS:1000598": //electron transfer dissociation
           precursorIon.FramentationMethod = FramentationType.ETD;

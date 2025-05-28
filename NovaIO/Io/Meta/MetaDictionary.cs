@@ -9,6 +9,7 @@
     FaimsCV,
     //Header,
     IIT,
+    MasterScanNumber,
     MonoisotopicMZ,
     ScanNumber,
     TIC
@@ -41,6 +42,10 @@
       //IIT
       {"Ion Injection Time (ms)",MetaClass.IIT },
       {"Ion Injection Time (ms):", MetaClass.IIT},
+
+      //MasterScanNumber
+      {"Master Scan Number",MetaClass.MasterScanNumber },
+      {"Master Scan Number:",MetaClass.MasterScanNumber },
 
       //MonoisotopicMZ
       {"Monoisotopic M/Z", MetaClass.MonoisotopicMZ },

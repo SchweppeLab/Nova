@@ -28,6 +28,15 @@ class NovaApp
     FileReader Reader = new FileReader(MSFilter.MS2 | MSFilter.MS3);
     SpectrumEx Spec = new SpectrumEx();
 
+    //Read a chromatogram
+    Console.WriteLine("Chromatogram (first 10 points):");
+    Chromatogram ch = Reader.ReadChromatogram(args[0]);
+    Console.WriteLine(ch.ID);
+    for (int i = 0; i < 10; i++)
+    {
+      Console.WriteLine(ch.DataPoints[i].RT.ToString() + "  " + ch.DataPoints[i].Intensity.ToString());
+    }
+
     //Reading the first spectrum from a file is easy, just give it the file name.
     //If filters are used, the reader automatically advances to the first spectrum
     //that satisfies the filter. This is in a try block because exceptions regarding
@@ -50,13 +59,14 @@ class NovaApp
       //TODO: whatever you want to do with a spectrum...
       //Display the first spectrum header to screen
       if(count == 0){
-        Console.WriteLine("ScanNumber:     " + Spec.ScanNumber.ToString());
-        Console.WriteLine("ScanFilter:     " + Spec.ScanFilter);
-        Console.WriteLine("Retention Time: " + Spec.RetentionTime.ToString());
-        Console.WriteLine("MS Level:       " + Spec.MsLevel.ToString());
-        Console.WriteLine("Centroid:       " + (Spec.Centroid ? "yes" : "no"));
-        Console.WriteLine("Base Peak Mz:   " + Spec.BasePeakMz.ToString());
-        Console.WriteLine("Base Peak Int:  " + Spec.BasePeakIntensity.ToString());
+        Console.WriteLine("ScanNumber:         " + Spec.ScanNumber.ToString());
+        Console.WriteLine("ScanFilter:         " + Spec.ScanFilter);
+        Console.WriteLine("Retention Time:     " + Spec.RetentionTime.ToString());
+        Console.WriteLine("MS Level:           " + Spec.MsLevel.ToString());
+        Console.WriteLine("Centroid:           " + (Spec.Centroid ? "yes" : "no"));
+        Console.WriteLine("Base Peak Mz:       " + Spec.BasePeakMz.ToString());
+        Console.WriteLine("Base Peak Int:      " + Spec.BasePeakIntensity.ToString());
+        Console.WriteLine("Master ScanNumber:  " + Spec.PrecursorMasterScanNumber.ToString());
         if (Spec.MsLevel > 1)
         {
           for (int i = 0; i < Spec.Precursors.Count; i++) {

@@ -20,7 +20,7 @@ namespace Nova.Io.Read
     MzML,
     MzXML,
     ThermoRaw,
-  };
+  }
 
   /// <summary>
   /// Bitwise enumerator for filtering scans by type.
@@ -56,8 +56,9 @@ namespace Nova.Io.Read
 
     public int ScanCount { get; private set; } = 0;
 
-    //private int FirstScan = 0;
-    //private int LastScan = 0;
+    public int FirstScan { get; private set; } = 0;
+    public int LastScan { get; private set; } = 0;
+    public double MaxRetentionTime { get; private set; } = 0;
 
     public FileReader (MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3)
     {
@@ -168,7 +169,50 @@ namespace Nova.Io.Read
       FileName = fileName;
       fileReader.Open(fileName);
       ScanCount = fileReader.ScanCount;
+      FirstScan = fileReader.FirstScan;
+      LastScan = fileReader.LastScan;
+      MaxRetentionTime = fileReader.MaxRetentionTime;
       return true;
+    }
+
+    public Chromatogram ReadChromatogram(string fileName = "", int chromatIndex = -1)
+    {
+      try
+      {
+
+        //If CheckFile returns false, that means we need to open a new file
+        if (!CheckFile(fileName))
+        {
+          //close the existing file, if open
+          if (!FileName.IsNullOrEmpty())
+          {
+            FileName = string.Empty;
+            fileReader.Close();
+          }
+
+          //Open the new file and set the FileName
+          OpenSpectrumFile(fileName);
+        }
+
+        //Try to read the spectrum
+        try
+        {
+          return fileReader.GetChromatogram(chromatIndex);
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine(ex.Message);
+          return new Chromatogram(0);
+        }
+
+      }
+      catch (Exception ex)
+      {
+        //TODO: Handle file checking exceptions
+        Console.WriteLine(ex.ToString());
+      }
+
+      return new Chromatogram(0);
     }
 
     public Spectrum ReadSpectrum(string fileName = "", int scanNumber = -1, bool centroid = true)

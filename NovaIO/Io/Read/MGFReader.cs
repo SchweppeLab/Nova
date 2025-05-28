@@ -54,6 +54,10 @@ namespace Nova.Io.Read
 
     public int ScanCount { get; private set; } = 0;
 
+    public int FirstScan {  get; private set; } = 0;  
+    public int LastScan { get; private set; } = 0;
+    public double MaxRetentionTime { get; private set; } = 0;
+
     /// <summary>
     /// Constructor for MGFReader
     /// </summary>
@@ -149,6 +153,11 @@ namespace Nova.Io.Read
     public void Close()
     {
       //if (RawFile != null) RawFile.Dispose();
+    }
+
+    public Chromatogram GetChromatogram(int chromatIndex = -1)
+    {
+      return new Chromatogram(0);
     }
 
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)

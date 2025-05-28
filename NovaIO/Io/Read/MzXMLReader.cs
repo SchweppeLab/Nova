@@ -73,6 +73,10 @@ namespace Nova.Io.Read
 
     public int ScanCount { get; private set; } = 0;
 
+    public int FirstScan { get; private set; } = 0;
+    public int LastScan { get; private set; } = 0;
+    public double MaxRetentionTime { get; private set; } = 0;
+
     /// <summary>
     /// Constructor for MzXMLReader
     /// </summary>
@@ -131,6 +135,7 @@ namespace Nova.Io.Read
               if (idRef != null)
               {
                 scanNum = Convert.ToInt32(idRef);
+                if (scanIndex.Count == 0) FirstScan = scanNum;
                 while (scanIndex.Count < scanNum)
                 {
                   scanIndex.Add(0);
@@ -148,13 +153,19 @@ namespace Nova.Io.Read
         CurrentScanNumber = 0;
         if (scanNum == -1)
         {
-          lastScanNumber = scanIndex.Count;
+          LastScan = lastScanNumber = scanIndex.Count;
         }
         else
         {
-          lastScanNumber = scanNum;
+          LastScan = lastScanNumber = scanNum;
         }
         ScanCount = scanIndex.Count-1;
+
+        //Read the last spectrum to get the max retention time
+        ParseSpectrum(LastScan,false);
+        MaxRetentionTime = spectrum.RetentionTime;
+        Reset();
+
       }
       catch (Exception ex)
       {
@@ -168,6 +179,16 @@ namespace Nova.Io.Read
     public void Close()
     {
       //if (RawFile != null) RawFile.Dispose();
+    }
+
+    /// <summary>
+    /// MzXML files do not have chromatograms. An empty chromatogram object is returned every time.
+    /// </summary>
+    /// <param name="chromatIndex"></param>
+    /// <returns></returns>
+    public Chromatogram GetChromatogram(int chromatIndex = -1)
+    {
+      return new Chromatogram(0);
     }
 
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)

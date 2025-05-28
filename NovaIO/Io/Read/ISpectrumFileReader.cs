@@ -18,6 +18,17 @@ namespace Nova.Io.Read
 
     int ScanCount { get; }
 
+    int FirstScan { get; }
+    int LastScan { get; }
+    double MaxRetentionTime { get; } 
+
+    /// <summary>
+    /// Reads a chromatogram from the currently open MS data file
+    /// </summary>
+    /// <param name="chromatIndex">Optional chromatogram index (zero based) to read. If omitted (or negative), the next chromatogram in the file is read.</param>
+    /// <returns>Chromatogram object</returns>
+    Chromatogram GetChromatogram(int chromatIndex = -1);
+
     /// <summary>
     /// Reads a spectrum from the currently open MS data file. 
     /// </summary>

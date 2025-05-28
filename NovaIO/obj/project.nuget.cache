@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "YIbFHOOMeME=",
+  "dgSpecHash": "/jhGuKC2ndQ=",
   "success": true,
-  "projectFilePath": "D:\\Software\\SchweppeLab\\Nova\\NovaIO\\NovaIO.csproj",
+  "projectFilePath": "D:\\Software\\SchweppeLab\\Framework-48\\Nova\\NovaIO\\NovaIO.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Hoopmann\\.nuget\\packages\\commandlineparser\\2.9.1\\commandlineparser.2.9.1.nupkg.sha512",
     "C:\\Users\\Hoopmann\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\8.0.0\\microsoft.aspnetcore.jsonpatch.8.0.0.nupkg.sha512",
@@ -54,26 +54,5 @@
     "C:\\Users\\Hoopmann\\.nuget\\packages\\thermofisher.commoncore.rawfilereader\\8.0.6\\thermofisher.commoncore.rawfilereader.8.0.6.nupkg.sha512",
     "C:\\Users\\Hoopmann\\.nuget\\packages\\nova\\1.0.0\\nova.1.0.0.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-8g4q-xg66-9fp4",
-      "libraryId": "System.Text.Json",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-hh2w-p6rv-4g7w",
-      "libraryId": "System.Text.Json",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  "logs": []
 }

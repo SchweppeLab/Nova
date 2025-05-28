@@ -12,7 +12,6 @@ namespace Protostar
   public partial class ProtostarForm : Form
   {
     List<ProtostarFile> Files = new List<ProtostarFile>();
-    int ActiveChromats = 0;
     bool RefreshPlot = false;
     bool ChromatMode = true;
     bool IsReplotting = false;
@@ -64,10 +63,6 @@ namespace Protostar
 
       UpdatePlotTimer.Tick += (s, e) =>
       {
-        if (!IsReplotting && ActiveChromats > 0)
-        {
-          Replot();
-        }
         if (RefreshPlot)
         {
           plot1.Refresh();
@@ -110,6 +105,13 @@ namespace Protostar
     //we are already in it?
     private void Replot()
     {
+      //make sure all items are loaded. If not, stop now, and this function will be called again
+      //when another file loads.
+      foreach (ProtostarFile o in listBox1.SelectedItems)
+      {
+        if (!o.IsLoaded) return;
+      }
+
       IsReplotting = true;
       lock (plot1.Plot.Sync)
       {
@@ -121,15 +123,15 @@ namespace Protostar
       {
         if (ChromatMode)
         {
-          if (o.Chromatogram == null) continue;
+          if (!o.IsLoaded || o.Chromat == null || o.Chromat.Count==0) continue;
           lock (plot1.Plot.Sync)
           {
-            double[] x = new double[o.Chromatogram.Count];
-            double[] y = new double[o.Chromatogram.Count];
-            for (int a = 0; a < o.Chromatogram.Count; a++)
+            double[] x = new double[o.Chromat.Count];
+            double[] y = new double[o.Chromat.Count];
+            for (int a = 0; a < o.Chromat.Count; a++)
             {
-              x[a] = o.Chromatogram.DataPoints[a].Mz;
-              y[a] = o.Chromatogram.DataPoints[a].Intensity;
+              x[a] = o.Chromat.DataPoints[a].RT;
+              y[a] = o.Chromat.DataPoints[a].Intensity;
               if (y[a] > max) max = y[a];
             }
             var scat = plot1.Plot.Add.Scatter(x, y);
@@ -139,7 +141,7 @@ namespace Protostar
             plot1.Plot.XLabel("Time (min)");
             plot1.Plot.Axes.SetupMultiplierNotation(plot1.Plot.Axes.Left);
             plot1.Plot.Axes.SetLimitsY(0, max);
-            plot1.Plot.Axes.SetLimitsX(0, o.Chromatogram.DataPoints[o.Chromatogram.Count - 1].Mz);
+            plot1.Plot.Axes.SetLimitsX(0, o.Chromat.DataPoints[o.Chromat.Count - 1].RT);
           }
         }
         else
@@ -181,15 +183,8 @@ namespace Protostar
       IsReplotting = false;
     }
 
-    private void StartChromatogram(object? sender, EventArgs e)
-    {
-      ActiveChromats++;
-      //Log("Add Chromat: " + ActiveChromats.ToString());
-    }
-
     private void StopChromatogram(object? sender, EventArgs e)
     {
-      ActiveChromats--;
       if (sender != null)
       {
         ((ProtostarFile)sender).DoneLoading();
@@ -202,11 +197,7 @@ namespace Protostar
         }
       }
 
-      if (ActiveChromats == 0)
-      {
-        if (ChromatMode) Replot();
-      }
-      //Log("Remove Chromat: " + ActiveChromats.ToString());
+      if (ChromatMode) Replot();
     }
 
     private async void toolStripButton1_Click(object sender, EventArgs e)
@@ -230,9 +221,8 @@ namespace Protostar
           if (match) continue;
           int index = listBox1.Items.Add(new ProtostarFile(file));
           listBox1.SelectedIndices.Add(index);
-          ((ProtostarFile)listBox1.Items[index]).StartChromatogram += StartChromatogram;
-          ((ProtostarFile)listBox1.Items[index]).StopChromatogram += StopChromatogram;
-          var t = new Task(() => ((ProtostarFile)listBox1.Items[index]).GenerateChromatogram());
+          ((ProtostarFile)listBox1.Items[index]).FinishedLoading += StopChromatogram;
+          var t = new Task(() => ((ProtostarFile)listBox1.Items[index]).LoadFile());
           t.Start();
           tasks.Add(t);
         }

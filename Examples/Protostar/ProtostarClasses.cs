@@ -34,15 +34,14 @@ namespace Protostar
   {
     public string Filename= string.Empty;
     public SpectrumEx? Scan;
-    public Spectrum? Chromatogram;
+    public Chromatogram? Chromat;
     public int ScanCount = 0;
 
     public bool IsLoaded { get; private set; } = false;
 
     private FileReader MSReader = new FileReader();
 
-    public event EventHandler? StartChromatogram;
-    public event EventHandler? StopChromatogram;
+    public event EventHandler? FinishedLoading;
 
     public ProtostarFile(string filename)
     {
@@ -56,21 +55,25 @@ namespace Protostar
 
     public void GenerateChromatogram()
     {
-      StartChromatogram?.Invoke(this, new EventArgs());
+      Chromat = new Chromatogram(MSReader.ScanCount);
       Spectrum spec = MSReader.ReadSpectrum(Filename);
-      Chromatogram = new Spectrum(MSReader.ScanCount);
-      ScanCount = MSReader.ScanCount;
       int i = 0;
       while (spec.ScanNumber > 0)
       {
-        Chromatogram.DataPoints[i].Mz = spec.RetentionTime;
-        Chromatogram.DataPoints[i++].Intensity = spec.TotalIonCurrent;
+        Chromat.DataPoints[i].RT = spec.RetentionTime;
+        Chromat.DataPoints[i++].Intensity = spec.TotalIonCurrent;
         spec = MSReader.ReadSpectrum();
       }
-      
       MSReader.Reset();
+    }
+
+    public void LoadFile()
+    {
+      Chromat = MSReader.ReadChromatogram(Filename);
+      if(Chromat.Count==0) GenerateChromatogram();
       Scan = MSReader.ReadSpectrumEx(Filename);
-      StopChromatogram?.Invoke(this,new EventArgs());
+      ScanCount = MSReader.ScanCount;
+      FinishedLoading?.Invoke(this,new EventArgs());
     }
 
     public void NextScan(int scanNum=-1)

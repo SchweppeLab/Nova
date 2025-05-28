@@ -7,6 +7,7 @@ using ThermoFisher.CommonCore.RawFileReader;
 
 using Nova.Data;
 using Nova.Io.Meta;
+using System.Formats.Tar;
 
 
 namespace Nova.Io.Read
@@ -18,6 +19,8 @@ namespace Nova.Io.Read
     /// A basic spectrum type reading only mz and intensity values for each data point.
     /// </summary>
     private Spectrum spectrum;
+
+    private Chromatogram chromatogram;
 
     /// <summary>
     /// An extended spectrum type that reads mz, intensity, charge, resolution, etc. for each data point.
@@ -38,12 +41,17 @@ namespace Nova.Io.Read
     /// The ScanNumber of the last scan in the file.
     /// </summary>
     private int lastScanNumber { get; set; } = 0;
+
     /// <summary>
     /// The ScanNumber of the most recent scan that was read. A value of 0 means a scan has not yet been read.
     /// </summary>
     private int CurrentScanNumber = 0;
 
     public int ScanCount { get; private set; } = 0;
+
+    public int FirstScan { get; private set; } = 0;
+    public int LastScan { get; private set; } = 0;
+    public double MaxRetentionTime { get; private set; } = 0;
 
     /// <summary>
     /// Constructor for ThermoRawReader
@@ -54,6 +62,7 @@ namespace Nova.Io.Read
       Filter = filter;
       spectrum = new Spectrum();
       spectrumEx = new SpectrumEx();
+      chromatogram = new Chromatogram();
     }
 
     /// <summary>
@@ -69,6 +78,29 @@ namespace Nova.Io.Read
         if (i == FirstScan) yield return GetSpectrum(i);
         yield return GetSpectrum();
       }
+    }
+
+    public Chromatogram GetChromatogram(int chromatIndex = -1)
+    {
+      //TODO: have repeated calls to this function get different chromatograms.
+      chromatogram = new Chromatogram(0);
+      ChromatogramTraceSettings settings = new ChromatogramTraceSettings(TraceType.TIC);
+      settings.MassRangeCount = 1;
+      settings.SetMassRange(0, new ThermoFisher.CommonCore.Data.Business.Range(0, RawFile.RunHeader.HighMass));
+
+      var data = RawFile.GetChromatogramData(new IChromatogramSettings[] { settings }, RawFile.RunHeaderEx.FirstSpectrum, RawFile.RunHeaderEx.LastSpectrum);
+      var trace = ChromatogramSignal.FromChromatogramData(data);
+      if (trace[0].Length > 0)
+      {
+        chromatogram.Resize(trace[0].Length);
+        for (int i = 0; i < trace[0].Length; i++)
+        {
+          chromatogram.DataPoints[i].RT = trace[0].Times[i];
+          chromatogram.DataPoints[i].Intensity = trace[0].Intensities[i];
+        }
+      }
+      chromatogram.ID = "TIC";
+      return chromatogram;
     }
 
     /// <summary>
@@ -286,7 +318,9 @@ namespace Nova.Io.Read
       if (!RawFile.IsOpen) return false;
       RawFile.SelectInstrument(Device.MS, 1);
       CurrentScanNumber = 0;
-      lastScanNumber = RawFile.RunHeaderEx.LastSpectrum;
+      LastScan = lastScanNumber = RawFile.RunHeaderEx.LastSpectrum;
+      FirstScan = RawFile.RunHeaderEx.FirstSpectrum;
+      MaxRetentionTime = RawFile.RunHeaderEx.ExpectedRunTime; //not sure if this is the best value here.
       ScanCount = RawFile.RunHeaderEx.SpectraCount;
       return true;
     }
@@ -481,6 +515,12 @@ namespace Nova.Io.Read
             if (ext) spectrumEx.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
             else spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
             break;
+
+          case MetaClass.MasterScanNumber:
+            if (ext) spectrumEx.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
+            else spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
+            break;
+
           case MetaClass.MonoisotopicMZ:
             if (ext)
             {

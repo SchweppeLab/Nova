@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nova" Version="1.0.0.4" />
-    <PackageReference Include="Nova.IO" Version="1.0.0.4" />
+    <PackageReference Include="Nova" Version="1.0.0.5" />
+    <PackageReference Include="Nova.IO" Version="1.0.0.5" />
     <PackageReference Include="ScottPlot.WinForms" Version="5.0.54" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="ThermoFisher.CommonCore.Data" Version="8.0.6" />
