@@ -37,3 +37,7 @@ jobs:
 
     - name: Test
       run: dotnet test Test\Test.csproj --no-build --verbosity normal
+
+    - name: Echo
+      run: cat C:\a\Nova\Nova\Test\bin\Debug\net8.0\test.txt
+      
