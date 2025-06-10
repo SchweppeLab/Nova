@@ -39,6 +39,10 @@ namespace TestNova
       dataFilePathMzML = Path.Combine(dir, "Files", @"AngioNeuro4.mzML");
       dataFilePathMzXML = Path.Combine(dir, "Files", @"AngioNeuro4.mzXML");
       dataFilePathRaw = Path.Combine(dir, "Files", @"AngioNeuro4.raw");
+
+      dataFilePathMzML = "C:\\a\\Nova\\Nova\\Test\\Files\\AngioNeuro4.mzML";
+      dataFilePathMzXML = "C:\\a\\Nova\\Nova\\Test\\Files\\AngioNeuro4.mzXML";
+      dataFilePathRaw = "C:\\a\\Nova\\Nova\\Test\\Files\\AngioNeuro4.raw";
     }
 
     [TestMethod]
