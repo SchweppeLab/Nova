@@ -36,6 +36,7 @@ jobs:
       run: dotnet build Nova\Nova.sln --no-restore --configuration Release /p:Platform="x64"
 
     - name: Test
+      if: always()
       run: dotnet test Test\Test.csproj --verbosity normal
 
     - name: Echo
