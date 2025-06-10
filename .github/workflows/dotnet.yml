@@ -37,4 +37,9 @@ jobs:
 
     - name: Test
       run: dotnet test Test\Test.csproj --no-restore --verbosity normal   
+
+    - name: RealTest
+      if: always()
+      run: C:\a\Nova\Nova\NovaApp\bin\x64\Release\net8.0\NovaApp.exe C:\a\Nova\Nova\Test\Files\AngioNeuro4.mzML
+      
       
