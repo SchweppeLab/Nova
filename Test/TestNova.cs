@@ -35,6 +35,7 @@ namespace TestNova
         }
         
       }
+      dir = curDir + "\\..\\..\\..";
       dataFilePathMzML = Path.Combine(dir, "Files", @"AngioNeuro4.mzML");
       dataFilePathMzXML = Path.Combine(dir, "Files", @"AngioNeuro4.mzXML");
       dataFilePathRaw = Path.Combine(dir, "Files", @"AngioNeuro4.raw");
