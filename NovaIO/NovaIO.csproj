@@ -18,7 +18,7 @@
     <PackageTags>mass spectrometry;spectrum</PackageTags>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.0.0.6</Version>
+    <Version>1.0.0.8</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

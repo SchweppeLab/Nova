@@ -137,6 +137,7 @@ namespace Nova.Io.Read
 
         //read the whole damn index
         scanIndex.Clear();
+        ScanCount = 0;
         XmlFS.Seek(offset, SeekOrigin.Begin);
         XmlFile = XmlReader.Create(XmlFS);
         int scanNum = -1;
@@ -169,6 +170,7 @@ namespace Nova.Io.Read
                     {
                       scanIndex.Add(0);
                     }
+                    ScanCount++;
                   }
                 }
                 scanIndex.Add(Convert.ToInt32(XmlFile.ReadElementContentAsString()));
@@ -194,7 +196,6 @@ namespace Nova.Io.Read
         {
           LastScan = lastScanNumber = scanNum;
         }
-        ScanCount = scanIndex.Count;
 
         CurrentChromatIndex = -1;
         lastChromatIndex= chrIndex.Count-1;
