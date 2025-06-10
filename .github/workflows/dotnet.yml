@@ -5,9 +5,9 @@ name: .NET
 
 on:
   push:
-    branches: [ "Reorg4Helios" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "Reorg4Helios" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
       uses: actions/setup-dotnet@v2
 
     - name: Point NuGet to RawFileReader
-      run: dotnet nuget add source D:\a\Nova\Nova\RawFileReader\Libs\NetCore\Net8
+      run: dotnet nuget add source C:\a\Nova\Nova\RawFileReader\Libs\NetCore\Net8
         
     - name: Restore dependencies
       run: dotnet restore .\Nova\Nova.sln
@@ -35,6 +35,5 @@ jobs:
     - name: Build
       run: dotnet build Nova\Nova.sln --no-restore --configuration Release /p:Platform="x64"
 
-      #No test
-    #- name: Test
-    #  run: dotnet test --no-build --verbosity normal
+    - name: Test
+      run: dotnet test Test\Test.csproj --verbosity normal
