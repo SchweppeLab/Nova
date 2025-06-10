@@ -36,4 +36,14 @@ jobs:
       run: dotnet build Nova\Nova.sln --no-restore --configuration Release /p:Platform="x64"
 
     - name: Test
-      run: dotnet test Test\Test.csproj --no-build --verbosity normal
+      run: dotnet test Test\Test.csproj --verbosity normal
+
+    - name: Echo
+      if: always()
+      run: cat C:\a\Nova\Nova\Test\bin\Debug\net8.0\test.txt
+
+    - name: Echo2
+      if: always()
+      run: cat C:\a\Nova\Nova\Test\Files\AngioNeuro4.mzML
+      
+      
