@@ -41,4 +41,9 @@ jobs:
     - name: Echo
       if: always()
       run: cat C:\a\Nova\Nova\Test\bin\Debug\net8.0\test.txt
+
+    - name: Echo2
+      if: always()
+      run: cat C:\a\Nova\Nova\Test\Files\AngioNeuro4.mzML
+      
       
