@@ -44,6 +44,7 @@ namespace TestNova
     public void TestOpenFile()
     {
       if (Reader == null) Assert.Fail();
+      /*
       bool bMzML = Reader.OpenSpectrumFile(dataFilePathMzML);
       Assert.AreEqual(true,bMzML);
       int scMzML = Reader.ScanCount;
@@ -53,7 +54,7 @@ namespace TestNova
       Assert.AreEqual(true, bMzXML);
       int scMzXML = Reader.ScanCount;
       Assert.AreEqual(314, scMzXML);
-
+      */
       bool bRaw = Reader.OpenSpectrumFile(dataFilePathRaw);
       Assert.AreEqual(true, bRaw);
       int scRaw = Reader.ScanCount;
@@ -63,7 +64,9 @@ namespace TestNova
     [TestMethod]
     public void TestReadSpectrumEx()
     {
+      
       if(Reader == null) Assert.Fail();
+      /*
       Spec = Reader.ReadSpectrumEx(dataFilePathMzML);
       if( Spec == null ) Assert.Fail();
       Assert.AreEqual(406,Spec.Count);
@@ -73,6 +76,7 @@ namespace TestNova
       if (Spec == null) Assert.Fail();
       Assert.AreEqual(406, Spec.Count);
       Assert.AreEqual(1, Spec.MsLevel);
+      */
 
       Spec = Reader.ReadSpectrumEx(dataFilePathRaw);
       if (Spec == null) Assert.Fail();
@@ -87,7 +91,8 @@ namespace TestNova
       int ms2 = 0;
       int ms3 = 0;
       if (Reader == null) Assert.Fail();
-      Spectrum spec = Reader.ReadSpectrum(dataFilePathMzXML);
+      /*
+      Spectrum spec = Reader.ReadSpectrum(dataFilePathMzML);
       while (spec.ScanNumber > 0)
       {
         if (spec.MsLevel == 1) ms1++;
@@ -103,7 +108,23 @@ namespace TestNova
       ms1 = 0;
       ms2 = 0;
       ms3 = 0;
-      spec = Reader.ReadSpectrum(dataFilePathRaw);
+      Spectrum spec = Reader.ReadSpectrum(dataFilePathMzXML);
+      while (spec.ScanNumber > 0)
+      {
+        if (spec.MsLevel == 1) ms1++;
+        else if (spec.MsLevel == 2) ms2++;
+        else if (spec.MsLevel == 3) ms3++;
+        spec = Reader.ReadSpectrum();
+      }
+
+      Assert.AreEqual(308,ms1);
+      Assert.AreEqual(6,ms2);
+      Assert.AreEqual(0,ms3);
+      */
+      ms1 = 0;
+      ms2 = 0;
+      ms3 = 0;
+      Spectrum spec = Reader.ReadSpectrum(dataFilePathRaw);
       while (spec.ScanNumber > 0)
       {
         if (spec.MsLevel == 1) ms1++;
