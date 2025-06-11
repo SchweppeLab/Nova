@@ -39,20 +39,4 @@ jobs:
       run: dos2unix C:\a\Nova\Nova\Test\Files\AngioNeuro4.mzXML C:\a\Nova\Nova\Test\Files\AngioNeuro4.mzML
  
     - name: Test
-      run: dotnet test Test\Test.csproj --verbosity minimal   
-
-    - name: RealTest
-      if: always()
-      run: file C:\a\Nova\Nova\Test\Files\AngioNeuro4.mzML
-      
-   # - name: RealTest2
-   #   if: always()
-   #   run: C:\a\Nova\Nova\NovaApp\bin\x64\Release\net8.0\NovaApp.exe C:\a\Nova\Nova\Test\Files\AngioNeuro4.mzXML
-      
-   # - name: RealTest3
-   #   if: always()
-   #   run: C:\a\Nova\Nova\NovaApp\bin\x64\Release\net8.0\NovaApp.exe C:\a\Nova\Nova\Test\Files\AngioNeuro4.raw
-
-   # - name: Echo
-   #   if: always()
-   #   run: cat C:\a\Nova\Nova\Test\Files\AngioNeuro4.mzXML
+      run: dotnet test Test\Test.csproj --verbosity minimal         
