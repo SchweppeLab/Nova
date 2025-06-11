@@ -1,2 +1,2 @@
-/Test/Files/*.mzML eof=lf
-/Test/Files/*.mzXML eof=lf
+*.mzML	text eof=lf
+*.mzXML	text eof=lf
