@@ -9,7 +9,7 @@ layout: page
 {% assign df_dayjs_m = site.data.locales[lang].df.archives.dayjs | default: '/ MM' %}
 
 <div id="downloads" class="pl-xl-3">
-  {% assign rel = site.downloads | first %}
+  {% assign rel = site.downloads | last %}
   <h3>Latest Release: {{ rel.title }} {{ rel.date | date: '%Y-%m-%d' }}</h3>
   
   {% if site.show_downloads %}
