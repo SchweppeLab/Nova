@@ -35,8 +35,11 @@ jobs:
     - name: Build
       run: dotnet build Nova\Nova.sln --no-restore --configuration Release /p:Platform="x64"
 
+    - name: Fix Line Endings
+      run: dos2unix C:\a\Nova\Nova\Test\Files\*.mzXML C:\a\Nova\Nova\Test\Files\*.mzML
+ 
     - name: Test
-      run: dotnet test Test\Test.csproj --verbosity normal   
+      run: dotnet test Test\Test.csproj --verbosity minimal   
 
     - name: RealTest
       if: always()
