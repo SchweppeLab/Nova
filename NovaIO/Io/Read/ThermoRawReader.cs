@@ -545,6 +545,11 @@ namespace Nova.Io.Read
               if (spectrum.Precursors.Count > 0) spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
             }
             break;
+          case MetaClass.ScanDescription:
+            if(ext) spectrumEx.ScanDescription = trailerData.Values[i];
+            else spectrum.ScanDescription = trailerData.Values[i];
+            break;
+
           default:
 
             //TODO: comment this out to disable notifications. But also maybe consider if any of these additional values are

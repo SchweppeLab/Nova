@@ -25,6 +25,7 @@ namespace Nova.Io.Meta
     IIT,
     MasterScanNumber,
     MonoisotopicMZ,
+    ScanDescription,
     ScanNumber,
     TIC
     //Trailer,
@@ -66,6 +67,10 @@ namespace Nova.Io.Meta
       {"Monoisotopic M/Z:", MetaClass.MonoisotopicMZ },
       {"Monoisotopic", MetaClass.MonoisotopicMZ },
       {"Mono M/Z", MetaClass.MonoisotopicMZ },
+
+      //ScanDescription
+      {"Scan Description", MetaClass.ScanDescription },
+      {"Scan Description:", MetaClass.ScanDescription },
 
       //ScanNumber
       {"Scan", MetaClass.ScanNumber },

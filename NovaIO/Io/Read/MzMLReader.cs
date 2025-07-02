@@ -407,7 +407,7 @@ namespace Nova.Io.Read
         {
           if (XmlFile.Name == "binary")
           {
-            ProcessBinaryData(encLen, defArrLen,false,true);
+            if(defArrLen>0) ProcessBinaryData(encLen, defArrLen,false,true);
           }
           else if (XmlFile.Name == "binaryDataArray")
           {
@@ -461,7 +461,7 @@ namespace Nova.Io.Read
         {
           if (XmlFile.Name == "binary")
           {
-            ProcessBinaryData(encLen, defArrLen);
+            if(defArrLen>0) ProcessBinaryData(encLen, defArrLen);
           }
           else if (XmlFile.Name == "binaryDataArray")
           {
@@ -538,7 +538,7 @@ namespace Nova.Io.Read
         {
           if (XmlFile.Name == "binary")
           {
-            ProcessBinaryData(encLen, defArrLen, true);
+            if(defArrLen>0) ProcessBinaryData(encLen, defArrLen, true);
           }
           else if (XmlFile.Name == "binaryDataArray")
           {
