@@ -53,6 +53,7 @@ namespace Nova.Io.Meta
       //FaimsCV
       {"FAIMS Voltage",MetaClass.FaimsCV },
       {"FAIMS CV",MetaClass.FaimsCV },
+      {"FAIMS CV:",MetaClass.FaimsCV },
 
       //IIT
       {"Ion Injection Time (ms)",MetaClass.IIT },
