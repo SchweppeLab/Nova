@@ -94,7 +94,7 @@ class NovaApp
         Console.WriteLine("Data points:    " + Spec.Count.ToString());
         foreach(var dp in Spec.DataPoints)
         {
-          Console.WriteLine(dp.Mz.ToString() + " " + dp.Intensity.ToString());
+          Console.WriteLine(dp.Mz.ToString() + " " + dp.Intensity.ToString() + " " + dp.Charge.ToString());
         }
         
       }

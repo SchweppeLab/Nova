@@ -25,6 +25,7 @@ using ThermoFisher.CommonCore.Data;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Collections;
 using System.Collections.Specialized;
+using System.Globalization;
 
 namespace Nova.Io.Read
 {
@@ -393,8 +394,8 @@ namespace Nova.Io.Read
               precursorIon.MonoisotopicMz = mz; //this may or may not be the monoisotopicMz
             }
             precursorIon.IsolationMz = mz; //this may or may not be the isolationMz
-            precursorIon.Intensity = Convert.ToDouble(precursorIntensity);
-            if(!windowWideness.IsNullOrEmpty()) precursorIon.IsolationWidth=Convert.ToDouble(windowWideness);
+            precursorIon.Intensity = Convert.ToDouble(precursorIntensity, CultureInfo.InvariantCulture);
+            if(!windowWideness.IsNullOrEmpty()) precursorIon.IsolationWidth=Convert.ToDouble(windowWideness, CultureInfo.InvariantCulture);
             if (extended)
             {
               spectrumEx.PrecursorMasterScanNumber=Convert.ToInt32(precursorScanNum);
@@ -431,13 +432,13 @@ namespace Nova.Io.Read
               spectrumEx.Resize(defArrLen);
               if (!polarity.IsNullOrEmpty() && polarity[0] == '-') spectrumEx.Polarity = false;
               spectrumEx.RetentionTime = rt.TotalMinutes;
-              spectrumEx.LowestMz=Convert.ToDouble(lowMz);
-              spectrumEx.HighestMz=Convert.ToDouble(highMz);
-              spectrumEx.StartMz=Convert.ToDouble(startMz);
-              spectrumEx.EndMz=Convert.ToDouble(endMz);
-              spectrumEx.BasePeakMz=Convert.ToDouble(basePeakMz);
-              spectrumEx.BasePeakIntensity=Convert.ToDouble(basePeakIntensity);
-              spectrumEx.TotalIonCurrent=Convert.ToDouble(totIonCurrent);
+              spectrumEx.LowestMz=Convert.ToDouble(lowMz, CultureInfo.InvariantCulture);
+              spectrumEx.HighestMz=Convert.ToDouble(highMz, CultureInfo.InvariantCulture);
+              spectrumEx.StartMz=Convert.ToDouble(startMz, CultureInfo.InvariantCulture);
+              spectrumEx.EndMz=Convert.ToDouble(endMz, CultureInfo.InvariantCulture);
+              spectrumEx.BasePeakMz=Convert.ToDouble(basePeakMz, CultureInfo.InvariantCulture);
+              spectrumEx.BasePeakIntensity=Convert.ToDouble(basePeakIntensity, CultureInfo.InvariantCulture);
+              spectrumEx.TotalIonCurrent=Convert.ToDouble(totIonCurrent, CultureInfo.InvariantCulture);
               spectrumEx.Precursors.Clear();
             }
             else
@@ -448,13 +449,13 @@ namespace Nova.Io.Read
               spectrum.Resize(defArrLen);
               if (!polarity.IsNullOrEmpty() && polarity[0] == '-') spectrum.Polarity = false;
               spectrum.RetentionTime = rt.TotalMinutes;
-              spectrum.LowestMz = Convert.ToDouble(lowMz);
-              spectrum.HighestMz = Convert.ToDouble(highMz);
-              spectrum.StartMz = Convert.ToDouble(startMz);
-              spectrum.EndMz = Convert.ToDouble(endMz);
-              spectrum.BasePeakMz = Convert.ToDouble(basePeakMz);
-              spectrum.BasePeakIntensity = Convert.ToDouble(basePeakIntensity);
-              spectrum.TotalIonCurrent = Convert.ToDouble(totIonCurrent);
+              spectrum.LowestMz = Convert.ToDouble(lowMz, CultureInfo.InvariantCulture);
+              spectrum.HighestMz = Convert.ToDouble(highMz, CultureInfo.InvariantCulture);
+              spectrum.StartMz = Convert.ToDouble(startMz, CultureInfo.InvariantCulture);
+              spectrum.EndMz = Convert.ToDouble(endMz, CultureInfo.InvariantCulture);
+              spectrum.BasePeakMz = Convert.ToDouble(basePeakMz, CultureInfo.InvariantCulture);
+              spectrum.BasePeakIntensity = Convert.ToDouble(basePeakIntensity, CultureInfo.InvariantCulture);
+              spectrum.TotalIonCurrent = Convert.ToDouble(totIonCurrent, CultureInfo.InvariantCulture);
               spectrum.Precursors.Clear();
             }
           }

@@ -22,6 +22,7 @@ using ThermoFisher.CommonCore.RawFileReader;
 using Nova.Data;
 using Nova.Io.Meta;
 using System.Formats.Tar;
+using System.Globalization;
 
 
 namespace Nova.Io.Read
@@ -340,12 +341,18 @@ namespace Nova.Io.Read
       ScanCount = RawFile.RunHeaderEx.SpectraCount;
 
       //This little indexer is so that we can quickly grab the Master Scan Number from any spectrum
-      //trailer without having to parse the whole trailer.
+      //trailer without having to parse the whole trailer. If it doesn't exist, then the value is -1;
+      bool match = false;
       MasterScanNumIndex = 0;
       foreach (HeaderItem h in RawFile.GetTrailerExtraHeaderInformation()) {
-        if (h.Label == "Master Scan Number:") break;
+        if (h.Label == "Master Scan Number:")
+        {
+          match = true;
+          break;
+        }
         MasterScanNumIndex++;
       }
+      if (!match) MasterScanNumIndex = -1;
       return true;
     }
 
@@ -390,19 +397,30 @@ namespace Nova.Io.Read
         ProcessScanEvent(scanEvent, ext);
       }
 
-      //This is a bit complicated, but worth explaining. In some (newer? or simply buggy?) versions of tune,
-      //RAW files do not store trailer information in the children scans if they have the same values as the parent scans.
-      //(other versions of RAW files DO store the information redundantly in each scan). Therefore, to get all the trailer
-      //information of a scan, you must trace the headers back to the top-most parent scan event. Once this is done,
-      //send the information to our processing function.
-      List<ILogEntryAccess> trailerData = new();
-      trailerData.Add(RawFile.GetTrailerExtraInformation(CurrentScanNumber));
-      int msn = (int)RawFile.GetTrailerExtraValue(CurrentScanNumber, MasterScanNumIndex);
-      while(msn > 0) {
-        trailerData.Add(RawFile.GetTrailerExtraInformation(msn));
-        msn = (int)RawFile.GetTrailerExtraValue(msn, MasterScanNumIndex);
+
+      if (MasterScanNumIndex > -1)
+      {
+        //This is a bit complicated, but worth explaining. In some (newer? or simply buggy?) versions of tune,
+        //RAW files do not store trailer information in the children scans if they have the same values as the parent scans.
+        //(other versions of RAW files DO store the information redundantly in each scan). Therefore, to get all the trailer
+        //information of a scan, you must trace the headers back to the top-most parent scan event. Once this is done,
+        //send the information to our processing function.
+        List<ILogEntryAccess> trailerData = new();
+        trailerData.Add(RawFile.GetTrailerExtraInformation(CurrentScanNumber));
+        int msn = (int)RawFile.GetTrailerExtraValue(CurrentScanNumber, MasterScanNumIndex);
+        while (msn > 0)
+        {
+          trailerData.Add(RawFile.GetTrailerExtraInformation(msn));
+          msn = (int)RawFile.GetTrailerExtraValue(msn, MasterScanNumIndex);
+        }
+        ProcessTrailerExtraInformation(trailerData, ext);
+      } 
+      else
+      {
+        //The old way data was processed.
+        ILogEntryAccess trailerData = RawFile.GetTrailerExtraInformation(CurrentScanNumber);
+        ProcessTrailerExtraInformation(trailerData, ext);
       }
-      ProcessTrailerExtraInformation(trailerData, ext);
     }
 
     /// <summary>
@@ -505,11 +523,10 @@ namespace Nova.Io.Read
       }
     }
 
-    //TODO: Reassess these values closely. Some trailer information applies to multiple precursors. Other trailer information to only the first precursor.
     /// <summary>
-    /// Processes the Trailer Extra Information attached to the Scan Header.
+    /// Processes the Trailer Extra Information attached to the Scan Header. This is used when trailer data is contained in a
+    /// list relating to each parent ion when there is more than one.
     /// </summary>
-    /// <param name="trailerData">ILogEntryAccess object</param>
     private void ProcessTrailerExtraInformation(List<ILogEntryAccess> trailerDataL, bool ext = false)
     {
       //The set of trailer data is reversed so that the top-most parent is read first,
@@ -517,75 +534,84 @@ namespace Nova.Io.Read
       trailerDataL.Reverse();
       foreach(ILogEntryAccess trailerData in trailerDataL)
       {
-        for (int i = 0; i < trailerData.Length; i++)
-        {
-          //for diagnostics, to see all trailer values
-          //Console.WriteLine("TD: " + trailerData.Labels[i] + " = " + trailerData.Values[i]); 
-
-          switch (MetaDictionary.FindMeta(trailerData.Labels[i]))
-          {
-            case MetaClass.ChargeState:
-              if (ext)
-              {
-                if (spectrumEx.Precursors.Count > 0) spectrumEx.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
-              }
-              else
-              {
-                if (spectrum.Precursors.Count > 0) spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
-              }
-              break;
-            case MetaClass.FaimsCV:
-              if (ext) spectrumEx.FaimsCV = Convert.ToDouble(trailerData.Values[i]);
-              else spectrum.FaimsCV = Convert.ToDouble(trailerData.Values[i]);
-              break;
-            case MetaClass.FaimsState:
-              if (ext)
-              {
-                if (trailerData.Values[i] == "true" || trailerData.Values[i] == "True" || trailerData.Values[i] == "Yes") spectrumEx.FaimsState = true;
-                else spectrumEx.FaimsState = false;
-              }
-              else
-              {
-                if (trailerData.Values[i] == "true" || trailerData.Values[i] == "True" || trailerData.Values[i] == "Yes") spectrum.FaimsState = true;
-                else spectrum.FaimsState = false;
-              }
-              break;
-            case MetaClass.IIT:
-              if (ext) spectrumEx.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
-              else spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i]);
-              break;
-
-            case MetaClass.MasterScanNumber:
-              if (ext) spectrumEx.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
-              else spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
-              break;
-
-            case MetaClass.MonoisotopicMZ:
-              if (ext)
-              {
-                if (spectrumEx.Precursors.Count > 0) spectrumEx.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
-              }
-              else
-              {
-                if (spectrum.Precursors.Count > 0) spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i]);
-              }
-              break;
-            case MetaClass.ScanDescription:
-              if (ext) spectrumEx.ScanDescription = trailerData.Values[i];
-              else spectrum.ScanDescription = trailerData.Values[i];
-              break;
-
-            default:
-
-              //TODO: comment this out to disable notifications. But also maybe consider if any of these additional values are
-              //worth capturing.
-              //Console.WriteLine("Uncaptured trailerData: '" + trailerData.Labels[i] + "' " + trailerData.Values[i]);
-              break;
-          }
-        }
+        ProcessTrailerExtraInformation(trailerData, ext);
       }
     }
 
+    //TODO: Reassess these values closely. Some trailer information applies to multiple precursors. Other trailer information to only the first precursor.
+    /// <summary>
+    /// Processes the Trailer Extra Information attached to the Scan Header.
+    /// </summary>
+    /// <param name="trailerData">ILogEntryAccess object</param>
+    private void ProcessTrailerExtraInformation(ILogEntryAccess trailerData, bool ext = false)
+    {
+      for (int i = 0; i < trailerData.Length; i++)
+      {
+        //for diagnostics, to see all trailer values
+        //Console.WriteLine("TD: " + trailerData.Labels[i] + " = " + trailerData.Values[i]); 
+
+        switch (MetaDictionary.FindMeta(trailerData.Labels[i]))
+        {
+          case MetaClass.ChargeState:
+            if (ext)
+            {
+              if (spectrumEx.Precursors.Count > 0) spectrumEx.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
+            }
+            else
+            {
+              if (spectrum.Precursors.Count > 0) spectrum.Precursors[0].Charge = Convert.ToInt32(trailerData.Values[i]);
+            }
+            break;
+          case MetaClass.FaimsCV:
+            if (ext) spectrumEx.FaimsCV = Convert.ToDouble(trailerData.Values[i], CultureInfo.InvariantCulture);
+            else spectrum.FaimsCV = Convert.ToDouble(trailerData.Values[i], CultureInfo.InvariantCulture);
+            break;
+          case MetaClass.FaimsState:
+            if (ext)
+            {
+              if (trailerData.Values[i] == "true" || trailerData.Values[i] == "True" || trailerData.Values[i] == "Yes") spectrumEx.FaimsState = true;
+              else spectrumEx.FaimsState = false;
+            }
+            else
+            {
+              if (trailerData.Values[i] == "true" || trailerData.Values[i] == "True" || trailerData.Values[i] == "Yes") spectrum.FaimsState = true;
+              else spectrum.FaimsState = false;
+            }
+            break;
+          case MetaClass.IIT:
+            if (ext) spectrumEx.IonInjectionTime = Convert.ToDouble(trailerData.Values[i], CultureInfo.InvariantCulture);
+            else spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i], CultureInfo.InvariantCulture);
+            break;
+
+          case MetaClass.MasterScanNumber:
+            if (ext) spectrumEx.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
+            else spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
+            break;
+
+          case MetaClass.MonoisotopicMZ:
+            if (ext)
+            {
+              if (spectrumEx.Precursors.Count > 0) spectrumEx.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i], CultureInfo.InvariantCulture);
+            }
+            else
+            {
+              if (spectrum.Precursors.Count > 0) spectrum.Precursors[0].MonoisotopicMz = Convert.ToDouble(trailerData.Values[i], CultureInfo.InvariantCulture);
+            }
+            break;
+          case MetaClass.ScanDescription:
+            if (ext) spectrumEx.ScanDescription = trailerData.Values[i];
+            else spectrum.ScanDescription = trailerData.Values[i];
+            break;
+
+          default:
+
+            //TODO: comment this out to disable notifications. But also maybe consider if any of these additional values are
+            //worth capturing.
+            //Console.WriteLine("Uncaptured trailerData: '" + trailerData.Labels[i] + "' " + trailerData.Values[i]);
+            break;
+        }
+      }
+    }
     public void Reset()
     {
       CurrentScanNumber = 0;

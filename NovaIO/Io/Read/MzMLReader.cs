@@ -19,6 +19,7 @@ using System.Xml;
 using Nova.Data;
 using System.Runtime.InteropServices;
 using System;
+using System.Globalization;
 
 namespace Nova.Io.Read
 {
@@ -498,7 +499,7 @@ namespace Nova.Io.Read
             string val = XmlFile.GetAttribute("value");
             if (name == "[Thermo Trailer Extra]Monoisotopic M/Z:")
             {
-              if (Convert.ToDouble(val) > 1) hasMonoMz = true;
+              if (Convert.ToDouble(val, CultureInfo.InvariantCulture) > 1) hasMonoMz = true;
             }
           }
         }
@@ -575,7 +576,7 @@ namespace Nova.Io.Read
             string val = XmlFile.GetAttribute("value");
             if (name == "[Thermo Trailer Extra]Monoisotopic M/Z:")
             {
-              if (Convert.ToDouble(val) > 1) hasMonoMz = true;
+              if (Convert.ToDouble(val, CultureInfo.InvariantCulture) > 1) hasMonoMz = true;
             }
           }
         }
@@ -682,7 +683,7 @@ namespace Nova.Io.Read
       switch (acc)
       {
         case "MS:1000016": //scan start time
-          double rt = Convert.ToDouble(val);
+          double rt = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           string ua = xml.GetAttribute("unitAccession");
           if (ua == "UO:0000030") rt /= 60;
           if (ext) spectrumEx.RetentionTime = rt;
@@ -692,7 +693,7 @@ namespace Nova.Io.Read
           precursorIon.Charge = Convert.ToInt32(val);
           break;
         case "MS:1000045": //collision energy
-          precursorIon.CollisionEnergy = Convert.ToDouble(val);
+          precursorIon.CollisionEnergy = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000127": //centorid spectrum
           if (ext) spectrumEx.Centroid = true;
@@ -710,28 +711,28 @@ namespace Nova.Io.Read
           precursorIon.FramentationMethod = FramentationType.CID;
           break;
         case "MS:1000285": //total ion current
-          if (ext) spectrumEx.TotalIonCurrent = Convert.ToDouble(val);
-          else spectrum.TotalIonCurrent = Convert.ToDouble(val);
+          if (ext) spectrumEx.TotalIonCurrent = Convert.ToDouble(val, CultureInfo.InvariantCulture);
+          else spectrum.TotalIonCurrent = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000421": //high energy collision (obsolete)
         case "MS:1000422": //beam-type collision-induced dissociation
           precursorIon.FramentationMethod = FramentationType.HCD;
           break;
         case "MS:1000500": //scan window upper limit
-          if (ext) spectrumEx.EndMz = Convert.ToDouble(val);
-          else spectrum.EndMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.EndMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
+          else spectrum.EndMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000501": //scan window lower limit
-          if (ext) spectrumEx.StartMz = Convert.ToDouble(val);
-          else spectrum.StartMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.StartMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
+          else spectrum.StartMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000504": //base peak m/z
-          if (ext) spectrumEx.BasePeakMz = Convert.ToDouble(val);
-          else spectrum.BasePeakMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.BasePeakMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
+          else spectrum.BasePeakMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000505": //base peak intensity
-          if (ext) spectrumEx.BasePeakIntensity = Convert.ToDouble(val);
-          else spectrum.BasePeakIntensity = Convert.ToDouble(val);
+          if (ext) spectrumEx.BasePeakIntensity = Convert.ToDouble(val, CultureInfo.InvariantCulture);
+          else spectrum.BasePeakIntensity = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000511": //ms level
           if (ext) spectrumEx.MsLevel = Convert.ToInt32(val);
@@ -765,12 +766,12 @@ namespace Nova.Io.Read
           bit64 = true;
           break;
         case "MS:1000527": //highest observed m/z
-          if (ext) spectrumEx.HighestMz = Convert.ToDouble(val);
-          else spectrum.HighestMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.HighestMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
+          else spectrum.HighestMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000528": //lowest observed m/z
-          if (ext) spectrumEx.LowestMz = Convert.ToDouble(val);
-          else spectrum.LowestMz = Convert.ToDouble(val);
+          if (ext) spectrumEx.LowestMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
+          else spectrum.LowestMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000574": //zlib compression
           zlib = true;
@@ -792,20 +793,20 @@ namespace Nova.Io.Read
         case "MS:1000744": //selected ion m/z
           //Note that in ProteoWizard mzML files, this value may be set with the IsolationMz if the MonoisotopicMz
           //was not determined. Therefore don't set this unless we know the MonoisotopicMz value is correct.
-          if (hasMonoMz) precursorIon.MonoisotopicMz = Convert.ToDouble(val);
+          if (hasMonoMz) precursorIon.MonoisotopicMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000827": //isolation window target m/z
-          precursorIon.IsolationMz = Convert.ToDouble(val);
+          precursorIon.IsolationMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000828": //isolation window lower offset
-          precursorIon.IsolationWidth += Convert.ToDouble(val);
+          precursorIon.IsolationWidth += Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000829": //isolation window upper offset
-          precursorIon.IsolationWidth += Convert.ToDouble(val);
+          precursorIon.IsolationWidth += Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
         case "MS:1000927": //ion injection time
-          if (ext) spectrumEx.IonInjectionTime += Convert.ToDouble(val);
-          else spectrum.IonInjectionTime += Convert.ToDouble(val);
+          if (ext) spectrumEx.IonInjectionTime += Convert.ToDouble(val, CultureInfo.InvariantCulture);
+          else spectrum.IonInjectionTime += Convert.ToDouble(val, CultureInfo.InvariantCulture);
           break;
 
         default: break;
