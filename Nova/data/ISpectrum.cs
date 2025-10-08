@@ -69,6 +69,8 @@ namespace Nova.Data
         Analyzer = reader.ReadString();
         IonInjectionTime = reader.ReadDouble();
         ScanType = reader.ReadString();
+        PrecursorMasterScanNumber = reader.ReadInt32();
+        MasterIndex = reader.ReadInt32();
 
         ScanFilter = reader.ReadString();
 
@@ -170,6 +172,8 @@ namespace Nova.Data
         writer.Write(Analyzer);
         writer.Write(IonInjectionTime);
         writer.Write(ScanType);
+        writer.Write(PrecursorMasterScanNumber);
+        writer.Write(MasterIndex);
 
         writer.Write(ScanFilter);
 

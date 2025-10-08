@@ -583,6 +583,11 @@ namespace Nova.Io.Read
             else spectrum.IonInjectionTime = Convert.ToDouble(trailerData.Values[i], CultureInfo.InvariantCulture);
             break;
 
+          case MetaClass.MasterIndex:
+            if (ext) spectrumEx.MasterIndex = Convert.ToInt32(trailerData.Values[i]);
+            else spectrum.MasterIndex = Convert.ToInt32(trailerData.Values[i]);
+            break;
+
           case MetaClass.MasterScanNumber:
             if (ext) spectrumEx.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);
             else spectrum.PrecursorMasterScanNumber = Convert.ToInt32(trailerData.Values[i]);

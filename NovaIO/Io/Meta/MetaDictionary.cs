@@ -23,6 +23,7 @@ namespace Nova.Io.Meta
     FaimsCV,
     //Header,
     IIT,
+    MasterIndex,
     MasterScanNumber,
     MonoisotopicMZ,
     ScanDescription,
@@ -58,6 +59,10 @@ namespace Nova.Io.Meta
       //IIT
       {"Ion Injection Time (ms)",MetaClass.IIT },
       {"Ion Injection Time (ms):", MetaClass.IIT},
+
+      //MasterIndex
+      {"Master Index",MetaClass.MasterIndex },
+      {"Master Index:",MetaClass.MasterIndex },
 
       //MasterScanNumber
       {"Master Scan Number",MetaClass.MasterScanNumber },
