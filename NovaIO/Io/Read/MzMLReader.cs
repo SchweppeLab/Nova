@@ -256,12 +256,29 @@ namespace Nova.Io.Read
       return chromatogram;
     }
 
+    /// <summary>
+    /// MzML files are actually ordered by index. The next scan might not be the next scan number if numbering allows for skipping.
+    /// This function convenently returns the next scan number after the requested start point, allowing for gaps in the numbering.
+    /// </summary>
+    /// <param name="start">A scan number preceding the one that is wanted next.</param>
+    /// <returns></returns>
+    private int GetNextScanNumber(int start)
+    {
+      int index = start + 1;
+      while (index < scanIndex.Count)
+      {
+        if (scanIndex[index]>0) return index;
+        index++;
+      }
+      return lastScanNumber + 1;
+    }
+
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)
     {
       
-      if (scanNumber < 0) CurrentScanNumber++;
+      if (scanNumber < 0) CurrentScanNumber=GetNextScanNumber(CurrentScanNumber);
       else CurrentScanNumber = scanNumber;
-      if (CurrentScanNumber > lastScanNumber)
+      if (CurrentScanNumber > lastScanNumber || scanIndex[CurrentScanNumber] == 0)
       {
         spectrum = new Spectrum(0);
         return spectrum;
@@ -287,8 +304,8 @@ namespace Nova.Io.Read
         {
           if (scanNumber < 0)
           {
-            CurrentScanNumber++;
-            if (CurrentScanNumber > lastScanNumber)
+            CurrentScanNumber = GetNextScanNumber(CurrentScanNumber);
+            if (CurrentScanNumber > lastScanNumber || scanIndex[CurrentScanNumber] == 0)
             {
               spectrum = new Spectrum(0);
               return spectrum;
@@ -307,9 +324,9 @@ namespace Nova.Io.Read
 
     public SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true)
     {
-      if (scanNumber < 0) CurrentScanNumber++;
+      if (scanNumber < 0) CurrentScanNumber = GetNextScanNumber(CurrentScanNumber);
       else CurrentScanNumber = scanNumber;
-      if (CurrentScanNumber > lastScanNumber)
+      if (CurrentScanNumber > lastScanNumber || scanIndex[CurrentScanNumber] == 0)
       {
         spectrumEx = new SpectrumEx(0);
         return spectrumEx;
@@ -335,8 +352,8 @@ namespace Nova.Io.Read
         {
           if (scanNumber < 0)
           {
-            CurrentScanNumber++;
-            if (CurrentScanNumber > lastScanNumber)
+            CurrentScanNumber = GetNextScanNumber(CurrentScanNumber);
+            if (CurrentScanNumber > lastScanNumber || scanIndex[CurrentScanNumber] == 0)
             {
               spectrumEx = new SpectrumEx(0);
               return spectrumEx;
