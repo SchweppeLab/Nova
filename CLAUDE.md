@@ -35,7 +35,8 @@ NovaApp/              .NET 8 console demo/smoke-test app
 Test/                 .NET 8 MSTest project — integration-style tests against Test/Files/AngioNeuro4.*
 Examples/             Separate solution (NovaExamples.sln): WinForms/console samples
                        (Protostar, ScanBroadcaster, ScanReceiver, ScanViewer)
-docs/                 Repo-local documentation (known issues, modernization progress)
+docs/                 Repo-local documentation (known issues, progress tracking, and a
+                       history.md archive of fully-resolved work with full detail)
 .github/workflows/    ci.yml (PR/main-push build+test), dev-nuget.yml (Dev-push dev NuGet
                        releases), release.yml (manual, main-only, official releases),
                        jekyll.yml (deploys gh-pages docs site)
@@ -52,7 +53,7 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
 - Only `Release|x64` is exercised in practice. Don't spend time chasing Debug-config build
   issues unless specifically asked — treat Debug as unmaintained here.
 - `Nova` (core: `Data/` + `IPC/Pipes/`) targets **`netstandard2.0`** as of 2026-08-18 (ARCH-1,
-  done — see `docs/progress.md`/`docs/known-issues.md` for the full rationale). It was
+  done — see `docs/history.md` for the full rationale). It was
   previously .NET Framework 4.8; the retarget was done so one build serves both net48
   consumers (e.g. Helios, pinned to net48 by Thermo's IAPI) and net8+ consumers, without
   forking into separate packages. `NovaIO`, `NovaApp`, and `Test` target **.NET 8** and are
@@ -60,12 +61,14 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
   found technically feasible (Thermo ships parallel net48/net8.0 builds of the RawFileReader
   packages), but is deliberately deferred, not abandoned. Don't retarget `NovaIO` without
   discussing it first.
-- Run tests: `dotnet test Test/Test.csproj`, run from the **repo root** (not from inside
-  `Test/`) — `TestNova`'s constructor resolves `Test/Files/` relative to the working
-  directory (see HYG-2), and gets it wrong if run from elsewhere. The existing tests are
-  integration tests against real files in `Test/Files/` (mzML, mzXML, and RAW versions of the
-  same acquisition) — they assert scan counts and MS-level tallies, not internal parsing
-  logic in isolation. See `docs/known-issues.md` (TEST-1, TEST-2) for the coverage gap.
+- Run tests: `dotnet test Test/Test.csproj`. Test fixtures under `Test/Files/` are located via
+  `Test/TestFilePaths.cs`, anchored to `AppContext.BaseDirectory` (fixed as HYG-2, see
+  `docs/history.md`) rather than the invocation directory, so it no longer matters where you
+  run the command from. Tests span both integration-style reads against real files in
+  `Test/Files/` (mzML, mzXML, RAW, and MGF versions of the same acquisition — scan counts and
+  MS-level tallies) and unit-style tests against small synthetic fixtures for
+  `Nova` core (`TestSpectrum.cs`, `TestPipes.cs`) and `NovaIO` parsing logic in isolation
+  (`TestNovaIOFixtures.cs`, `TestMgf.cs`) — added as TEST-1/TEST-2, see `docs/history.md`.
   (`Test/Files/*.mzML`/`.mzXML` used to get corrupted by Git on Windows checkout regardless
   of `core.autocrlf` — fixed as BUG-7, `.gitattributes` now marks them `-text`. If you ever
   see `XmlException: Data at the root level is invalid` reading these files again, that fix
@@ -142,12 +145,14 @@ version cycle; no workflow file needs editing to match.
 
 ## Before You Touch This Repo
 
-Read `docs/known-issues.md` for the catalogued list of known bugs, dead/redundant code, and
-hygiene problems found during the initial review pass, and `docs/progress.md` for what's
-already been fixed vs. still open. When you fix something from that list, update
-`docs/progress.md` in the same change (status + a one-line note, not a rewrite).
+Read `docs/known-issues.md` for currently-open bugs, dead/redundant code, and hygiene
+problems, and `docs/progress.md` for a per-item status table. Both are lean by design — the
+full write-up of everything already resolved (background, decision, fix, verification, and
+the complete session log) lives in `docs/history.md`, not in the working docs. When you fix
+something from `known-issues.md`, update `docs/progress.md` in the same change (status + a
+one-line note), then move the full write-up into `docs/history.md` once it's done.
 
-## Known Gotchas (see docs/known-issues.md for full detail)
+## Known Gotchas (see docs/history.md for full detail)
 
 - MGF support (BUG-1/BUG-2) is **fixed** (2026-08-19) — `FileReader.OpenSpectrumFile` and
   `SpectrumFileReaderFactory.GetReader` both dispatch `.mgf` to a real `MGFReader`, which
@@ -161,7 +166,7 @@ already been fixed vs. still open. When you fix something from that list, update
 - HYG-1 (stray unused `using`s riding on the Thermo package's transitive dependencies) is
   **fixed** (2026-08-19, alongside the `8.0.37` bump above) — don't reintroduce unused
   `using`s for packages not referenced in the csproj; this exact pattern is what broke CI for
-  ~2 months (see CI-1/HYG-1 in `docs/known-issues.md`) and it's a landmine specifically
+  ~2 months (see CI-1/HYG-1 in `docs/history.md`) and it's a landmine specifically
   because it compiles fine right up until the transitive dependency tree changes.
 - HYG-5 (`FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` unknowingly depending on
   `ThermoFisher.CommonCore.Data`'s own `IsNullOrEmpty` extension instead of a project-local

@@ -24,7 +24,7 @@ jobs:
       # pins exactly (see the [8.0.37] exact-match version there). The previous unpinned
       # checkout of this repo's default branch is what silently drifted from the then-pinned
       # 8.0.6 onto 8.0.37 with no version bump intended, breaking the build for ~2 months
-      # without anyone noticing (see docs/known-issues.md CI-1). 8.0.37 is now the deliberate,
+      # without anyone noticing (see docs/history.md CI-1). 8.0.37 is now the deliberate,
       # tested target (bumped 2026-08-19, alongside fixing HYG-1 -- see NovaIO.csproj's
       # comment on the PackageReferences below). Bump this SHA deliberately when NovaIO's
       # pinned Thermo package version changes, not by accident.
@@ -49,7 +49,7 @@ jobs:
         run: dotnet build Nova\Nova.sln --no-restore --configuration Release -p:Platform=x64
 
       # --logger "console;verbosity=detailed" surfaces each test's TestContext.WriteLine
-      # message (see TEST-3, docs/known-issues.md) in this log, for passing tests too --
+      # message (see TEST-3, docs/history.md) in this log, for passing tests too --
       # --verbosity alone only does that for failures.
       - name: Test
         run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=detailed"
