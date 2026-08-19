@@ -1,0 +1,4 @@
+# Malformed fixture for TEST coverage: a global header with no BEGIN IONS/END IONS spectrum
+# blocks at all. Mirrors NovaTestFixtureMalformed.mzML/.mzXML's role for TEST-2/BUG-8.
+COM=No spectra in this file
+CLE=Trypsin

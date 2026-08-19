@@ -12,10 +12,10 @@ relevant). Don't rewrite history here; append.
 | Category | Total | Done | In Progress | Not Started |
 |---|---|---|---|---|
 | Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
-| Bugs | 8 | 6 | 0 | 2 |
+| Bugs | 8 | 8 | 0 | 0 |
 | Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
-| Hygiene / Maintainability | 4 | 3 | 0 | 1 |
+| Hygiene / Maintainability | 5 | 3 | 0 | 2 |
 | Test Coverage | 3 | 3 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
@@ -33,8 +33,8 @@ generated.)_
 
 | ID | Summary | Severity | Status | Notes |
 |---|---|---|---|---|
-| [BUG-1](known-issues.md#bug-1--mgf-format-not-handled-in-filereaderopenspectrumfiles-switch) | `FileReader.OpenSpectrumFile` switch has no `MGF` case; can null-ref | High | Not Started | Depends on the BUG-2 decision (finish MGF or drop it) |
-| [BUG-2](known-issues.md#bug-2--mgfreader-is-a-non-functional-stub) | `MGFReader` always returns empty spectra | High | Not Started | Needs a decision: finish it or remove `FileFormat.MGF` |
+| [BUG-1](known-issues.md#bug-1--mgf-format-not-handled-in-filereaderopenspectrumfiles-switch) | `FileReader.OpenSpectrumFile` switch has no `MGF` case; can null-ref | High | **Done** | 2026-08-19. `FileReader.CreateReader` now has an `MGF` case; fixes both `OpenSpectrumFile` and `SpectrumFileReaderFactory.GetReader` at once (CLEAN-3 unification). |
+| [BUG-2](known-issues.md#bug-2--mgfreader-is-a-non-functional-stub) | `MGFReader` always returns empty spectra | High | **Done** | 2026-08-19. Fully rewritten against the Matrix Science MGF spec; real per-spectrum parsing, tested against `Test/Files/AngioNeuro4.mgf`. |
 | [BUG-3](known-issues.md#bug-3--mzmlreader-sets-analyzer--otms-instead-of-itms) | `MzMLReader` typo sets `Analyzer = "OTMS"` instead of `"ITMS"` | Medium | **Done** | 2026-08-19. One-character fix; TEST-2's characterization test flipped to assert the correct `"ITMS"` value in the same change. |
 | [BUG-4](known-issues.md#bug-4--mzmlwriterwrite-hardcodes-an-absolute-schema-path) | `MzMLWriter.Write` hardcodes `D:\Data\mzML\...xsd` | Medium | **Done** | 2026-08-19. Schema validation now opt-in (`validateSchema`/`schemaPath` params, both off/null by default); `NovaApp.cs`'s call site now actually succeeds instead of throwing. |
 | [BUG-5](known-issues.md#bug-5--filereaderformat-is-dead-initialized-once-never-updated) | `FileReader.Format` never assigned, permanently `Unknown` | Low | **Done** | 2026-08-19. `Format` made settable, assigned `Format = ff;` in `OpenSpectrumFile`. |
@@ -63,7 +63,8 @@ generated.)_
 | [HYG-1](known-issues.md#hyg-1--stray-unused-usings-for-unrelated-packages) | Unused `using`s for ASP.NET Core / Newtonsoft.Json / VisualBasic / Tar across 5 files | Low | **Done** | 2026-08-19. Became load-bearing (not just hygiene) when the Thermo pin bumped to 8.0.37 — see CI-1 addendum. All 6 stray usings removed; verified against the failure it would've caused, then against the fix. |
 | [HYG-2](known-issues.md#hyg-2--testnovas-test-data-path-resolution-is-fragile) | `TestNova` locates test files via fragile parent-directory walking | Low | **Done** | 2026-08-19. Extracted to shared `Test/TestFilePaths.cs`, anchored to `AppContext.BaseDirectory` instead of `Environment.CurrentDirectory`. |
 | [HYG-3](known-issues.md#hyg-3--inconsistent-visibility-internal-interfaces-public-implementations) | `IChromatogram`/`IChromatDataPoint` are `internal` while their implementations are `public` | Low | **Done** | 2026-08-19. Both made `public`, matching `ISpectrum<T>`/`ISpecDataPoint`. |
-| [HYG-4](known-issues.md#hyg-4--scattered-todos-marking-acknowledged-incomplete-features) | Collected pre-existing TODOs (asymmetric isolation windows, `GetHeader()`, trailer mapping, MGF viability) | Low | Not Started | Informational; no single fix — track sub-items as they're addressed |
+| [HYG-4](known-issues.md#hyg-4--scattered-todos-marking-acknowledged-incomplete-features) | Collected pre-existing TODOs (asymmetric isolation windows, `GetHeader()`, trailer mapping, MGF viability) | Low | Not Started | Informational; MGF sub-item resolved 2026-08-19 (see BUG-2), rest still open |
+| [HYG-5](known-issues.md#hyg-5--several-files-use-thermofishercommoncoredatas-isnullorempty-extension-as-if-it-were-project-local) | `FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` use `ThermoFisher.CommonCore.Data`'s `IsNullOrEmpty` extension as if it were project-local | Low | Not Started | Found 2026-08-19 while writing `MGFReader.cs`; not fixed, out of scope for BUG-1/BUG-2 |
 
 ## Test Coverage
 
@@ -86,17 +87,8 @@ generated.)_
    schedule — forced by the Thermo package bump to 8.0.37, see CI-1.)
 5. ~~**BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3**~~ **Done 2026-08-19.**
 6. ~~**TEST-3**~~ **Done 2026-08-19.**
-7. **BUG-1 / BUG-2** together — moved to last 2026-08-19 (repo owner's call). Decision made:
-   MGF support will actually be implemented (not dropped) — `MGFReader.GetSpectrum`/
-   `GetSpectrumEx` need real per-spectrum parsing, plus `FileReader.OpenSpectrumFile`'s
-   switch needs the missing `MGF` case (BUG-1), wired up together so BUG-1 never dispatches
-   to a reader that still silently returns nothing. When this is picked up, implement
-   against the Matrix Science MGF format spec:
-   <https://www.matrixscience.com/help/data_file_help.html> — the repo owner named this as
-   the reference to follow, not the ad hoc "make something up from the header-parsing code
-   already in `MGFReader.Open`" approach. Biggest remaining item on the list; will need new
-   test fixtures (synthetic `.mgf` files) alongside the parser itself, same pattern TEST-2
-   used for mzML/mzXML.
+7. ~~**BUG-1 / BUG-2**~~ **Done 2026-08-19.** Surfaced a new low-priority finding, HYG-5
+   (not fixed) — see below.
 
 Everything from step 2 on is a suggestion, not a mandate — reorder freely based on what
 you're actually working on next.
@@ -250,3 +242,52 @@ it's the changelog for this document.
   `--logger "console;verbosity=detailed"` shows them under a `TestContext Messages:` block —
   added that flag (alongside the existing `--verbosity minimal`) to the `Test` step in all
   three workflows (`ci.yml`, `dev-nuget.yml`, `release.yml`).
+- 2026-08-19 — **BUG-1 and BUG-2 done**, finishing out step 7 (the last item on the list).
+  Repo owner supplied a real fixture, `Test/Files/AngioNeuro4.mgf` (the MS2-only subset of the
+  same AngioNeuro4 acquisition already used elsewhere — 6 spectra, matching the existing
+  mzML/mzXML/RAW tests' 6 MS2 scans), and pointed at the Matrix Science MGF spec
+  (https://www.matrixscience.com/help/data_file_help.html) as the implementation reference.
+  BUG-1: added `case FileFormat.MGF: return new MGFReader(filter);` to
+  `FileReader.CreateReader` (CLEAN-3's shared dispatch helper) — fixed both
+  `OpenSpectrumFile` and `SpectrumFileReaderFactory.GetReader` in one change, since the
+  latter already delegates to the former. BUG-2: `MGFReader` fully rewritten. No built-in
+  index (unlike mzML/mzXML), so `Open()` reads the whole file into memory once
+  (`File.ReadAllLines`) and indexes every `BEGIN IONS`/`END IONS` block by line number,
+  deliberately avoiding `StreamReader`-on-`FileStream` byte-offset seeking (a known footgun —
+  `StreamReader`'s internal buffering desyncs `Stream.Position`). Scan numbers resolved from
+  `SCANS=` where present, falling back to the common msconvert `TITLE=base.scan.scan.`
+  convention (this fixture's only source, confirmed against its 6 real scan numbers: 16, 69,
+  113, 179, 230, 280), falling back to sequential numbering. Implemented per the spec:
+  `PEPMASS=` (one or more, → `PrecursorIon`, m/z/intensity/optional charge), `CHARGE=`
+  (spectrum-local overrides file-global), `RTINSECONDS=`, and fragment peak lines
+  (`m/z intensity [charge]`, third token → `SpecDataPointEx.Charge` on the `Ex` path).
+  `MsLevel` is always 2 (MGF has no MS1 concept); `TotalIonCurrent`/`BasePeakMz`/base peak
+  intensity/m/z range all computed from the parsed peaks, since MGF has no header fields for
+  them. `GetSpectrum`/sequential reads are driven by file order via an internal scan-order
+  list, not by incrementing the literal scan number the way `MzMLReader`/`MzXMLReader` do —
+  necessary because this format's scan numbers are sparse, unlike mzML/mzXML/RAW's always-
+  contiguous ones. Also fixed a real bug in the old stub's header loop along the way (it had
+  no exit tied to its own `endOfHeader` flag, so it silently consumed the entire file instead
+  of stopping at the first spectrum block).
+
+  New finding, not fixed here: **HYG-5** — `FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs`
+  all call an `IsNullOrEmpty()` string extension that isn't defined anywhere in this repo; it
+  turns out to come from `ThermoFisher.CommonCore.Data`'s own namespace, which those files
+  already `using` for unrelated reasons. Caught directly: writing the same style of call in
+  `MGFReader.cs` (which needs no Thermo reference) failed to compile until either that
+  `using` was added or the calls were switched to the real `string.IsNullOrEmpty(...)` — went
+  with the latter in the new file. Logged as a new low-priority hygiene item; not fixed in
+  the three pre-existing files, out of scope for this change.
+
+  Added `Test/Files/AngioNeuro4Malformed.mgf` (header-only, no spectrum blocks) and
+  `Test/TestMgf.cs` (9 tests: scan count/range/max RT, MS-level tally, sequential file-order
+  reads, a real spectrum's fields and peak data — expected values independently computed
+  from the raw file text via `awk`, not derived from the reader itself — precursor fields,
+  scan-number random access, the `Ex` path, `SpectrumFileReaderFactory` no longer throwing
+  for `.mgf`, and the malformed fixture returning `false` cleanly). No `.gitattributes`
+  entry needed for the new `.mgf` fixtures (unlike mzML/mzXML's BUG-7) since
+  `File.ReadAllLines` handles CRLF/LF transparently — there's no byte-offset fragility to
+  protect. Verified: full solution build clean (0 new warnings — the rewrite actually
+  *removed* 3 of the 4 previously-baseline warnings, all from the old stub's dead code),
+  `dotnet test` 37/37 passing (28 pre-existing + 9 new). Updated `CLAUDE.md`'s "Known
+  Gotchas" section to drop the now-fixed MGF/BUG-4 bullets and add HYG-5.

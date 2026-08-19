@@ -142,7 +142,7 @@ namespace Nova.Io.Read
 
     /// <summary>
     /// Constructs an unopened reader for the given format, or null if no reader is available
-    /// for it (e.g. FileFormat.MGF/Unknown). Shared by OpenSpectrumFile and
+    /// for it (e.g. FileFormat.Unknown). Shared by OpenSpectrumFile and
     /// SpectrumFileReaderFactory.GetReader so extension-to-reader mapping has one source of
     /// truth (see CLEAN-3 in docs/known-issues.md).
     /// </summary>
@@ -153,6 +153,7 @@ namespace Nova.Io.Read
         case FileFormat.ThermoRaw: return new ThermoRawReader(filter);
         case FileFormat.MzML: return new MzMLReader(filter);
         case FileFormat.MzXML: return new MzXMLReader(filter);
+        case FileFormat.MGF: return new MGFReader(filter);
         default: return null;
       }
     }
@@ -182,11 +183,10 @@ namespace Nova.Io.Read
       FileFormat ff = CheckFileFormat(fileName);
       if (ff == FileFormat.Unknown) return false;
 
-      //BUG-1 (docs/known-issues.md): CreateReader returns null for FileFormat.MGF -- there is
-      //no MGFReader wired up here yet. This preserves the pre-existing behavior of leaving
-      //fileReader at whatever it was (null on a fresh FileReader), which throws a
-      //NullReferenceException on Open() below rather than failing predictably. Left as-is; MGF
-      //support (BUG-1/BUG-2) is the last item on the priority list.
+      //CreateReader only returns null for FileFormat.Unknown, already handled above, so this
+      //is never actually null for any format CheckFileFormat can produce -- kept nullable and
+      //guarded anyway since CreateReader is a general format-to-reader mapping, not something
+      //that should assume every caller pre-filters Unknown the way this one does.
       ISpectrumFileReader? reader = CreateReader(ff, Filter);
       if (reader != null) fileReader = reader;
 

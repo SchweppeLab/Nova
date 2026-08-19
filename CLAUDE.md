@@ -8,7 +8,7 @@ Nova is a lightweight C# library for mass spectrometry (MS) file reading and spe
 data management, developed by the Schweppe Lab (University of Washington). It provides:
 
 - A format-agnostic spectrum/chromatogram data model
-- Readers for common MS file formats (Thermo RAW, mzML, mzXML; MGF is stubbed, not functional)
+- Readers for common MS file formats (Thermo RAW, mzML, mzXML, MGF)
 - An mzML writer
 - A named-pipes IPC layer for real-time communication with client processes (e.g. real-time
   acquisition software built on Thermo's IAPI)
@@ -149,14 +149,25 @@ already been fixed vs. still open. When you fix something from that list, update
 
 ## Known Gotchas (see docs/known-issues.md for full detail)
 
-- `FileReader.OpenSpectrumFile`'s format switch has no `MGF` case — opening a `.mgf` can
-  null-reference.
-- `MGFReader` is a non-functional stub; `GetSpectrum`/`GetSpectrumEx` always return an
-  empty spectrum regardless of file contents.
-- `MzMLWriter.Write` hardcodes a Windows path (`D:\Data\mzML\mzML1.1.0.utf8.xsd`) for
-  self-validation — this only works on the original author's machine.
+- MGF support (BUG-1/BUG-2) is **fixed** (2026-08-19) — `FileReader.OpenSpectrumFile` and
+  `SpectrumFileReaderFactory.GetReader` both dispatch `.mgf` to a real `MGFReader`, which
+  parses actual spectrum data against the Matrix Science MGF spec
+  (https://www.matrixscience.com/help/data_file_help.html), not a stub. `MGFReader` reads the
+  whole file into memory once (no built-in index the way mzML/mzXML have) and resolves each
+  spectrum's scan number from `SCANS=` if present, else the common msconvert-style TITLE
+  convention, else sequential numbering.
+- `MzMLWriter.Write`'s schema validation is **fixed** (2026-08-19, BUG-4) — off by default via
+  `validateSchema`/`schemaPath` params, no longer hardcodes a path.
 - HYG-1 (stray unused `using`s riding on the Thermo package's transitive dependencies) is
   **fixed** (2026-08-19, alongside the `8.0.37` bump above) — don't reintroduce unused
   `using`s for packages not referenced in the csproj; this exact pattern is what broke CI for
   ~2 months (see CI-1/HYG-1 in `docs/known-issues.md`) and it's a landmine specifically
   because it compiles fine right up until the transitive dependency tree changes.
+- Relatedly: `ThermoFisher.CommonCore.Data` provides its own `string.IsNullOrEmpty()`-style
+  extension method, and several files (`FileReader.cs`, `MzXMLReader.cs`, `MzMLWriter.cs`) use
+  it as if it were a project-local helper. It isn't unused (so HYG-1's fix doesn't touch it),
+  but it's an implicit dependency on a third-party package's incidental surface for something
+  that should probably be a small local extension — see HYG-5 in `docs/known-issues.md`
+  (found 2026-08-19 while writing `MGFReader.cs`, which doesn't otherwise need a Thermo
+  reference and had to add `string.IsNullOrEmpty(...)` calls instead to avoid pulling one in
+  just for this).

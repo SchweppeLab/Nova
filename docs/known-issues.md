@@ -121,6 +121,15 @@ to the last item on `progress.md`'s priority list — biggest remaining piece of
 once everything else is settled. Wire up together with BUG-2; see BUG-2 for the parsing
 spec to follow.
 
+**Fixed 2026-08-19.** Added `case FileFormat.MGF: return new MGFReader(filter);` to
+`FileReader.CreateReader` (the shared dispatch helper CLEAN-3 introduced). Because
+`SpectrumFileReaderFactory.GetReader` already delegates to that same helper, this one change
+fixed `.mgf` dispatch through both call sites at once — no separate edit needed there. The
+stale in-code comment explaining why `.mgf` used to fall through to a `NullReferenceException`
+was removed along with the bug itself. Verified: `FileReader().OpenSpectrumFile("*.mgf")` and
+`SpectrumFileReaderFactory.GetReader("*.mgf", ...)` both now succeed against
+`Test/Files/AngioNeuro4.mgf` — see `Test/TestMgf.cs`.
+
 ---
 
 ### BUG-2 — `MGFReader` is a non-functional stub
@@ -149,6 +158,68 @@ from whatever `Open()`'s existing header parsing already assumes. Moved to the l
 `progress.md`'s priority list; wire up together with BUG-1 so the two land in the same
 change (a working dispatch path to a reader that still returns nothing is worse than either
 half alone).
+
+**Fixed 2026-08-19.** `MGFReader` fully rewritten against the linked spec, using the repo
+owner's real fixture, `Test/Files/AngioNeuro4.mgf` (the MS2-only subset of the same
+AngioNeuro4 acquisition the mzML/mzXML/RAW tests already read — 6 spectra, matching the 6
+MS2 scans `TestNova.cs` already counts).
+
+Key design points:
+- **No built-in index, unlike mzML/mzXML.** MGF has no `<indexList>`/`<indexOffset>`
+  equivalent. Rather than hand-rolling byte-offset seeking on top of `System.IO.StreamReader`
+  (whose internal buffering makes `Stream.Position` unreliable for exact re-seeking — a real
+  footgun), `Open()` reads the whole file into memory once via `File.ReadAllLines` and
+  indexes every `BEGIN IONS`/`END IONS` block by line number. Trades memory for correctness
+  and simplicity; documented as a deliberate choice in the class's header comment.
+- **Scan number resolution.** This fixture has no `SCANS=` tags at all, only `TITLE=` in the
+  common msconvert convention (`AngioNeuro4.16.16.` → scan 16). `ResolveScanNumber` prefers
+  `SCANS=` (per spec, taking the first number of a range/list), falls back to that TITLE
+  convention (a regex match, not part of the Mascot spec itself but a pervasive real-world
+  convention this fixture actually uses), and falls back to sequential numbering if neither
+  is present. Confirmed the TITLE-derived scan numbers (16, 69, 113, 179, 230, 280) are
+  exactly the fixture's 6 spectra, in file order.
+- **MsLevel is always 2** — MGF has no MS1 concept; every spectrum is MS/MS.
+- **PEPMASS → PrecursorIon**, one per `PEPMASS=` line (the spec allows multiple, for
+  chimeric spectra) — `IsolationMz`/`MonoisotopicMz` both set from the same m/z (MGF doesn't
+  distinguish the two), `Intensity` from the optional second token, `Charge` from the optional
+  third token (`"2+"`/`"3-"` notation) if present, else the spectrum-local `CHARGE=` tag if
+  present, else the file's global header `CHARGE=`.
+- **TotalIonCurrent/BasePeakMz/BasePeakIntensity/LowestMz/HighestMz/StartMz/EndMz** are all
+  computed directly from the parsed peak data, since MGF has no header fields for any of
+  them (unlike mzML/mzXML/RAW).
+- **Per-peak charge** (the spec's optional third token on a fragment ion line,
+  `"m/z intensity [charge]"`) is captured into `SpecDataPointEx.Charge` on the `Ex` path;
+  this fixture's peak lines don't use it, so it's always 0 here, but the parsing is real.
+- **`GetSpectrum(scanNumber)` random access** and **sequential reads** (`scanNumber < 0`) are
+  both driven by file order, not by incrementing the literal scan number the way
+  `MzMLReader`/`MzXMLReader` do — this fixture's scan numbers are sparse (16, 69, 113, ...),
+  so an increment-based approach would skip past nearly every one of them.
+
+Also fixed a real, previously-uncatalogued bug in `Open()`'s original header parsing: the old
+code's `while (!SR.EndOfStream)` loop had no exit tied to its own `endOfHeader` flag (set but
+never read), so it silently consumed lines all the way to EOF trying to parse global-header
+tags out of what should have been spectrum-block content, then unconditionally returned
+`false` unless it happened to land exactly on EOF. That's gone entirely with the rewrite.
+
+**New finding while implementing this (HYG-5, added to Hygiene/Maintainability below):**
+`ThermoFisher.CommonCore.Data` provides its own `IsNullOrEmpty()`-style extension method for
+strings, and `FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` all use it as if it were a
+project-local helper — confirmed by writing `MGFReader.cs` (which needs no Thermo reference
+at all) and hitting `CS7036`/`CS8604` build errors on `.IsNullOrEmpty()` calls until either
+`using ThermoFisher.CommonCore.Data;` was added or the calls were switched to the real BCL
+`string.IsNullOrEmpty(...)`. Went with the latter in the new file (no reason to pull in a
+Thermo reference for a text-format reader that otherwise has nothing to do with Thermo) —
+see HYG-5 for the broader finding, not fixed in the other three files here to keep this
+change scoped to BUG-1/BUG-2.
+
+Verified: full solution build clean (0 new warnings — the rewrite actually *removed* 3 of the
+4 previously-baseline warnings, since the old stub's two unused `bool` locals and one unused
+field are gone), `dotnet test` 37/37 passing (28 pre-existing + 9 new in `Test/TestMgf.cs`,
+covering scan count/range, MS-level tally, sequential file-order reads, field/peak-data
+values for a real spectrum cross-checked directly against the raw file text — not just against
+whatever the reader itself produces — precursor fields, scan-number random access, the `Ex`
+path, `SpectrumFileReaderFactory` no longer throwing for `.mgf`, and a malformed/no-spectra
+fixture (`Test/Files/AngioNeuro4Malformed.mgf`) returning `false` cleanly).
 
 ---
 
@@ -647,11 +718,42 @@ Existing `//TODO` comments that mark known-incomplete areas, gathered here for v
   interface (commented out).
 - `NovaIO/Io/Read/ThermoRawReader.cs` — `ProcessTrailerExtraInformation`'s comment notes
   trailer-value-to-precursor mapping "needs reassessing" for scans with multiple precursors.
-- `NovaIO/Io/Read/MGFReader.cs` — top-of-class TODO questioning whether MGF support is worth
-  keeping at all (see BUG-2).
+- ~~`NovaIO/Io/Read/MGFReader.cs` — top-of-class TODO questioning whether MGF support is worth
+  keeping at all (see BUG-2).~~ **Resolved 2026-08-19** — the decision was made (finish it,
+  see BUG-2) and the TODO removed along with the rest of the old stub.
 
 **Suggested fix:** no code change needed; these are here so they're visible in one place
 instead of only surfacing when someone happens to open the specific file.
+
+---
+
+### HYG-5 — Several files use `ThermoFisher.CommonCore.Data`'s `IsNullOrEmpty` extension as if it were project-local
+**Severity:** Low (works correctly today; fragile dependency on a third-party package's incidental API surface)
+**Locations:** [`NovaIO/Io/Read/FileReader.cs`](../NovaIO/Io/Read/FileReader.cs), [`NovaIO/Io/Read/MzXMLReader.cs`](../NovaIO/Io/Read/MzXMLReader.cs), [`NovaIO/Io/Write/MzMLWriter.cs`](../NovaIO/Io/Write/MzMLWriter.cs)
+
+Found 2026-08-19 while implementing BUG-2 (`MGFReader.cs`, which needs no Thermo reference at
+all): calls like `fileName.IsNullOrEmpty()` throughout these three files don't resolve to any
+extension method defined in this repo (a repo-wide search turns up zero definitions) — they
+resolve to an extension method provided by the `ThermoFisher.CommonCore.Data` package, whose
+`using` these files already happen to have for unrelated reasons (native API types). Confirmed
+directly: adding these same calls to `MGFReader.cs` without that `using` fails to compile
+(`CS7036`/`CS8604`, the compiler falling back to the real static `string.IsNullOrEmpty`
+instead), and adding `using ThermoFisher.CommonCore.Data;` fixes it.
+
+This is a milder cousin of HYG-1 (stray usings silently depending on Thermo's transitive
+surface) but arguably worse: it's not dead code that can simply be deleted, it's live
+functionality that would break across three files if this particular extension were ever
+renamed, made internal, or removed in a future `ThermoFisher.CommonCore.Data` release — with
+a confusing "does not contain a definition for 'IsNullOrEmpty'" error nowhere near where the
+actual dependency was introduced.
+
+**Suggested fix:** add a small project-local `internal static class StringExtensions` (in
+`Nova` or `NovaIO`, whichever is more appropriate) with a real `IsNullOrEmpty(this string?
+value)` implementation, and repoint these call sites at it instead of the Thermo package's.
+Not fixed here — out of scope for BUG-1/BUG-2, and touching three existing files' behavior
+isn't warranted just to land MGF support. `MGFReader.cs` itself was written using the real
+`string.IsNullOrEmpty(...)` directly rather than adding another call site depending on the
+Thermo extension.
 
 ---
 
