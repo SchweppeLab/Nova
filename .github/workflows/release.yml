@@ -1,0 +1,151 @@
+name: Release
+
+# Manual-only, main-only. Packs the *real* project version (no -dev.N suffix) and publishes
+# it as a GitHub Release marked pre-release -- so you can download and check the final
+# product before manually flipping it to a real release from the GitHub UI. Nothing here ever
+# marks a release non-prerelease automatically; that promotion is always a deliberate,
+# separate manual action, same as it's always been for Nova's past releases.
+#
+# Shares its build/pack/bundle shape with dev-nuget.yml (see that file's header for the
+# rationale) but skips the dated+rolling split -- an official release is already a single,
+# permanent, uniquely-tagged thing, so there's no "latest" concept to maintain here.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-pack-release:
+    runs-on: windows-2022
+
+    steps:
+      # workflow_dispatch lets you pick any branch/ref from the Actions UI -- this repo's
+      # convention is that only main ever produces an official release, so refuse anything
+      # else outright rather than relying on remembering to pick the right one.
+      - name: Require main branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Release can only be run from main (attempted ref: ${{ github.ref }}). Merge to main first, then re-run from there."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      # Pinned to a specific commit, not a floating branch HEAD -- see ci.yml for why. Keep
+      # this SHA in sync with the one there and in dev-nuget.yml.
+      - name: Checkout RawFileReader (pinned)
+        uses: actions/checkout@v4
+        with:
+          repository: thermofisherlsms/RawFileReader
+          ref: b0fdf86931971d00c4576d148ecac2bc6568ba79
+          path: RawFileReader
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Point NuGet to the pinned RawFileReader packages
+        run: dotnet nuget add source ${{ github.workspace }}\RawFileReader\Libs\NetCore\Net8Old -n RawFileReaderPinned
+
+      - name: Restore
+        run: dotnet restore Nova\Nova.sln
+
+      - name: Build
+        run: dotnet build Nova\Nova.sln --no-restore --configuration Release -p:Platform=x64
+
+      - name: Test
+        run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal
+
+      - name: Read release version
+        id: version
+        shell: pwsh
+        run: |
+          $csproj = Get-Content "Nova/Nova.csproj" -Raw
+          if ($csproj -notmatch '<Version>([^<]+)</Version>') {
+            throw "Could not find <Version> in Nova/Nova.csproj"
+          }
+          $version = $matches[1]
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+          "underscored=$($version -replace '\.', '_')" >> $env:GITHUB_OUTPUT
+
+      # Refuses to silently clobber a release you've already promoted out of pre-release.
+      # Re-running against a tag that's still sitting in pre-release (e.g. you found a problem
+      # and want another pass before promoting it) is fine and expected -- only a tag that's
+      # already been made official is protected.
+      - name: Guard against overwriting an already-published official release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.version.outputs.tag }}"
+          $existingJson = gh release view $tag --json isPrerelease 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            $existing = $existingJson | ConvertFrom-Json
+            if (-not $existing.isPrerelease) {
+              Write-Error "$tag already exists as a published (non-prerelease) release. Bump <Version> in Nova.csproj/NovaIO.csproj before re-running Release."
+              exit 1
+            }
+          }
+
+      # Nova first: NovaIO's ProjectReference to it means packing NovaIO also builds Nova with
+      # the same PackageVersion, so NovaIO's generated dependency on Nova automatically
+      # matches -- verified locally before writing this (and in dev-nuget.yml's dev builds).
+      - name: Pack Nova and Nova.IO
+        run: |
+          dotnet pack Nova\Nova.csproj -c Release -o pack-out --no-restore -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack NovaIO\NovaIO.csproj -c Release -o pack-out --no-restore -p:PackageVersion=${{ steps.version.outputs.version }}
+
+      # Same exact Thermo packages NovaIO was just built and tested against (pinned checkout
+      # above), so a consumer of Nova.IO can resolve ThermoFisher.CommonCore.* from this
+      # release without needing access to Thermo's private feed themselves -- matches how
+      # Nova's existing releases already do this (see e.g. v1.0.0.18).
+      - name: Stage the pinned ThermoRawFileReader bundle contents
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path thermo-bundle | Out-Null
+          Copy-Item RawFileReader\Libs\NetCore\Net8Old\*.nupkg thermo-bundle\
+          Copy-Item RawFileReader\Libs\NetCore\Net8Old\Readme.txt thermo-bundle\
+          Copy-Item RawFileReader\License.doc thermo-bundle\
+          Copy-Item RawFileReader\ReleaseNotes.docx thermo-bundle\
+
+      - name: Assemble the combined bundle
+        shell: pwsh
+        run: |
+          $readme = @"
+          Nova is Copyright 2025, Michael Hoopmann, Devin Schweppe.
+          Nova is Licensed under Apache Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+
+          Support and latest releases of Nova are found at https://schweppelab.github.io/Nova
+
+          Nova.IO requires Thermo RawFileReader for Thermo RAW file support. This library is
+          provided from https://github.com/thermofisherlsms/RawFileReader, but is also included
+          with Nova as NuGet packages for .NET Core 8. All licenses specific to RawFileReader
+          are retained and included. Additional builds can be found from the RawFileReader
+          GitHub repository.
+          "@
+
+          New-Item -ItemType Directory -Force -Path bundle/ThermoRawFileReader | Out-Null
+          Copy-Item pack-out\Nova.*.nupkg bundle\
+          Copy-Item pack-out\Nova.IO.*.nupkg bundle\
+          Copy-Item thermo-bundle\* bundle\ThermoRawFileReader\
+          $readme | Out-File -FilePath bundle\Readme.txt -Encoding utf8
+          Compress-Archive -Path bundle/* -DestinationPath "Nova-${{ steps.version.outputs.underscored }}-nupkg.zip" -Force
+
+      - name: Publish release (pre-release, pending manual promotion)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Nova version ${{ steps.version.outputs.version }}"
+          body: |
+            Release candidate for `${{ steps.version.outputs.tag }}`, built from `main` @
+            ${{ github.sha }}.
+
+            Marked pre-release pending review -- once confirmed, promote this to a full
+            release manually from the GitHub UI.
+          prerelease: true
+          make_latest: "false"
+          files: |
+            pack-out/*.nupkg
+            Nova-${{ steps.version.outputs.underscored }}-nupkg.zip

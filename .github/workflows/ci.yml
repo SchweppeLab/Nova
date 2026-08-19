@@ -1,0 +1,50 @@
+name: CI
+
+# Build + test only -- no packaging, no releases. Runs on every PR targeting main or Dev, and
+# on direct pushes to main, so problems surface before merge/before a real release is cut.
+# Dev's own push-triggered checks happen in dev-nuget.yml instead (it builds and tests too,
+# before packaging), so this workflow deliberately does NOT also trigger on push to Dev --
+# that would just run the same test suite twice on every Dev push for no benefit.
+
+on:
+  pull_request:
+    branches: [main, Dev]
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to a specific commit, not a floating branch HEAD. This exact commit is confirmed
+      # (2026-08-19) to have Libs/NetCore/Net8Old holding the 8.0.6 packages that NovaIO.csproj
+      # pins exactly (see the [8.0.6] exact-match version there). The previous unpinned checkout
+      # of this repo's default branch is what silently drifted onto a newer package version with
+      # a different dependency tree and broke this build for ~2 months without anyone noticing
+      # (see docs/known-issues.md CI-1). Bump this SHA deliberately when NovaIO's pinned Thermo
+      # package version changes, not by accident.
+      - name: Checkout RawFileReader (pinned)
+        uses: actions/checkout@v4
+        with:
+          repository: thermofisherlsms/RawFileReader
+          ref: b0fdf86931971d00c4576d148ecac2bc6568ba79
+          path: RawFileReader
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Point NuGet to the pinned RawFileReader packages
+        run: dotnet nuget add source ${{ github.workspace }}\RawFileReader\Libs\NetCore\Net8Old -n RawFileReaderPinned
+
+      - name: Restore
+        run: dotnet restore Nova\Nova.sln
+
+      - name: Build
+        run: dotnet build Nova\Nova.sln --no-restore --configuration Release -p:Platform=x64
+
+      - name: Test
+        run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal

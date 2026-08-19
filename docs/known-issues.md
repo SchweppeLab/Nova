@@ -73,10 +73,11 @@ dependency, so that blocker doesn't apply to it.)
    end-to-end against the retargeted `Nova` at runtime, not just at compile time. (One
    unrelated wrinkle hit along the way: local test runs initially failed with an XML parse
    error, root-caused to a `.gitattributes` line-ending bug, not this change — see BUG-7.)
-5. **Deferred, as planned:** `Nova` still has no NuGet packaging metadata (`PackageId`,
-   `Version`, etc.) — it currently ships only as a project/build reference, same as before.
-   Revisit if/when `Nova` needs to be consumed as a published package (e.g. by Helios)
-   rather than a project reference or built DLL.
+5. **Done 2026-08-19, as part of CI-1's work:** `Nova.csproj` gained full NuGet packaging
+   metadata matching `NovaIO.csproj` (`PackageId=Nova`, `Authors`, `Company`, `Description`,
+   license, repo URL, `Version=1.1.0`, etc.) once packaging actually became necessary for the
+   new `dev-nuget.yml`/`release.yml` workflows. See CI-1 for the full versioning-scheme
+   change this was bundled with.
 
 **Known interaction:** BUG-6's suggested fix (`Stream.ReadExactly`) is .NET 7+ only and won't
 be available once `Nova` targets `netstandard2.0` — that fix will need a manual read-loop
@@ -317,40 +318,104 @@ CI works around this exact problem with an explicit `dos2unix` step in `dotnet.y
 immediately before running tests (see CI-1) — which papers over the root cause rather than
 fixing it, and doesn't help anyone running tests locally on Windows with default settings.
 
-**Suggested fix:** mark these fixtures so Git never touches their line endings at all, e.g.
+**Fixed 2026-08-19.** `.gitattributes` now reads:
 ```
 *.mzML	-text
 *.mzXML	-text
 ```
-(or `binary`, equivalent). A fresh checkout would need existing clones to re-normalize once,
-but new clones wouldn't need CI's `dos2unix` workaround at all, and local `dotnet test` would
-work out of the box on any machine regardless of `core.autocrlf`. Directly related to CI-1 —
-worth fixing together, since CI-1's investigation will already have eyes on `dotnet.yml`.
+Confirmed the stored git blobs were already correct (LF) — only checkout was corrupting them,
+so no historical content needed fixing, just the attribute. Re-normalized the working copy
+with `git add --renormalize` + a direct `dos2unix` pass, confirmed the result byte-for-byte
+matches what was already stored (`git status` shows no diff on the fixture files themselves,
+only on `.gitattributes`). `dotnet test` passes 3/3 afterward with no other change. No more
+`dos2unix` step needed anywhere — removed from all three workflows that replaced `dotnet.yml`
+(see CI-1).
 
 ---
 
 ## CI / Build Infrastructure
 
-### CI-1 — Investigate and fix GitHub Actions workflow
-**Severity:** TBD (needs investigation)
-**Location:** [`.github/workflows/dotnet.yml`](../.github/workflows/dotnet.yml)
+### CI-1 — GitHub Actions workflow: diagnosed, then replaced entirely
+**Status:** Done 2026-08-19. Root cause diagnosed with hard evidence (public GitHub API, no
+`gh` CLI needed after all — worked directly via `curl`/`api.github.com`), then `dotnet.yml`
+was retired outright and replaced with three purpose-built workflows, per repo-owner
+decision: keeping the old file around to "fix" wasn't wanted — full replacement was.
+**Location (old, deleted):** `.github/workflows/dotnet.yml`
+**Location (new):** [`ci.yml`](../.github/workflows/ci.yml), [`dev-nuget.yml`](../.github/workflows/dev-nuget.yml), [`release.yml`](../.github/workflows/release.yml)
 
-Added to the list per request, not yet diagnosed. The workflow builds `Nova.sln` in
-Release|x64 on `windows-2022` and then runs `dotnet test`. It depends on checking out
-`thermofisherlsms/RawFileReader` at build time and registering
-`D:\a\Nova\Nova\RawFileReader\Libs\NetCore\Net8` as a local NuGet source so
-`ThermoFisher.CommonCore.RawFileReader` can restore — this is a real external dependency on
-another org's repo staying available and structured the same way, which is worth confirming
-still works. No `gh` CLI was available in this environment to pull recent run history, so
-current pass/fail status is unconfirmed.
+**Root cause (confirmed via the public Actions API):** every run on `main` had failed for
+at least ~2 months (back to 2026-06-18, likely longer) with identical compiler errors:
+```
+NovaIO/Io/Read/MzXMLReader.cs(22): The type or namespace name 'AspNetCore' does not exist in the namespace 'Microsoft'
+NovaIO/Io/Read/MGFReader.cs(22,23): 'AspNetCore' / 'Newtonsoft' could not be found
+```
+This is HYG-1 (stray unused `using`s) — except not hypothetical, it was the *active* cause.
+Chain of events: `dotnet.yml`'s "Point NuGet to RawFileReader" step checked out
+`thermofisherlsms/RawFileReader` at a **floating, unpinned HEAD**, re-fetched fresh every
+run. `NovaIO.csproj` declared `Version="8.0.6"` for the Thermo packages — but in NuGet, a
+bare version string is a *minimum* bound (`[8.0.6,)`), not a pin. Verified those packages
+aren't on nuget.org at all (404 on the flat-container API), so the only source NuGet could
+resolve them from was that fresh checkout — which currently ships **8.0.37** in the folder
+the workflow pointed at. `8.0.37 >= 8.0.6`, so NuGet silently took it instead. Diffed both
+versions' nuspecs directly: 8.0.6 depends on `Microsoft.AspNetCore.Mvc.NewtonsoftJson` +
+`Microsoft.Extensions.Hosting`; **8.0.37 dropped both** — Thermo cleaned up their dependency
+tree at some point between releases, silently pulling the rug out from under HYG-1's stray
+usings. (Locally, builds kept succeeding throughout — this machine's NuGet cache/config
+already had something masking it, the same "this machine can hide a CI-only failure"
+pattern from other repos worked in this environment.)
 
-**Suggested fix:** first pull the actual run history/logs (via `gh run list` /
-`gh run view --log-failed`, or the Actions tab on GitHub) to see what's actually failing
-before changing anything — don't guess at a fix without seeing a real error. Points worth
-checking: whether the RawFileReader checkout/NuGet-source step still works as expected,
-whether recently added files (BUG-1 through BUG-6 fixes, new tests from TEST-1/TEST-2) will
-need CI updates, and whether the workflow should also build `Examples/NovaExamples.sln`
-(currently untouched by CI).
+**What replaced it — three workflows, plus a versioning-scheme decision:**
+- **`ci.yml`** — build + test only, no packaging. Triggers on PRs targeting `main`/`Dev` and
+  direct pushes to `main`. Restores the pre-merge safety net the old workflow gave PRs
+  (lost if `dotnet.yml` had simply been deleted with nothing replacing its PR-check role).
+- **`dev-nuget.yml`** — triggers on push to `Dev` + manual dispatch. Builds, tests, packs
+  `Nova` and `Nova.IO` with a computed dev version, publishes both a dated release (kept
+  forever, tag `dev-<run>-<sha>`) and a rolling `dev-latest` release (tag force-moved each
+  run), both marked `prerelease: true`. Modeled directly on `SchweppeLab/Helios`'s
+  `Dev`-branch `dev-nuget.yml` (repo owner pointed at it as the reference) — same "dated +
+  rolling release, no NuGet feed involved, GitHub Release assets only" shape, simplified
+  because (unlike Helios) both `Nova` and `NovaIO` are SDK-style post-ARCH-1, so one job on
+  one runner suffices; no OS split needed.
+- **`release.yml`** — manual dispatch only, hard-guarded to refuse running from anything but
+  `refs/heads/main` (workflow_dispatch lets you pick any ref from the UI, so this is enforced
+  in-workflow, not just by convention). Packs the *real* project version (no `-dev.N`
+  suffix), publishes one GitHub Release marked `prerelease: true` — promoting it to a real
+  release is always a separate, deliberate, manual action from the GitHub UI, never
+  automatic. Includes a guard step (`gh release view` + `isPrerelease` check) that refuses to
+  run again over a tag that's already been promoted to a real release, so a forgotten version
+  bump can't silently clobber a shipped release's assets.
+- **Both `dev-nuget.yml` and `release.yml` produce the same bundle shape Nova's own past
+  hand-built releases already use** (confirmed by downloading and unzipping the real
+  `v1.0.0.18` release asset): `Nova.<version>.nupkg` + `Nova.IO.<version>.nupkg` +
+  `ThermoRawFileReader/` (the exact pinned Thermo nupkgs + their license/readme, so a
+  consumer of `Nova.IO` never needs access to Thermo's own feed) + a top-level `Readme.txt`.
+  Rebuilt this exact bundle shape locally (pack + stage + zip, byte-for-byte structural
+  match against the real release) before writing it into the workflows.
+- **The `thermofisherlsms/RawFileReader` checkout is now pinned** to commit
+  `b0fdf86931971d00c4576d148ecac2bc6568ba79` in all three workflows (same SHA everywhere,
+  deliberately) instead of a floating HEAD — confirmed at that commit `Libs/NetCore/Net8Old`
+  holds exactly the `8.0.6` packages `NovaIO.csproj` expects. Also tightened
+  `NovaIO.csproj`'s `PackageReference`s from bare `8.0.6` to exact-match `[8.0.6]` brackets,
+  as defense in depth — even if the pin is ever bumped without updating the version
+  constraint, restore now fails loudly instead of silently drifting again.
+- **Versioning scheme changed going forward:** Nova moves from the old 4-part scheme
+  (`1.0.0.18`) to 3-part SemVer (`major.minor.revision`). This work is `1.1.0` — the next
+  manual `release.yml` run (once this work is merged to `main` and stabilized) is intended to
+  become the official `v1.1.0`. `Nova.csproj` gained full NuGet packaging metadata to match
+  `NovaIO.csproj` (it previously had none — see ARCH-1's deferred step 5, now done):
+  `PackageId=Nova`, `Authors`, `Company`, `Description`, license, repo URL, etc. Both
+  `Nova.csproj` and `NovaIO.csproj` now carry `Version=1.1.0`/`AssemblyVersion=1.1.0.0`/
+  `FileVersion=1.1.0.0`, kept in lockstep (as they always have been across past releases).
+  `Nova/Properties/AssemblyInfo.cs` was deleted — SDK-style `Nova.csproj` now generates
+  assembly attributes from the csproj properties directly, same as `NovaIO` already did.
+
+**Validated locally before trusting any of this in CI:** restore against the exact pinned
+source succeeds; full solution build succeeds; `dotnet pack` for both projects with an
+overridden dev version succeeds; `NovaIO`'s packed nuspec correctly generates a `<dependency
+id="Nova" version="[matching dev version]">` (confirms MSBuild's command-line
+`-p:PackageVersion` override propagates through the `ProjectReference` as expected); the
+full bundle-assembly PowerShell logic was rehearsed end-to-end locally and its output
+structurally matches the real `v1.0.0.18` release, file for file.
 
 ---
 

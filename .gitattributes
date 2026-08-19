@@ -1,2 +1,2 @@
-*.mzML	text eof=lf
-*.mzXML	text eof=lf
+*.mzML	-text
+*.mzXML	-text

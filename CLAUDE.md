@@ -24,10 +24,10 @@ documentation, not the published site).
 ## Repo Layout
 
 ```
-Nova/               .NET Framework 4.8 class library (old-style .csproj) — core data model + IPC
+Nova/               netstandard2.0 SDK-style library — core data model + IPC, packable
   Data/              Spectrum/Chromatogram/Precursor data types
   IPC/Pipes/         Named-pipe client/server (forked from acdvorak/named-pipe-wrapper, MIT)
-NovaIO/              .NET 8 SDK-style library — file I/O, depends on Nova
+NovaIO/              .NET 8 SDK-style library — file I/O, depends on Nova, packable as Nova.IO
   Io/Read/           FileReader facade + format readers (ThermoRaw, mzML, mzXML, MGF)
   Io/Write/          MzMLWriter + a small hand-rolled XML element tree (NovaXmlElement)
   Io/Meta/           Thermo trailer-label -> MetaClass lookup (MetaDictionary)
@@ -36,7 +36,9 @@ Test/                 .NET 8 MSTest project — integration-style tests against 
 Examples/             Separate solution (NovaExamples.sln): WinForms/console samples
                        (Protostar, ScanBroadcaster, ScanReceiver, ScanViewer)
 docs/                 Repo-local documentation (known issues, modernization progress)
-.github/workflows/    dotnet.yml (CI build+test), jekyll.yml (deploys gh-pages docs site)
+.github/workflows/    ci.yml (PR/main-push build+test), dev-nuget.yml (Dev-push dev NuGet
+                       releases), release.yml (manual, main-only, official releases),
+                       jekyll.yml (deploys gh-pages docs site)
 ```
 
 ## Build & Test
@@ -60,20 +62,61 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
   discussing it first.
 - Run tests: `dotnet test Test/Test.csproj`, run from the **repo root** (not from inside
   `Test/`) — `TestNova`'s constructor resolves `Test/Files/` relative to the working
-  directory (see HYG-2), and gets it wrong if run from elsewhere. On Windows with
-  `core.autocrlf=true` (common default), the `Test/Files/*.mzML`/`.mzXML` fixtures also need
-  their line endings normalized back to LF before tests will pass — `.gitattributes` doesn't
-  actually prevent Git from mangling them on checkout (see BUG-7); run
-  `dos2unix Test/Files/AngioNeuro4.mzML Test/Files/AngioNeuro4.mzXML` first if you hit
-  `XmlException: Data at the root level is invalid`. The existing tests are integration tests
-  against real files in `Test/Files/` (mzML, mzXML, and RAW versions of the same acquisition)
-  — they assert scan counts and MS-level tallies, not internal parsing logic in isolation.
-  See `docs/known-issues.md` (TEST-1, TEST-2) for the coverage gap.
-- CI (`.github/workflows/dotnet.yml`) checks out `thermofisherlsms/RawFileReader` at build
-  time and adds it as a local NuGet source before restoring, since RawFileReader's native
-  binaries aren't published to nuget.org. Building locally outside CI requires the same
-  setup (or a pre-populated NuGet cache) before `ThermoFisher.CommonCore.RawFileReader`
-  will restore.
+  directory (see HYG-2), and gets it wrong if run from elsewhere. The existing tests are
+  integration tests against real files in `Test/Files/` (mzML, mzXML, and RAW versions of the
+  same acquisition) — they assert scan counts and MS-level tallies, not internal parsing
+  logic in isolation. See `docs/known-issues.md` (TEST-1, TEST-2) for the coverage gap.
+  (`Test/Files/*.mzML`/`.mzXML` used to get corrupted by Git on Windows checkout regardless
+  of `core.autocrlf` — fixed as BUG-7, `.gitattributes` now marks them `-text`. If you ever
+  see `XmlException: Data at the root level is invalid` reading these files again, that fix
+  regressed.)
+- `ThermoFisher.CommonCore.*` packages aren't on nuget.org — restore needs a NuGet source
+  pointing at a local checkout of `thermofisherlsms/RawFileReader`, **pinned to commit
+  `b0fdf86931971d00c4576d148ecac2bc6568ba79`** (same SHA in all three workflows below,
+  deliberately — bump it everywhere at once if it ever needs to change, not just one place).
+  The old `dotnet.yml` checked that repo out at a floating, unpinned HEAD instead, which is
+  exactly how it silently drifted onto a Thermo package version with a different transitive
+  dependency tree and broke CI for ~2 months without anyone noticing (see CI-1). To build
+  locally: `dotnet nuget add source <path-to-that-pinned-checkout>\Libs\NetCore\Net8Old`
+  (that specific subfolder, not `Net8` — it holds the `8.0.6` build `NovaIO.csproj` pins
+  exactly via `[8.0.6]` version brackets, not a floating minimum).
+
+## CI/CD
+
+Three workflows, replacing the old single `dotnet.yml` (deleted 2026-08-19 — see CI-1):
+
+- **`ci.yml`** — build + test only, no packaging. Runs on PRs targeting `main`/`Dev` and
+  direct pushes to `main`. This is the pre-merge safety net; it does not run on pushes to
+  `Dev` (that's `dev-nuget.yml`'s job, which also builds and tests before packaging — no
+  need to run the suite twice per push).
+- **`dev-nuget.yml`** — push to `Dev`, or manual dispatch. Builds, tests, packs `Nova` +
+  `Nova.IO` with a computed dev version (`<csproj version>-dev.<run number>`), publishes both
+  a dated GitHub Release (kept forever, tag `dev-<run>-<sha>`) and a rolling `dev-latest`
+  release (tag force-moved every run), both marked pre-release. GitHub Release assets only —
+  deliberately no NuGet feed (not GitHub Packages, not anything else) so there's nothing for
+  a tester to authenticate against.
+- **`release.yml`** — manual dispatch only, and refuses to run from anything but
+  `refs/heads/main` (checked in-workflow, not just by convention). Packs the real version
+  from `Nova.csproj` (no `-dev.N` suffix), publishes one GitHub Release marked pre-release.
+  **Nothing ever auto-promotes a release out of pre-release** — that's always a separate,
+  deliberate action from the GitHub UI, done by the repo owner after reviewing the built
+  packages. Also refuses to re-run over a tag that's already been promoted to a real release
+  (checks `isPrerelease` via `gh release view` first), so a forgotten version bump can't
+  silently clobber shipped assets.
+- Both `dev-nuget.yml` and `release.yml` produce the same bundle shape Nova's real past
+  releases already use (e.g. `v1.0.0.18`): `Nova.<version>.nupkg` + `Nova.IO.<version>.nupkg`
+  + a `ThermoRawFileReader/` folder with the exact pinned Thermo packages and their license,
+  so consuming `Nova.IO` never requires access to Thermo's own feed + a top-level `Readme.txt`.
+
+## Versioning
+
+Nova moved from an old 4-part scheme (`1.0.0.18`) to 3-part SemVer (`major.minor.revision`)
+starting with this work, `1.1.0` — decided 2026-08-19, see CI-1. `Nova.csproj` and
+`NovaIO.csproj` are kept in lockstep (same `Version`/`AssemblyVersion`/`FileVersion` always —
+they've always shipped together as a matched pair in every past release) and are the single
+source of truth: `dev-nuget.yml` reads the base version from `Nova.csproj` and appends
+`-dev.<run>`, `release.yml` uses it as-is. Bump both csprojs together when starting a new
+version cycle; no workflow file needs editing to match.
 
 ## Working Conventions
 
@@ -107,10 +150,11 @@ already been fixed vs. still open. When you fix something from that list, update
   empty spectrum regardless of file contents.
 - `MzMLWriter.Write` hardcodes a Windows path (`D:\Data\mzML\mzML1.1.0.utf8.xsd`) for
   self-validation — this only works on the original author's machine.
-- `.gitattributes` doesn't actually stop Git from mangling `Test/Files/*.mzML`/`.mzXML` line
-  endings on checkout (see "Run tests" above and BUG-7) — breaks local test runs on Windows
-  with default settings.
 - Several files carry unused `using`s for unrelated packages (`Microsoft.AspNetCore.*`,
   `Newtonsoft.Json`, `Microsoft.VisualBasic`, `System.Formats.Tar`) that only resolve
-  because they're transitively pulled in by the Thermo NuGet packages — not intentional
-  dependencies, and fragile if that transitive chain ever changes.
+  because they're transitively pulled in by the Thermo NuGet packages — **this is not
+  theoretical**: it's the confirmed, exact cause of CI being broken on `main` for ~2 months
+  (see CI-1/HYG-1). It's currently masked again by the version pin described under "Build &
+  Test" above, but the pin is a mitigation, not a fix — the stray `using`s are still there
+  and will break again the moment that pinned dependency tree ever changes. Fix HYG-1 properly
+  (delete the unused `using`s) rather than treating the pin as the actual solution.

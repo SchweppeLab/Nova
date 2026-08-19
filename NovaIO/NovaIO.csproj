@@ -18,9 +18,9 @@
     <PackageTags>mass spectrometry;spectrum</PackageTags>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.0.0.18</Version>
-    <AssemblyVersion>1.0.0.10</AssemblyVersion>
-    <FileVersion>1.0.0.10</FileVersion>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -41,8 +41,12 @@
 
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
-    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="8.0.6" />
-    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="8.0.6" />
+    <!-- Exact-match brackets, not a bare "8.0.6": a bare version string is a NuGet *minimum*
+         bound ([8.0.6,)), not a pin. That's exactly how CI silently drifted onto 8.0.37 (which
+         dropped this package's Microsoft.AspNetCore.Mvc.NewtonsoftJson dependency, breaking the
+         build) even though this line always said "8.0.6". See docs/known-issues.md CI-1/BUG-7. -->
+    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="[8.0.6]" />
+    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="[8.0.6]" />
   </ItemGroup>
 
   <ItemGroup>

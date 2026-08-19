@@ -12,9 +12,9 @@ relevant). Don't rewrite history here; append.
 | Category | Total | Done | In Progress | Not Started |
 |---|---|---|---|---|
 | Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
-| Bugs | 7 | 0 | 0 | 7 |
+| Bugs | 7 | 1 | 0 | 6 |
 | Dead / Redundant Code | 3 | 0 | 0 | 3 |
-| CI / Build Infrastructure | 1 | 0 | 0 | 1 |
+| CI / Build Infrastructure | 1 | 1 | 0 | 0 |
 | Hygiene / Maintainability | 4 | 0 | 0 | 4 |
 | Test Coverage | 2 | 0 | 0 | 2 |
 
@@ -27,7 +27,7 @@ generated.)_
 
 | ID | Summary | Priority | Status | Notes |
 |---|---|---|---|---|
-| [ARCH-1](known-issues.md#arch-1--migrate-nova-core-to-netstandard20) | Migrate `Nova` core (`Data/` + `IPC/Pipes/`) from net48 to `netstandard2.0`; `NovaIO` stays net8.0 for now | **#1 — top priority** | **Done** | 2026-08-18. `Nova.csproj` converted to SDK-style + `netstandard2.0`, 0 warnings/errors standalone; full `Nova.sln` build + `dotnet test` (3/3 pass) verified against real files. Packaging metadata (NuGet `PackageId`) deliberately deferred, was always optional in scope. |
+| [ARCH-1](known-issues.md#arch-1--migrate-nova-core-to-netstandard20) | Migrate `Nova` core (`Data/` + `IPC/Pipes/`) from net48 to `netstandard2.0`; `NovaIO` stays net8.0 for now | **#1 — top priority** | **Done** | 2026-08-18. `Nova.csproj` converted to SDK-style + `netstandard2.0`, 0 warnings/errors standalone; full `Nova.sln` build + `dotnet test` (3/3 pass) verified against real files. Packaging metadata was deferred at the time, added 2026-08-19 as part of CI-1. |
 
 ## Bugs
 
@@ -39,7 +39,7 @@ generated.)_
 | [BUG-4](known-issues.md#bug-4--mzmlwriterwrite-hardcodes-an-absolute-schema-path) | `MzMLWriter.Write` hardcodes `D:\Data\mzML\...xsd` | Medium | Not Started | Blocks `MzMLWriter` from working on any machine but the author's |
 | [BUG-5](known-issues.md#bug-5--filereaderformat-is-dead-initialized-once-never-updated) | `FileReader.Format` never assigned, permanently `Unknown` | Low | Not Started | |
 | [BUG-6](known-issues.md#bug-6--pipeioread-doesnt-handle-shortpartial-stream-reads) | `PipeIO.Read` assumes `Stream.Read` fills the buffer in one call | Medium | Not Started | Latent risk; not observed failing yet |
-| [BUG-7](known-issues.md#bug-7--gitattributes-doesnt-actually-protect-line-ending-sensitive-test-fixtures) | `.gitattributes` doesn't actually stop Git from corrupting mzML/mzXML fixture byte offsets on Windows checkout | Medium | Not Started | Found while verifying ARCH-1; broke local `dotnet test` here. CI papers over it with `dos2unix`; related to CI-1 |
+| [BUG-7](known-issues.md#bug-7--gitattributes-doesnt-actually-protect-line-ending-sensitive-test-fixtures) | `.gitattributes` doesn't actually stop Git from corrupting mzML/mzXML fixture byte offsets on Windows checkout | Medium | **Done** | 2026-08-19. `-text` set for both extensions; working copy renormalized; confirmed stored blobs were already correct (checkout was the only corruption point). No more `dos2unix` needed anywhere. |
 
 ## Dead / Redundant Code
 
@@ -53,7 +53,7 @@ generated.)_
 
 | ID | Summary | Severity | Status | Notes |
 |---|---|---|---|---|
-| [CI-1](known-issues.md#ci-1--investigate-and-fix-github-actions-workflow) | Investigate and fix GitHub Actions workflow (`dotnet.yml`) | TBD | Not Started | Requested by user 2026-08-18; no failure diagnosed yet, needs run history/logs |
+| [CI-1](known-issues.md#ci-1--github-actions-workflow-diagnosed-then-replaced-entirely) | `dotnet.yml` replaced entirely with `ci.yml` + `dev-nuget.yml` + `release.yml` | — | **Done** | 2026-08-19. Root cause was HYG-1 (live, not hypothetical) plus an unpinned external checkout; see known-issues.md for the full chain. New 3-workflow structure implements goals A/B/C from repo owner, modeled on `SchweppeLab/Helios`'s `dev-nuget.yml`. Versioning scheme changed to 3-part SemVer starting at 1.1.0. |
 
 ## Hygiene / Maintainability
 
@@ -76,26 +76,22 @@ generated.)_
 ## Suggested Order of Attack
 
 0. ~~**ARCH-1 — Nova core to `netstandard2.0`.**~~ **Done 2026-08-18.**
-1. **CI-1 + BUG-7 — GitHub Actions / line-ending fixture bug.** Worth doing together: CI-1's
-   investigation will already have eyes on `dotnet.yml`, which is exactly where BUG-7's
-   `dos2unix` workaround lives. `dotnet.yml` also needs updating regardless for the ARCH-1
-   target-framework change, so this is a good next stop.
+1. ~~**CI-1 + BUG-7 — GitHub Actions / line-ending fixture bug.**~~ **Done 2026-08-19.**
 2. **TEST-1 / TEST-2** next, or at least started — every fix below is safer to make once
-   there's a test harness that isn't limited to one real integration file. Also worth doing
-   right after ARCH-1 specifically because a target-framework change is exactly the kind of
-   thing you want a safety net in place for before touching further.
+   there's a test harness that isn't limited to one real integration file.
 3. **BUG-3, BUG-5** — trivial, low-risk, high-value fixes.
 4. **CLEAN-1, CLEAN-2, HYG-1** — pure cleanup, no behavior change, easy wins once tests exist
-   to confirm nothing shifted.
+   to confirm nothing shifted. HYG-1 in particular is no longer just hygiene — see CI-1;
+   fixing it removes the exact landmine that broke CI for two months.
 5. **BUG-1 / BUG-2** together — requires a real decision on MGF's fate first (see
    known-issues.md); don't fix BUG-1 without resolving BUG-2, or you'll wire up a working
    dispatch path to a reader that still silently returns nothing.
 6. **BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3** — round out once the above is settled. Note BUG-6's
-   fix approach depends on ARCH-1 having landed first (`Stream.ReadExactly` isn't available
-   on `netstandard2.0`, see ARCH-1's notes).
+   fix approach depends on ARCH-1 having landed (already has — `netstandard2.0` doesn't have
+   `Stream.ReadExactly`, so it needs a manual read-loop instead).
 
-Everything below ARCH-1 is a suggestion, not a mandate — reorder freely based on what you're
-actually working on next.
+Everything from step 2 on is a suggestion, not a mandate — reorder freely based on what
+you're actually working on next.
 
 ## Log
 
@@ -118,3 +114,27 @@ it's the changelog for this document.
   pre-existing `NovaIO` warnings, nothing new); `dotnet test` 3/3 passing against real
   mzML/mzXML/RAW files. Found and documented BUG-7 (`.gitattributes` line-ending bug) as a
   byproduct — real issue, unrelated to ARCH-1, not fixed here.
+- 2026-08-19 — **CI-1 and BUG-7 done.** Diagnosed CI-1 with hard evidence via the public
+  GitHub API (no `gh` CLI needed): every run on `main` had failed for ~2 months, root cause
+  HYG-1 (live, not hypothetical) triggered by an unpinned external checkout drifting onto a
+  Thermo package version with a different dependency tree. Fixed BUG-7 properly (`.gitattributes`
+  `-text`, working copy renormalized) rather than working around it again. Explored
+  `SchweppeLab/Helios`'s `Dev`-branch `dev-nuget.yml` (repo owner's reference example,
+  publicly readable even though `mhoopmann/LandmineUI` wasn't) and Nova's own past GitHub
+  Releases (unzipped `v1.0.0.18` to learn the established bundle shape) before designing
+  anything. Deleted `dotnet.yml` outright (repo owner: replace, don't patch) and replaced it
+  with `ci.yml` (PR/main-push build+test), `dev-nuget.yml` (`Dev`-push → dev NuGet + bundle
+  via GitHub Releases, dated + rolling `dev-latest`), and `release.yml` (manual-only,
+  main-only, guarded against re-publishing over an already-promoted release). Pinned the
+  `thermofisherlsms/RawFileReader` checkout to a specific commit in all three (was floating).
+  Tightened `NovaIO.csproj`'s Thermo `PackageReference`s to exact-match `[8.0.6]`. Versioning
+  scheme changed to 3-part SemVer starting at `1.1.0` (repo owner's call) — `Nova.csproj` and
+  `NovaIO.csproj` both bumped and kept in lockstep; `Nova.csproj` gained full NuGet packaging
+  metadata to match `NovaIO.csproj` (closes ARCH-1's deferred step 5); `Nova/Properties/AssemblyInfo.cs`
+  deleted (SDK now generates it from csproj properties, same as `NovaIO`). Validated locally
+  before trusting any of it in CI: restore/build/test against the exact pinned source, pack
+  for both projects with a dev-style version override, confirmed `NovaIO`'s generated
+  dependency on `Nova` resolves to the matching version, and rehearsed the full
+  bundle-assembly PowerShell logic end-to-end (output structurally matches the real
+  `v1.0.0.18` release). YAML syntax-validated with PyYAML. Nothing pushed — local commit only,
+  per standing instruction never to push.

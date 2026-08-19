@@ -1,0 +1,189 @@
+name: Dev NuGet build
+
+# Builds dev/test artifacts from the Dev branch on every push and publishes them as GitHub
+# Release assets -- no NuGet feed (GitHub Packages or otherwise) is involved, so there's
+# nothing for testers to authenticate against. Two releases are published on every run:
+#   - a dated release (tag `dev-<run number>-<short sha>`), kept forever, so a specific past
+#     dev build can be pinned to or re-downloaded later.
+#   - the rolling `dev-latest` release, whose tag and assets are overwritten every run, so
+#     testers can link to one permanent URL that always has the newest build.
+#
+# Unlike Helios's equivalent workflow, this doesn't need a two-job OS split -- Nova and
+# NovaIO are both SDK-style projects (Nova.IO always was; Nova core moved to netstandard2.0
+# and picked up matching packaging metadata as part of this same change, see
+# docs/known-issues.md ARCH-1), so both pack with plain `dotnet pack` on one Windows runner.
+# Windows is still required (not just convenient) because Test.csproj's suite exercises real
+# Thermo RAW file reads via ThermoFisher.CommonCore.RawFileReader.
+#
+# Produces one release with: Nova + Nova.IO as individual .nupkg files, and one combined
+# bundle zip -- matching the shape of Nova's existing hand-built releases (see e.g.
+# https://github.com/SchweppeLab/Nova/releases/tag/v1.0.0.18): both nupkgs, a
+# ThermoRawFileReader/ folder with the exact pinned Thermo packages + their license/docs (so
+# Nova.IO's dependency resolves without needing access to Thermo's private feed), and a
+# top-level Readme.txt.
+
+on:
+  push:
+    branches: [Dev]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-pack-release:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Pinned to a specific commit, not a floating branch HEAD -- see ci.yml for why. Keep
+      # this SHA in sync with the one there and in release.yml; all three should always point
+      # at the same known-good Thermo package set.
+      - name: Checkout RawFileReader (pinned)
+        uses: actions/checkout@v4
+        with:
+          repository: thermofisherlsms/RawFileReader
+          ref: b0fdf86931971d00c4576d148ecac2bc6568ba79
+          path: RawFileReader
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Point NuGet to the pinned RawFileReader packages
+        run: dotnet nuget add source ${{ github.workspace }}\RawFileReader\Libs\NetCore\Net8Old -n RawFileReaderPinned
+
+      - name: Restore
+        run: dotnet restore Nova\Nova.sln
+
+      - name: Build
+        run: dotnet build Nova\Nova.sln --no-restore --configuration Release -p:Platform=x64
+
+      - name: Test
+        run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal
+
+      # Base version comes from Nova.csproj rather than being hardcoded here, so bumping the
+      # version for a future dev cycle needs no workflow edit -- just the csproj change
+      # release.yml would also need for a real release.
+      - name: Compute dev package version
+        id: version
+        shell: pwsh
+        run: |
+          $csproj = Get-Content "Nova/Nova.csproj" -Raw
+          if ($csproj -notmatch '<Version>([^<]+)</Version>') {
+            throw "Could not find <Version> in Nova/Nova.csproj"
+          }
+          $baseVersion = $matches[1]
+          $shortSha = (git rev-parse --short HEAD)
+          $version = "$baseVersion-dev.${{ github.run_number }}"
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=dev-${{ github.run_number }}-$shortSha" >> $env:GITHUB_OUTPUT
+          "short_sha=$shortSha" >> $env:GITHUB_OUTPUT
+
+      # Nova first: NovaIO's ProjectReference to it means packing NovaIO also builds Nova with
+      # the same PackageVersion override (MSBuild command-line properties propagate through
+      # ProjectReferences by default), so NovaIO's generated dependency on Nova automatically
+      # matches -- verified locally before writing this (Nova.IO's packed nuspec ends up with
+      # <dependency id="Nova" version="[the same dev version]" />).
+      - name: Pack Nova and Nova.IO
+        run: |
+          dotnet pack Nova\Nova.csproj -c Release -o pack-out --no-restore -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack NovaIO\NovaIO.csproj -c Release -o pack-out --no-restore -p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Duplicate packages under version-free filenames for the rolling release
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path pack-out-latest | Out-Null
+          Copy-Item pack-out\Nova.*.nupkg pack-out-latest\Nova-dev-latest.nupkg
+          Copy-Item pack-out\Nova.IO.*.nupkg pack-out-latest\Nova.IO-dev-latest.nupkg
+
+      # Same exact Thermo packages NovaIO was just built and tested against (pinned checkout
+      # above), so a consumer of these dev nupkgs can resolve ThermoFisher.CommonCore.* from
+      # this bundle without needing access to Thermo's private feed themselves -- matches how
+      # Nova's existing real releases already do this.
+      - name: Stage the pinned ThermoRawFileReader bundle contents
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path thermo-bundle | Out-Null
+          Copy-Item RawFileReader\Libs\NetCore\Net8Old\*.nupkg thermo-bundle\
+          Copy-Item RawFileReader\Libs\NetCore\Net8Old\Readme.txt thermo-bundle\
+          Copy-Item RawFileReader\License.doc thermo-bundle\
+          Copy-Item RawFileReader\ReleaseNotes.docx thermo-bundle\
+
+      - name: Assemble the combined bundle
+        shell: pwsh
+        run: |
+          $readme = @"
+          Nova dev build -- $( '${{ steps.version.outputs.version }}' )
+          =====================================================
+
+          Pre-release, unsupported development build from the Dev branch. The API may change
+          without notice. Full documentation and stable releases: https://schweppelab.github.io/Nova
+
+          Nova is Copyright 2025, Michael Hoopmann, Devin Schweppe.
+          Nova is Licensed under Apache Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+
+          Nova.IO requires Thermo RawFileReader for Thermo RAW file support. This library is
+          provided from https://github.com/thermofisherlsms/RawFileReader, and the exact pinned
+          version this build was tested against is included here as NuGet packages, in
+          ThermoRawFileReader/. All licenses specific to RawFileReader are retained and included.
+
+          Setup: add this bundle's top-level folder as a local NuGet source (it contains both
+          Nova's own packages and the ThermoRawFileReader ones they depend on), then reference
+          Nova.IO (or just Nova, if you don't need file I/O) from your own project as usual.
+          "@
+
+          function New-Bundle($bundleDir, $novaNupkg, $novaIoNupkg, $zipPath) {
+            New-Item -ItemType Directory -Force -Path "$bundleDir/ThermoRawFileReader" | Out-Null
+            Copy-Item $novaNupkg "$bundleDir/"
+            Copy-Item $novaIoNupkg "$bundleDir/"
+            Copy-Item thermo-bundle\* "$bundleDir/ThermoRawFileReader/"
+            $readme | Out-File -FilePath "$bundleDir/Readme.txt" -Encoding utf8
+            Compress-Archive -Path "$bundleDir/*" -DestinationPath $zipPath -Force
+          }
+
+          New-Bundle "bundle-dated" "pack-out/Nova.*.nupkg" "pack-out/Nova.IO.*.nupkg" "Nova.${{ steps.version.outputs.version }}.zip"
+          New-Bundle "bundle-latest" "pack-out-latest/Nova-dev-latest.nupkg" "pack-out-latest/Nova.IO-dev-latest.nupkg" "Nova-dev-latest.zip"
+
+      - name: Publish dated dev release (history)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Dev build ${{ steps.version.outputs.version }}"
+          body: |
+            Automated development build from `Dev` @ ${{ steps.version.outputs.short_sha }}.
+            Not a stable release -- the API may change without notice.
+          prerelease: true
+          make_latest: "false"
+          files: |
+            pack-out/*.nupkg
+            Nova.${{ steps.version.outputs.version }}.zip
+
+      # softprops/action-gh-release updates an existing release/re-uploads matching-named
+      # assets for a tag it's already seen, but it does not move a pre-existing git tag to a
+      # new commit -- without this, dev-latest's *tag* would keep pointing at the very first
+      # build forever even though its release assets stay fresh. Force-move it ourselves first.
+      - name: Move the dev-latest tag to this commit
+        run: |
+          git tag -f dev-latest
+          git push origin dev-latest --force
+
+      - name: Publish rolling dev-latest release (always-fresh link)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev-latest
+          name: "Latest dev build"
+          body: |
+            Always the most recent successful build from `Dev` (currently
+            ${{ steps.version.outputs.version }}, @ ${{ steps.version.outputs.short_sha }}).
+            Assets here are overwritten on every push -- see the
+            [Releases page](https://github.com/SchweppeLab/Nova/releases) to pin a specific
+            past build instead.
+          prerelease: true
+          make_latest: "false"
+          files: |
+            pack-out-latest/*.nupkg
+            Nova-dev-latest.zip

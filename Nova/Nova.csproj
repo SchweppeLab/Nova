@@ -5,8 +5,22 @@
     <RootNamespace>Nova</RootNamespace>
     <AssemblyName>Nova</AssemblyName>
     <Platforms>AnyCPU;x64</Platforms>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Deterministic>true</Deterministic>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Title>Nova core library for mass spectrometry data management.</Title>
+    <Authors>Michael Hoopmann, Devin Schweppe</Authors>
+    <Company>University of Washington, Schweppe Lab</Company>
+    <PackageId>Nova</PackageId>
+    <Description>Mass spectrometry spectral data model and interprocess communication (named pipes).</Description>
+    <Copyright>Copyright 2025</Copyright>
+    <PackageProjectUrl>https://github.com/SchweppeLab/Nova</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/SchweppeLab/Nova</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>mass spectrometry;spectrum</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
   </PropertyGroup>
 
 </Project>
