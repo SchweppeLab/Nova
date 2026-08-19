@@ -11,8 +11,8 @@ relevant). Don't rewrite history here; append.
 
 | Category | Total | Done | In Progress | Not Started |
 |---|---|---|---|---|
-| Architecture / Framework Targeting | 1 | 0 | 0 | 1 |
-| Bugs | 6 | 0 | 0 | 6 |
+| Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
+| Bugs | 7 | 0 | 0 | 7 |
 | Dead / Redundant Code | 3 | 0 | 0 | 3 |
 | CI / Build Infrastructure | 1 | 0 | 0 | 1 |
 | Hygiene / Maintainability | 4 | 0 | 0 | 4 |
@@ -27,7 +27,7 @@ generated.)_
 
 | ID | Summary | Priority | Status | Notes |
 |---|---|---|---|---|
-| [ARCH-1](known-issues.md#arch-1--migrate-nova-core-to-netstandard20) | Migrate `Nova` core (`Data/` + `IPC/Pipes/`) from net48 to `netstandard2.0`; `NovaIO` stays net8.0 for now | **#1 — top priority** | Not Started | Set by repo owner 2026-08-18. Unblocks Helios; `NovaIO` multi-targeting deferred (see known-issues.md) |
+| [ARCH-1](known-issues.md#arch-1--migrate-nova-core-to-netstandard20) | Migrate `Nova` core (`Data/` + `IPC/Pipes/`) from net48 to `netstandard2.0`; `NovaIO` stays net8.0 for now | **#1 — top priority** | **Done** | 2026-08-18. `Nova.csproj` converted to SDK-style + `netstandard2.0`, 0 warnings/errors standalone; full `Nova.sln` build + `dotnet test` (3/3 pass) verified against real files. Packaging metadata (NuGet `PackageId`) deliberately deferred, was always optional in scope. |
 
 ## Bugs
 
@@ -39,6 +39,7 @@ generated.)_
 | [BUG-4](known-issues.md#bug-4--mzmlwriterwrite-hardcodes-an-absolute-schema-path) | `MzMLWriter.Write` hardcodes `D:\Data\mzML\...xsd` | Medium | Not Started | Blocks `MzMLWriter` from working on any machine but the author's |
 | [BUG-5](known-issues.md#bug-5--filereaderformat-is-dead-initialized-once-never-updated) | `FileReader.Format` never assigned, permanently `Unknown` | Low | Not Started | |
 | [BUG-6](known-issues.md#bug-6--pipeioread-doesnt-handle-shortpartial-stream-reads) | `PipeIO.Read` assumes `Stream.Read` fills the buffer in one call | Medium | Not Started | Latent risk; not observed failing yet |
+| [BUG-7](known-issues.md#bug-7--gitattributes-doesnt-actually-protect-line-ending-sensitive-test-fixtures) | `.gitattributes` doesn't actually stop Git from corrupting mzML/mzXML fixture byte offsets on Windows checkout | Medium | Not Started | Found while verifying ARCH-1; broke local `dotnet test` here. CI papers over it with `dos2unix`; related to CI-1 |
 
 ## Dead / Redundant Code
 
@@ -74,19 +75,22 @@ generated.)_
 
 ## Suggested Order of Attack
 
-0. **ARCH-1 — Nova core to `netstandard2.0`.** Explicit top priority set by the repo owner
-   2026-08-18; supersedes the default ordering below. Do this first.
-1. **TEST-1 / TEST-2** next, or at least started — every fix below is safer to make once
+0. ~~**ARCH-1 — Nova core to `netstandard2.0`.**~~ **Done 2026-08-18.**
+1. **CI-1 + BUG-7 — GitHub Actions / line-ending fixture bug.** Worth doing together: CI-1's
+   investigation will already have eyes on `dotnet.yml`, which is exactly where BUG-7's
+   `dos2unix` workaround lives. `dotnet.yml` also needs updating regardless for the ARCH-1
+   target-framework change, so this is a good next stop.
+2. **TEST-1 / TEST-2** next, or at least started — every fix below is safer to make once
    there's a test harness that isn't limited to one real integration file. Also worth doing
    right after ARCH-1 specifically because a target-framework change is exactly the kind of
    thing you want a safety net in place for before touching further.
-2. **BUG-3, BUG-5** — trivial, low-risk, high-value fixes.
-3. **CLEAN-1, CLEAN-2, HYG-1** — pure cleanup, no behavior change, easy wins once tests exist
+3. **BUG-3, BUG-5** — trivial, low-risk, high-value fixes.
+4. **CLEAN-1, CLEAN-2, HYG-1** — pure cleanup, no behavior change, easy wins once tests exist
    to confirm nothing shifted.
-4. **BUG-1 / BUG-2** together — requires a real decision on MGF's fate first (see
+5. **BUG-1 / BUG-2** together — requires a real decision on MGF's fate first (see
    known-issues.md); don't fix BUG-1 without resolving BUG-2, or you'll wire up a working
    dispatch path to a reader that still silently returns nothing.
-5. **BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3** — round out once the above is settled. Note BUG-6's
+6. **BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3** — round out once the above is settled. Note BUG-6's
    fix approach depends on ARCH-1 having landed first (`Stream.ReadExactly` isn't available
    on `netstandard2.0`, see ARCH-1's notes).
 
@@ -108,3 +112,9 @@ it's the changelog for this document.
   `D:\Software\Claude\RawFileReader`). Decision: migrate `Nova` core to `netstandard2.0`,
   leave `NovaIO` on `net8.0` for now. Added as ARCH-1, set as #1 priority. No code changed
   yet — planning only.
+- 2026-08-18 — **ARCH-1 done.** Converted `Nova/Nova.csproj` to SDK-style targeting
+  `netstandard2.0`; dropped stale Framework `<Reference>`s and the unused `packages.config`.
+  Verified: standalone build 0 warnings/0 errors; full `Nova.sln` build clean (same 4
+  pre-existing `NovaIO` warnings, nothing new); `dotnet test` 3/3 passing against real
+  mzML/mzXML/RAW files. Found and documented BUG-7 (`.gitattributes` line-ending bug) as a
+  byproduct — real issue, unrelated to ARCH-1, not fixed here.

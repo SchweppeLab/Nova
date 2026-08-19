@@ -49,20 +49,25 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
 
 - Only `Release|x64` is exercised in practice. Don't spend time chasing Debug-config build
   issues unless specifically asked — treat Debug as unmaintained here.
-- `Nova` currently targets **.NET Framework 4.8**; `NovaIO`, `NovaApp`, and `Test` target
-  **.NET 8**. **This is actively being changed:** per repo-owner decision (2026-08-18), `Nova`
-  core (`Data/` + `IPC/Pipes/`) is migrating to **`netstandard2.0`** so one build serves both
-  net48 consumers (e.g. Helios, pinned to net48 by Thermo's IAPI) and net8+ consumers,
-  without forking into separate packages. This is tracked as **ARCH-1, top priority** — see
-  `docs/progress.md` and `docs/known-issues.md` for the full rationale and mechanical steps.
-  `NovaIO` is explicitly staying on **net8.0 for now** — multi-targeting it to also support
-  net48 was investigated and found technically feasible (Thermo ships parallel net48/net8.0
-  builds of the RawFileReader packages), but is deliberately deferred, not abandoned. Don't
-  retarget `NovaIO` without discussing it first; the `Nova` core retarget is scoped and
-  approved, `NovaIO`'s is not (yet).
-- Run tests: `dotnet test Test/Test.csproj`. The existing tests are integration tests against
-  real files in `Test/Files/` (mzML, mzXML, and RAW versions of the same acquisition) —
-  they assert scan counts and MS-level tallies, not internal parsing logic in isolation.
+- `Nova` (core: `Data/` + `IPC/Pipes/`) targets **`netstandard2.0`** as of 2026-08-18 (ARCH-1,
+  done — see `docs/progress.md`/`docs/known-issues.md` for the full rationale). It was
+  previously .NET Framework 4.8; the retarget was done so one build serves both net48
+  consumers (e.g. Helios, pinned to net48 by Thermo's IAPI) and net8+ consumers, without
+  forking into separate packages. `NovaIO`, `NovaApp`, and `Test` target **.NET 8** and are
+  staying there for now — `NovaIO` multi-targeting to also support net48 was investigated and
+  found technically feasible (Thermo ships parallel net48/net8.0 builds of the RawFileReader
+  packages), but is deliberately deferred, not abandoned. Don't retarget `NovaIO` without
+  discussing it first.
+- Run tests: `dotnet test Test/Test.csproj`, run from the **repo root** (not from inside
+  `Test/`) — `TestNova`'s constructor resolves `Test/Files/` relative to the working
+  directory (see HYG-2), and gets it wrong if run from elsewhere. On Windows with
+  `core.autocrlf=true` (common default), the `Test/Files/*.mzML`/`.mzXML` fixtures also need
+  their line endings normalized back to LF before tests will pass — `.gitattributes` doesn't
+  actually prevent Git from mangling them on checkout (see BUG-7); run
+  `dos2unix Test/Files/AngioNeuro4.mzML Test/Files/AngioNeuro4.mzXML` first if you hit
+  `XmlException: Data at the root level is invalid`. The existing tests are integration tests
+  against real files in `Test/Files/` (mzML, mzXML, and RAW versions of the same acquisition)
+  — they assert scan counts and MS-level tallies, not internal parsing logic in isolation.
   See `docs/known-issues.md` (TEST-1, TEST-2) for the coverage gap.
 - CI (`.github/workflows/dotnet.yml`) checks out `thermofisherlsms/RawFileReader` at build
   time and adds it as a local NuGet source before restoring, since RawFileReader's native
@@ -76,7 +81,10 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
   existing `.cs` file when adding new source files.
 - 2-space indentation throughout the C# codebase.
 - Nullable reference types + implicit usings are enabled in the net8.0 projects (`NovaIO`,
-  `NovaApp`, `Test`) but not in `Nova` (net48, C# 7.3, no nullable annotations).
+  `NovaApp`, `Test`) but not in `Nova` (netstandard2.0, C# 7.3 default, no nullable
+  annotations — left that way deliberately during the ARCH-1 retarget to keep it
+  behavior-preserving; enabling nullable there would mean auditing the whole `Data/`/
+  `IPC/Pipes/` surface, a separate piece of work).
 - Format-specific readers (`ThermoRawReader`, `MzMLReader`, `MzXMLReader`, `MGFReader`) each
   hold a single mutable `spectrum`/`spectrumEx` field that's overwritten on every read call.
   This is a deliberate simplicity tradeoff for sequential single-threaded reads, not a bug —
@@ -99,6 +107,9 @@ already been fixed vs. still open. When you fix something from that list, update
   empty spectrum regardless of file contents.
 - `MzMLWriter.Write` hardcodes a Windows path (`D:\Data\mzML\mzML1.1.0.utf8.xsd`) for
   self-validation — this only works on the original author's machine.
+- `.gitattributes` doesn't actually stop Git from mangling `Test/Files/*.mzML`/`.mzXML` line
+  endings on checkout (see "Run tests" above and BUG-7) — breaks local test runs on Windows
+  with default settings.
 - Several files carry unused `using`s for unrelated packages (`Microsoft.AspNetCore.*`,
   `Newtonsoft.Json`, `Microsoft.VisualBasic`, `System.Formats.Tar`) that only resolve
   because they're transitively pulled in by the Thermo NuGet packages — not intentional

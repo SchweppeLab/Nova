@@ -47,22 +47,36 @@ dependency, so that blocker doesn't apply to it.)
   reference. (Platform-specific projects can always consume `netstandard2.0` — that
   direction was never the problem; only the reverse is blocked.)
 
-**Mechanical steps (not yet started):**
-1. Convert `Nova/Nova.csproj` from the old-style project format to SDK-style
-   (`<Project Sdk="Microsoft.NET.Sdk">`), matching `NovaIO`/`NovaApp`/`Test`.
-2. Change `<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>` →
+**Mechanical steps — done 2026-08-18:**
+1. ✅ Converted `Nova/Nova.csproj` from the old-style project format to SDK-style
+   (`<Project Sdk="Microsoft.NET.Sdk">`), matching `NovaIO`/`NovaApp`/`Test`. Dropped the
+   old explicit Framework `<Reference>` items (`System.Xml`, `System.Data`,
+   `System.Net.Http`, etc.) — none were actually used by any file in `Data/`/`IPC/Pipes/`;
+   SDK-style + `netstandard2.0` provides that surface without explicit references. Dropped
+   `packages.config` too (legacy format, unused — Nova has no package dependencies).
+   `Properties/AssemblyInfo.cs` kept as-is with `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>`
+   (same pattern `NovaApp.csproj` already uses), rather than folding metadata into the csproj —
+   smallest diff, doesn't force the packaging decision in step 5.
+2. ✅ Changed `<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>` →
    `<TargetFramework>netstandard2.0</TargetFramework>`.
-3. Decide on `LangVersion`/nullable-reference-types: the current net48 config pins
-   `LangVersion 7.3` with no nullable annotations; `netstandard2.0` supports much newer C#
-   versions, so decide whether to bring `Nova` in line with the `Nullable`-enabled net8.0
-   projects or leave it as-is for now.
-4. Verify `Nova.sln` still builds cleanly with `NovaIO`/`NovaApp`/`Test` referencing the new
-   `netstandard2.0` `Nova` — should be strictly easier than today's shim-based reference, not
-   harder, so a regression here would be a red flag worth investigating.
-5. Decide whether `Nova` should also gain NuGet packaging metadata (`PackageId`, `Version`,
-   etc.) as part of this — it currently has none at all, unlike `NovaIO` which already ships
-   as the `Nova.IO` package. Needed if Helios/others are meant to consume it as a published
-   package rather than a project reference; can be deferred to a follow-up if out of scope.
+3. ✅ Decided: left `LangVersion` unset and `Nullable` disabled, matching current behavior —
+   the SDK's default `LangVersion` for `netstandard2.0` is C# 7.3, identical to what the old
+   csproj pinned explicitly, so this is a no-op behaviorally. Enabling nullable reference
+   types was considered and deliberately not done here — it would mean auditing ~1,700 lines
+   in `Data/`/`IPC/Pipes/` for null-safety, which is a real piece of work on its own and not
+   needed for the retarget itself. Worth a future HYG-style item if wanted.
+4. ✅ Verified: `dotnet build Nova/Nova.csproj` alone succeeds with **0 warnings, 0 errors**
+   against `netstandard2.0` — confirms the codebase genuinely needed nothing beyond it.
+   `dotnet build Nova/Nova.sln` (all 4 projects) also succeeds, with only the same 4
+   pre-existing `NovaIO` warnings as before (nothing new, nothing from `Nova`). Ran
+   `dotnet test Test/Test.csproj` — all 3 tests pass, confirming `NovaIO` genuinely works
+   end-to-end against the retargeted `Nova` at runtime, not just at compile time. (One
+   unrelated wrinkle hit along the way: local test runs initially failed with an XML parse
+   error, root-caused to a `.gitattributes` line-ending bug, not this change — see BUG-7.)
+5. **Deferred, as planned:** `Nova` still has no NuGet packaging metadata (`PackageId`,
+   `Version`, etc.) — it currently ships only as a project/build reference, same as before.
+   Revisit if/when `Nova` needs to be consumed as a published package (e.g. by Helios)
+   rather than a project reference or built DLL.
 
 **Known interaction:** BUG-6's suggested fix (`Stream.ReadExactly`) is .NET 7+ only and won't
 be available once `Nova` targets `netstandard2.0` — that fix will need a manual read-loop
@@ -271,6 +285,47 @@ remember to update both places, and they can silently drift (as they already hav
 **Suggested fix:** have `FileReader.OpenSpectrumFile` delegate to
 `SpectrumFileReaderFactory.GetReader` (or vice versa) so there's one source of truth for
 extension-to-reader mapping.
+
+---
+
+### BUG-7 — `.gitattributes` doesn't actually protect line-ending-sensitive test fixtures
+**Severity:** Medium (breaks local `dotnet test` on a very common Windows Git configuration;
+CI works around it but doesn't fix it)
+**Location:** [`.gitattributes`](../.gitattributes), [`Test/Files/AngioNeuro4.mzML`](../Test/Files/AngioNeuro4.mzML), [`Test/Files/AngioNeuro4.mzXML`](../Test/Files/AngioNeuro4.mzXML)
+
+Discovered while verifying ARCH-1 (see below): `dotnet test` failed with
+`System.Xml.XmlException: Data at the root level is invalid` reading the mzML/mzXML fixtures
+— unrelated to the netstandard2.0 retarget itself. Root cause: `MzMLReader`/`MzXMLReader` do
+byte-offset random-access seeking into these files based on an embedded `<indexListOffset>`
+(see `MzMLReader.Open`). If Git converts line endings on checkout, every byte offset past the
+first converted line ending is wrong, and the reader lands mid-document.
+
+The current `.gitattributes`:
+```
+*.mzML	text eof=lf
+*.mzXML	text eof=lf
+```
+`eof=lf` only pins the final end-of-file character — it does **not** disable normal
+line-ending conversion for the rest of the file. On any machine with `core.autocrlf=true`
+(a common, often-default, Windows Git setting — including this machine), Git still converts
+internal `LF` → `CRLF` on checkout, corrupting the index offsets. Confirmed directly: the
+checked-out file has CRLF line terminators, and running `dos2unix` on both files locally
+(working-copy only, not committed) took the test suite from `Failed: 3` to `Passed: 3` with
+no other change.
+
+CI works around this exact problem with an explicit `dos2unix` step in `dotnet.yml`
+immediately before running tests (see CI-1) — which papers over the root cause rather than
+fixing it, and doesn't help anyone running tests locally on Windows with default settings.
+
+**Suggested fix:** mark these fixtures so Git never touches their line endings at all, e.g.
+```
+*.mzML	-text
+*.mzXML	-text
+```
+(or `binary`, equivalent). A fresh checkout would need existing clones to re-normalize once,
+but new clones wouldn't need CI's `dos2unix` workaround at all, and local `dotnet test` would
+work out of the box on any machine regardless of `core.autocrlf`. Directly related to CI-1 —
+worth fixing together, since CI-1's investigation will already have eyes on `dotnet.yml`.
 
 ---
 
