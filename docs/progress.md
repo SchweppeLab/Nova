@@ -15,7 +15,7 @@ relevant). Don't rewrite history here; append.
 | Bugs | 8 | 8 | 0 | 0 |
 | Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
-| Hygiene / Maintainability | 5 | 3 | 0 | 2 |
+| Hygiene / Maintainability | 5 | 5 | 0 | 0 |
 | Test Coverage | 3 | 3 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
@@ -63,8 +63,8 @@ generated.)_
 | [HYG-1](known-issues.md#hyg-1--stray-unused-usings-for-unrelated-packages) | Unused `using`s for ASP.NET Core / Newtonsoft.Json / VisualBasic / Tar across 5 files | Low | **Done** | 2026-08-19. Became load-bearing (not just hygiene) when the Thermo pin bumped to 8.0.37 — see CI-1 addendum. All 6 stray usings removed; verified against the failure it would've caused, then against the fix. |
 | [HYG-2](known-issues.md#hyg-2--testnovas-test-data-path-resolution-is-fragile) | `TestNova` locates test files via fragile parent-directory walking | Low | **Done** | 2026-08-19. Extracted to shared `Test/TestFilePaths.cs`, anchored to `AppContext.BaseDirectory` instead of `Environment.CurrentDirectory`. |
 | [HYG-3](known-issues.md#hyg-3--inconsistent-visibility-internal-interfaces-public-implementations) | `IChromatogram`/`IChromatDataPoint` are `internal` while their implementations are `public` | Low | **Done** | 2026-08-19. Both made `public`, matching `ISpectrum<T>`/`ISpecDataPoint`. |
-| [HYG-4](known-issues.md#hyg-4--scattered-todos-marking-acknowledged-incomplete-features) | Collected pre-existing TODOs (asymmetric isolation windows, `GetHeader()`, trailer mapping, MGF viability) | Low | Not Started | Informational; MGF sub-item resolved 2026-08-19 (see BUG-2), rest still open |
-| [HYG-5](known-issues.md#hyg-5--several-files-use-thermofishercommoncoredatas-isnullorempty-extension-as-if-it-were-project-local) | `FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` use `ThermoFisher.CommonCore.Data`'s `IsNullOrEmpty` extension as if it were project-local | Low | Not Started | Found 2026-08-19 while writing `MGFReader.cs`; not fixed, out of scope for BUG-1/BUG-2 |
+| [HYG-4](known-issues.md#hyg-4--scattered-todos-marking-acknowledged-incomplete-features) | Collected pre-existing TODOs (asymmetric isolation windows, `GetHeader()`, trailer mapping, MGF viability) | Low | **Done** | 2026-08-19. Closed as a tracking item — its own definition is "no code change needed" (visibility only), which was already satisfied. The 3 non-MGF TODOs remain unimplemented in code by design; promote any one to its own item if it's ever picked up. |
+| [HYG-5](known-issues.md#hyg-5--several-files-use-thermofishercommoncoredatas-isnullorempty-extension-as-if-it-were-project-local) | `FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` use `ThermoFisher.CommonCore.Data`'s `IsNullOrEmpty` extension as if it were project-local | Low | **Done** | 2026-08-19. Added `NovaIO/StringExtensions.cs`; repointed all three files. Also removed 3 more now-genuinely-unused Thermo `using`s (verified empirically, not assumed). |
 
 ## Test Coverage
 
@@ -87,8 +87,8 @@ generated.)_
    schedule — forced by the Thermo package bump to 8.0.37, see CI-1.)
 5. ~~**BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3**~~ **Done 2026-08-19.**
 6. ~~**TEST-3**~~ **Done 2026-08-19.**
-7. ~~**BUG-1 / BUG-2**~~ **Done 2026-08-19.** Surfaced a new low-priority finding, HYG-5
-   (not fixed) — see below.
+7. ~~**BUG-1 / BUG-2**~~ **Done 2026-08-19.** Surfaced a new low-priority finding, HYG-5.
+8. ~~**HYG-4, HYG-5**~~ **Done 2026-08-19.** Everything on the list is now closed.
 
 Everything from step 2 on is a suggestion, not a mandate — reorder freely based on what
 you're actually working on next.
@@ -291,3 +291,17 @@ it's the changelog for this document.
   *removed* 3 of the 4 previously-baseline warnings, all from the old stub's dead code),
   `dotnet test` 37/37 passing (28 pre-existing + 9 new). Updated `CLAUDE.md`'s "Known
   Gotchas" section to drop the now-fixed MGF/BUG-4 bullets and add HYG-5.
+- 2026-08-19 — **HYG-4 and HYG-5 done**, finishing out step 8 and closing the whole list.
+  HYG-4: closed as a tracking item rather than "fixed" in code — its own definition was
+  always "no code change needed" (gather TODOs for visibility), which was already satisfied.
+  The three non-MGF TODOs it lists (asymmetric isolation windows, `GetHeader()`, multi-
+  precursor trailer mapping) are deliberately still unimplemented; each is separate,
+  unscoped feature/design work that was never what HYG-4 itself asked for. HYG-5: added
+  `NovaIO/StringExtensions.cs` (`internal static class StringExtensions`, one real
+  `IsNullOrEmpty(this string? value)`) and repointed `FileReader.cs`/`MzXMLReader.cs`/
+  `MzMLWriter.cs` at it. Also removed the `ThermoFisher.CommonCore.Data`/`.RawFileReader`/
+  `.Data.Business` `using`s from all three files — verified empirically (deleted, rebuilt,
+  confirmed nothing else broke) that none of them needed anything else from those
+  namespaces, so leaving the usings in place after fixing the extension-method dependency
+  would have just been a fresh copy of HYG-1's exact pattern. Verified: full solution build
+  clean (same 1 pre-existing warning, 0 new), `dotnet test` 37/37 passing.

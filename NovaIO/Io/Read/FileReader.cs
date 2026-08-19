@@ -21,8 +21,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Nova.Data;
 using Nova.Io;
-using ThermoFisher.CommonCore.Data;
-using ThermoFisher.CommonCore.RawFileReader;
 
 namespace Nova.Io.Read
 {

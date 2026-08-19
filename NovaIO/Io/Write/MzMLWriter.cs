@@ -20,13 +20,12 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Nova.Data;
-using ThermoFisher.CommonCore.Data.Business;
+using Nova.Io;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Xml.Schema;
 using System.Collections.Specialized;
 using System.Xml.Xsl;
 using System.Reflection;
-using ThermoFisher.CommonCore.Data;
 
 namespace Nova.Io.Write
 {

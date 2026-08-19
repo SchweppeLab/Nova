@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 using System.Buffers.Binary;
 using System.Xml;
 using Nova.Data;
-using ThermoFisher.CommonCore.Data;
+using Nova.Io;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Collections;
 using System.Collections.Specialized;

@@ -163,11 +163,15 @@ already been fixed vs. still open. When you fix something from that list, update
   `using`s for packages not referenced in the csproj; this exact pattern is what broke CI for
   ~2 months (see CI-1/HYG-1 in `docs/known-issues.md`) and it's a landmine specifically
   because it compiles fine right up until the transitive dependency tree changes.
-- Relatedly: `ThermoFisher.CommonCore.Data` provides its own `string.IsNullOrEmpty()`-style
-  extension method, and several files (`FileReader.cs`, `MzXMLReader.cs`, `MzMLWriter.cs`) use
-  it as if it were a project-local helper. It isn't unused (so HYG-1's fix doesn't touch it),
-  but it's an implicit dependency on a third-party package's incidental surface for something
-  that should probably be a small local extension — see HYG-5 in `docs/known-issues.md`
-  (found 2026-08-19 while writing `MGFReader.cs`, which doesn't otherwise need a Thermo
-  reference and had to add `string.IsNullOrEmpty(...)` calls instead to avoid pulling one in
-  just for this).
+- HYG-5 (`FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` unknowingly depending on
+  `ThermoFisher.CommonCore.Data`'s own `IsNullOrEmpty` extension instead of a project-local
+  one) is **fixed** (2026-08-19) — use `"...".IsNullOrEmpty()` via
+  [`NovaIO/StringExtensions.cs`](NovaIO/StringExtensions.cs) (`namespace Nova.Io`) going
+  forward, not a bare `using ThermoFisher.CommonCore.Data;` for this. Fixing it also removed
+  three more stray Thermo `using`s (verified empirically) that had no other purpose in those
+  files — same landmine shape as HYG-1, just live rather than dead.
+- HYG-4 (scattered TODOs collected for visibility) is **closed** (2026-08-19) — its own
+  definition never required code changes. The three TODOs it lists (asymmetric isolation
+  windows in `Precursor.cs`, `GetHeader()` in `ISpectrumFileReader.cs`, multi-precursor
+  trailer mapping in `ThermoRawReader.cs`) are still real and still unimplemented; picking
+  one up should be its own deliberate item, not something "closing HYG-4" implies happened.

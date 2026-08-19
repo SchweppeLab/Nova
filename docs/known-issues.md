@@ -725,6 +725,15 @@ Existing `//TODO` comments that mark known-incomplete areas, gathered here for v
 **Suggested fix:** no code change needed; these are here so they're visible in one place
 instead of only surfacing when someone happens to open the specific file.
 
+**Closed 2026-08-19.** This item's own definition is "no code change needed" — its only job
+was to gather these TODOs into one visible place, which it's done since it was written. That
+job is complete, so it's closed as a tracking item. The three remaining TODOs above are
+**not** implemented and were deliberately left alone here: each is a real, separate piece of
+design/feature work (asymmetric isolation windows, a new `GetHeader()` interface method,
+reassessing multi-precursor trailer mapping) that wasn't part of what HYG-4 itself ever asked
+for, and picking one up should be its own deliberate decision — promote it to its own BUG/
+FEATURE item at that point, the same way the MGF TODO was promoted to BUG-1/BUG-2.
+
 ---
 
 ### HYG-5 — Several files use `ThermoFisher.CommonCore.Data`'s `IsNullOrEmpty` extension as if it were project-local
@@ -754,6 +763,21 @@ Not fixed here — out of scope for BUG-1/BUG-2, and touching three existing fil
 isn't warranted just to land MGF support. `MGFReader.cs` itself was written using the real
 `string.IsNullOrEmpty(...)` directly rather than adding another call site depending on the
 Thermo extension.
+
+**Fixed 2026-08-19.** Added [`NovaIO/StringExtensions.cs`](../NovaIO/StringExtensions.cs)
+(`internal static class StringExtensions`, `namespace Nova.Io`, one real
+`IsNullOrEmpty(this string? value)` forwarding to `string.IsNullOrEmpty`) and repointed
+`FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` at it (`using Nova.Io;` where not already
+present). This also fully removed the underlying dependency, not just papered over it: once
+the extension calls no longer needed `ThermoFisher.CommonCore.Data`/`.RawFileReader`/`.Data.Business`,
+those `using`s turned out to be unused for anything *else* in all three files either — removing
+them was verified empirically (delete, rebuild, see what breaks) rather than assumed, and
+nothing broke. That's three more stray Thermo-namespace `using`s gone, on top of HYG-1's
+original six; same underlying pattern HYG-1 already flagged as a landmine (compiles fine
+until the transitive dependency tree changes), just discovered later because these ones were
+being actively (if unknowingly) relied upon rather than sitting dead. Verified: full solution
+build clean (same 1 pre-existing `MzXMLReader.cs` warning, 0 new), `dotnet test` 37/37
+passing.
 
 ---
 
