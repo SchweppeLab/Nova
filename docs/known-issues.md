@@ -207,6 +207,14 @@ locally (as `ff`) and just not storing it anywhere.
 **Suggested fix:** make it a regular settable property (or backing field + read-only
 property) and assign `Format = ff;` in `OpenSpectrumFile`.
 
+**Fixed 2026-08-19.** `Format` is now `{ get; private set; }`, and `OpenSpectrumFile` assigns
+`Format = ff;` right after the format switch resolves `ff`, before attempting to open the
+file (so `Format` reflects the detected type even if the subsequent `Open()` call fails —
+matching how `FileName` already behaves on a failed open per BUG-8). No test added
+specifically for this (trivial property assignment); covered incidentally by every existing
+`OpenSpectrumFile` test continuing to pass. Verified: full solution build clean, `dotnet test`
+28/28 passing.
+
 ---
 
 ### BUG-6 — `PipeIO.Read` doesn't handle short/partial stream reads
@@ -371,6 +379,17 @@ characterization test rather than asserting the (arguably more correct) `false`.
 `return true;`, and decide what should happen to `FileName`/`ScanCount`/etc. on a failed
 open (currently `FileName` is set even on failure, which also affects `CheckFile`'s
 same-file-already-open shortcut on a later retry with the same path).
+
+**Fixed 2026-08-19.** `OpenSpectrumFile` now captures `Open()`'s return value and returns it
+instead of an unconditional `true`. Deliberately left `FileName`/`ScanCount`/etc. assignment
+behavior unchanged (still set even on a failed open) — that's the pre-existing `CheckFile`
+same-file-shortcut behavior called out in the suggested fix as a separate decision, not part
+of this bug's scope. The two characterization tests TEST-2 had added
+(`MzML_MalformedFile_OpenDoesNotThrow` / `MzXML_MalformedFile_OpenDoesNotThrow`) were flipped
+from asserting the old buggy `true` to asserting the correct `false`, same pattern as BUG-3.
+Verified: `FileReader`'s own constructor overload (`OpenSpectrumFile` → `throw new
+FileNotFoundException` if it returns `false`) now actually fires on a failed open instead of
+being permanently dead code. Full solution build clean, `dotnet test` 28/28 passing.
 
 ---
 
@@ -628,6 +647,25 @@ themselves are the durable artifact) that computes exact byte offsets for the
 `MzXMLReader.Open` random-access-seek into the file (see BUG-7 for why byte-exactness here
 matters, including line-ending corruption risk — these new fixtures are pure ASCII, LF only,
 and covered by the existing `*.mzML -text` / `*.mzXML -text` `.gitattributes` rules).
+
+---
+
+### TEST-3 — Test output doesn't say what each test actually verified
+**Severity:** Low (developer-experience / diagnosability, not a correctness gap)
+**Location:** [`Test/TestSpectrum.cs`](../Test/TestSpectrum.cs), [`Test/TestPipes.cs`](../Test/TestPipes.cs), [`Test/TestNovaIOFixtures.cs`](../Test/TestNovaIOFixtures.cs), [`Test/TestNova.cs`](../Test/TestNova.cs)
+
+`dotnet test`'s default output only reports pass/fail counts and method names — there's no
+per-test indication of *what* was being checked (e.g. "GetMz at the lower ppm-tolerance
+boundary" vs. just `GetMz_BelowFirstPoint_WithinTolerance_ReturnsFirstIndex`). Method names
+are already fairly descriptive, but a failure in CI output or a quick local run still
+requires opening the source to know what broke and why it matters.
+
+**Suggested fix:** add a short `TestContext.WriteLine(...)` (one or two lines, not a
+paragraph) at the start of each test stating what it's verifying, so `dotnet test -v normal`
+(or the `.trx` log) shows a human-readable line per test alongside pass/fail — e.g.
+`TestContext.WriteLine("Verifies GetMz returns the nearest index when the target m/z is just
+inside the ppm tolerance below the first data point.");`. Keep it terse; this is meant to aid
+scanning output, not duplicate the method name or replace comments in the test body.
 
 ---
 

@@ -54,7 +54,7 @@ namespace Nova.Io.Read
     /// <summary>
     /// Identifies the format of the most recently opened file.
     /// </summary>
-    public FileFormat Format { get; } = FileFormat.Unknown;
+    public FileFormat Format { get; private set; } = FileFormat.Unknown;
     private ISpectrumFileReader? fileReader { get; set; }
 
     /// <summary>
@@ -180,13 +180,14 @@ namespace Nova.Io.Read
         case FileFormat.Unknown:
           return false;
       }
+      Format = ff;
       FileName = fileName;
-      fileReader.Open(fileName);
+      bool opened = fileReader.Open(fileName);
       ScanCount = fileReader.ScanCount;
       FirstScan = fileReader.FirstScan;
       LastScan = fileReader.LastScan;
       MaxRetentionTime = fileReader.MaxRetentionTime;
-      return true;
+      return opened;
     }
 
     public Chromatogram ReadChromatogram(string fileName = "", int chromatIndex = -1)

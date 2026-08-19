@@ -138,14 +138,14 @@ namespace TestNova
     [TestMethod]
     public void MzML_MalformedFile_OpenDoesNotThrow()
     {
-      // The underlying MzMLReader.Open() catches the missing-index exception and returns false,
-      // but FileReader.OpenSpectrumFile discards that return value (see the ~newly discovered~
-      // gap noted in docs/known-issues.md) and unconditionally returns true. This test pins that
-      // actual current behavior: no exception escapes, but the caller can't tell from the return
-      // value alone that the open failed - ScanCount/ReadSpectrum are what reveal it.
+      // Regression test for BUG-8 (docs/known-issues.md, fixed 2026-08-19):
+      // MzMLReader.Open() catches the missing-index exception and returns false;
+      // FileReader.OpenSpectrumFile now propagates that instead of discarding it, so no
+      // exception escapes and the caller can tell from the return value alone that the open
+      // failed.
       FileReader reader = new FileReader();
       bool opened = reader.OpenSpectrumFile(dataFilePathMzMLMalformed);
-      Assert.IsTrue(opened);
+      Assert.IsFalse(opened);
       Assert.AreEqual(0, reader.ScanCount);
 
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzMLMalformed);
@@ -219,9 +219,11 @@ namespace TestNova
     [TestMethod]
     public void MzXML_MalformedFile_OpenDoesNotThrow()
     {
+      // Regression test for BUG-8 (docs/known-issues.md, fixed 2026-08-19): see the mzML
+      // counterpart above for the full explanation.
       FileReader reader = new FileReader();
       bool opened = reader.OpenSpectrumFile(dataFilePathMzXMLMalformed);
-      Assert.IsTrue(opened);
+      Assert.IsFalse(opened);
       Assert.AreEqual(0, reader.ScanCount);
 
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzXMLMalformed);
