@@ -48,5 +48,8 @@ jobs:
       - name: Build
         run: dotnet build Nova\Nova.sln --no-restore --configuration Release -p:Platform=x64
 
+      # --logger "console;verbosity=detailed" surfaces each test's TestContext.WriteLine
+      # message (see TEST-3, docs/known-issues.md) in this log, for passing tests too --
+      # --verbosity alone only does that for failures.
       - name: Test
-        run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal
+        run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=detailed"

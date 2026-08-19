@@ -347,7 +347,17 @@ namespace Nova.Io.Write
       return scanList;
     }
 
-    public bool Write(string filename)
+    /// <summary>
+    /// Writes the accumulated mzML content to <paramref name="filename"/>.
+    /// </summary>
+    /// <param name="filename">Output file path.</param>
+    /// <param name="validateSchema">If true, re-opens the written file and validates it against
+    /// the mzML XSD at <paramref name="schemaPath"/>. Off by default, since it requires a local
+    /// copy of the schema file (see BUG-4 in docs/known-issues.md) and validation is not needed
+    /// to produce a usable file.</param>
+    /// <param name="schemaPath">Path to a local copy of the mzML 1.1.0 XSD. Required if
+    /// <paramref name="validateSchema"/> is true.</param>
+    public bool Write(string filename, bool validateSchema = false, string? schemaPath = null)
     {
       XmlWriterSettings settings = new XmlWriterSettings();
       settings.Indent = true;
@@ -405,22 +415,29 @@ namespace Nova.Io.Write
       writer.Close();
       XmlFS.Close();
 
+      if (validateSchema)
+      {
+        if (string.IsNullOrEmpty(schemaPath))
+        {
+          throw new ArgumentException("schemaPath is required when validateSchema is true.", nameof(schemaPath));
+        }
 
-      XmlReaderSettings checkSettings = new XmlReaderSettings();
-      checkSettings.Schemas.Add("http://psi.hupo.org/ms/mzml", "D:\\Data\\mzML\\mzML1.1.0.utf8.xsd");
-      checkSettings.ValidationType = ValidationType.Schema;
-      //checkSettings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
-      checkSettings.ValidationEventHandler += MzMLValidationEventHandler;
+        XmlReaderSettings checkSettings = new XmlReaderSettings();
+        checkSettings.Schemas.Add("http://psi.hupo.org/ms/mzml", schemaPath);
+        checkSettings.ValidationType = ValidationType.Schema;
+        //checkSettings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
+        checkSettings.ValidationEventHandler += MzMLValidationEventHandler;
 
-      Console.WriteLine("Reading: " + filename);
+        Console.WriteLine("Reading: " + filename);
 
-      FileStream reader = new FileStream(filename, FileMode.Open, FileAccess.Read);
-      XmlReader mzml = XmlReader.Create(reader, checkSettings);
-      while (mzml.Read()) { }
+        FileStream reader = new FileStream(filename, FileMode.Open, FileAccess.Read);
+        XmlReader mzml = XmlReader.Create(reader, checkSettings);
+        while (mzml.Read()) { }
 
-      Console.WriteLine("Everything checks out.");
-      mzml.Close();
-      reader.Close();
+        Console.WriteLine("Everything checks out.");
+        mzml.Close();
+        reader.Close();
+      }
 
       return true;
     }

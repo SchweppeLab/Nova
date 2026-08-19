@@ -202,6 +202,15 @@ suite.
 (constructor param / property with a sensible default), or make schema validation optional
 and off by default.
 
+**Fixed 2026-08-19.** Took the "optional, off by default" route: `Write` now takes
+`bool validateSchema = false` and `string? schemaPath = null`. With the default, `Write`
+never touches an XSD at all — the old code's entire raison d'être for hardcoding a path
+(`D:\Data\mzML\...xsd`) was validating output that's already known-correct from the writer's
+own logic, and that validation now only runs when a caller opts in and supplies their own
+schema path. `NovaApp.cs`'s existing `mzMLWriter.Write(outFile+".mzML")` call site needed no
+change (relies on the new default) and now actually succeeds on any machine, instead of
+throwing before this fix. Verified: full solution build clean, `dotnet test` 28/28 passing.
+
 ---
 
 ### BUG-5 — `FileReader.Format` is dead: initialized once, never updated
@@ -249,6 +258,15 @@ truncated data instead of throwing or retrying.
 `stream.ReadExactly(pm.MsgData, 0, len)`, available in modern .NET) instead of a single
 `Read` call. Note this file lives in the net48 `Nova` project, so confirm `ReadExactly`
 availability or provide a manual loop compatible with net48.
+
+**Fixed 2026-08-19.** Added a manual read loop (`Stream.ReadExactly` isn't available —
+`Nova` now targets `netstandard2.0` per ARCH-1, which doesn't have it either) that keeps
+calling `stream.Read` until all `len` bytes are collected, throwing `EndOfStreamException`
+if the pipe closes early (`bytesRead == 0`) instead of silently returning a truncated
+`PipeMessage`. No test added specifically for a forced short read (would need a way to make
+`PipeStream.Read` return partial data on demand, not straightforward to simulate) — covered
+incidentally by TEST-1's existing `TestPipes.ConnectSendReceiveDisconnect`, which continues
+to pass. Verified: full solution build clean, `dotnet test` 28/28 passing.
 
 ---
 
@@ -327,6 +345,21 @@ remember to update both places, and they can silently drift (as they already hav
 **Suggested fix:** have `FileReader.OpenSpectrumFile` delegate to
 `SpectrumFileReaderFactory.GetReader` (or vice versa) so there's one source of truth for
 extension-to-reader mapping.
+
+**Fixed 2026-08-19.** Extracted the shared logic into two `FileReader` members:
+`CheckFileFormat` (made `static`, was already extension-parsing-only with no instance state)
+and a new `internal static CreateReader(FileFormat, MSFilter)` that maps a format to a freshly
+constructed, unopened reader (`null` for formats with no reader, e.g. `MGF`/`Unknown`).
+`OpenSpectrumFile` and `SpectrumFileReaderFactory.GetReader` both call these now instead of
+each running its own extension switch. Preserved each call site's own error-handling contract
+on top of the shared mapping: `OpenSpectrumFile` still returns `false` for `Unknown` and still
+reproduces BUG-1's NRE-on-`MGF` behavior unchanged (deliberately not fixed here — that's
+BUG-1/BUG-2, last on the priority list); `SpectrumFileReaderFactory.GetReader` still throws
+`ArgumentException` for unrecognized/unsupported extensions, just derived from
+`CheckFileFormat`'s `FormatException`/`CreateReader`'s `null` instead of its own re-parsed
+extension checks. Verified: full solution build clean, `dotnet test` 28/28 passing, including
+`NovaApp.cs`'s existing `SpectrumFileReaderFactory.GetReader` call site (unchanged, still
+compiles and behaves the same).
 
 ---
 
@@ -566,6 +599,22 @@ somewhat unclear file-not-found errors) if the output path structure ever change
 the path from `typeof(TestNova).Assembly.Location` instead of `CurrentDirectory` and a
 fixed number of `Parent` hops.
 
+**Fixed 2026-08-19.** Extracted the duplicated walk (this file and `TestNovaIOFixtures.cs`
+both had their own copy) into one shared helper,
+[`Test/TestFilePaths.cs`](../Test/TestFilePaths.cs)'s `GetFilesDirectory()`, anchored to
+`AppContext.BaseDirectory` instead of `Environment.CurrentDirectory` — the working directory
+a test runner is invoked from isn't guaranteed to match the assembly's own output directory,
+while `BaseDirectory` always does. Kept the same three-level walk (still assumes the current
+`bin/<config>/net8.0/` output depth, now in exactly one place instead of two) rather than
+switching to `[DeploymentItem]`, since these tests read fixtures directly from the source
+tree, not a copied build output — `[DeploymentItem]` wouldn't have removed the depth
+assumption, just moved it. Caught a real bug while doing this: `AppContext.BaseDirectory`
+carries a trailing path separator, which makes the first `Directory.GetParent` call a no-op
+(returns the same directory instead of walking up one level) — cost one level of the walk and
+broke 13 of 28 tests with `FileNotFoundException` on the first attempt; fixed by trimming the
+trailing separator before starting the walk. Verified: full solution build clean, `dotnet test`
+28/28 passing.
+
 ---
 
 ### HYG-3 — Inconsistent visibility: `internal` interfaces, `public` implementations
@@ -582,6 +631,10 @@ originally written.
 **Suggested fix:** make `IChromatogram`/`IChromatDataPoint` `public` for consistency, unless
 there's a deliberate reason to keep chromatogram abstraction internal-only — in which case
 a short comment saying so would help.
+
+**Fixed 2026-08-19.** Both interfaces changed from `internal` to `public`, matching
+`ISpectrum<T>`/`ISpecDataPoint`. No other change needed — nothing was relying on the
+`internal` visibility. Verified: full solution build clean, `dotnet test` 28/28 passing.
 
 ---
 
@@ -706,6 +759,17 @@ VSTest's console logger doesn't print `TestContext.WriteLine` output for passing
 the `.trx` logger does, under a `TestContext Messages:` block per test — verified directly
 against a real trx run before considering this done. Verified: full solution build clean
 (same 4 pre-existing warnings, 0 new), `dotnet test` 28/28 passing.
+
+**Addendum 2026-08-19 — surfaced these messages in CI, not just `.trx`.** The repo owner
+wanted the per-test messages visible directly in the GitHub Actions log, not just in a
+downloadable `.trx` artifact. Correction to the note above: the messages *can* reach the
+console — the plain default logger (or a bare `--verbosity` flag) doesn't show them for
+passing tests, but the console logger with explicit verbosity does:
+`--logger "console;verbosity=detailed"`. Added that flag to the `Test` step in all three
+workflows (`ci.yml`, `dev-nuget.yml`, `release.yml`), alongside the existing
+`--verbosity minimal` (which still controls the overall MSBuild-style summary noise) —
+confirmed locally that combining both flags produces the same per-test
+`TestContext Messages:` block seen in the `.trx` file, now in plain console output too.
 
 ---
 

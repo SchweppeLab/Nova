@@ -34,24 +34,10 @@ namespace TestNova
     {
       Reader = new FileReader();
       testContext = context;
-      string dir = string.Empty;
-      string curDir = Environment.CurrentDirectory;
-      //A lot of ridiculousness to avoid CS8602...
-      if (!curDir.IsNullOrEmpty())
-      {
-        DirectoryInfo? dirInfo = Directory.GetParent(curDir);
-        if(dirInfo != null)
-        {
-          if(dirInfo.Parent != null && dirInfo.Parent.Parent != null)
-          {
-            dir = dirInfo.Parent.Parent.FullName;
-          }
-        }
-        
-      }
-      dataFilePathMzML = Path.Combine(dir, "Files", @"AngioNeuro4.mzML");
-      dataFilePathMzXML = Path.Combine(dir, "Files", @"AngioNeuro4.mzXML");
-      dataFilePathRaw = Path.Combine(dir, "Files", @"AngioNeuro4.raw");
+      string filesDir = TestFilePaths.GetFilesDirectory();
+      dataFilePathMzML = Path.Combine(filesDir, "AngioNeuro4.mzML");
+      dataFilePathMzXML = Path.Combine(filesDir, "AngioNeuro4.mzXML");
+      dataFilePathRaw = Path.Combine(filesDir, "AngioNeuro4.raw");
     }
 
     [TestMethod]

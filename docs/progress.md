@@ -12,10 +12,10 @@ relevant). Don't rewrite history here; append.
 | Category | Total | Done | In Progress | Not Started |
 |---|---|---|---|---|
 | Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
-| Bugs | 8 | 4 | 0 | 4 |
-| Dead / Redundant Code | 3 | 2 | 0 | 1 |
+| Bugs | 8 | 6 | 0 | 2 |
+| Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
-| Hygiene / Maintainability | 4 | 1 | 0 | 3 |
+| Hygiene / Maintainability | 4 | 3 | 0 | 1 |
 | Test Coverage | 3 | 3 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
@@ -36,9 +36,9 @@ generated.)_
 | [BUG-1](known-issues.md#bug-1--mgf-format-not-handled-in-filereaderopenspectrumfiles-switch) | `FileReader.OpenSpectrumFile` switch has no `MGF` case; can null-ref | High | Not Started | Depends on the BUG-2 decision (finish MGF or drop it) |
 | [BUG-2](known-issues.md#bug-2--mgfreader-is-a-non-functional-stub) | `MGFReader` always returns empty spectra | High | Not Started | Needs a decision: finish it or remove `FileFormat.MGF` |
 | [BUG-3](known-issues.md#bug-3--mzmlreader-sets-analyzer--otms-instead-of-itms) | `MzMLReader` typo sets `Analyzer = "OTMS"` instead of `"ITMS"` | Medium | **Done** | 2026-08-19. One-character fix; TEST-2's characterization test flipped to assert the correct `"ITMS"` value in the same change. |
-| [BUG-4](known-issues.md#bug-4--mzmlwriterwrite-hardcodes-an-absolute-schema-path) | `MzMLWriter.Write` hardcodes `D:\Data\mzML\...xsd` | Medium | Not Started | Blocks `MzMLWriter` from working on any machine but the author's |
+| [BUG-4](known-issues.md#bug-4--mzmlwriterwrite-hardcodes-an-absolute-schema-path) | `MzMLWriter.Write` hardcodes `D:\Data\mzML\...xsd` | Medium | **Done** | 2026-08-19. Schema validation now opt-in (`validateSchema`/`schemaPath` params, both off/null by default); `NovaApp.cs`'s call site now actually succeeds instead of throwing. |
 | [BUG-5](known-issues.md#bug-5--filereaderformat-is-dead-initialized-once-never-updated) | `FileReader.Format` never assigned, permanently `Unknown` | Low | **Done** | 2026-08-19. `Format` made settable, assigned `Format = ff;` in `OpenSpectrumFile`. |
-| [BUG-6](known-issues.md#bug-6--pipeioread-doesnt-handle-shortpartial-stream-reads) | `PipeIO.Read` assumes `Stream.Read` fills the buffer in one call | Medium | Not Started | Latent risk; not observed failing yet |
+| [BUG-6](known-issues.md#bug-6--pipeioread-doesnt-handle-shortpartial-stream-reads) | `PipeIO.Read` assumes `Stream.Read` fills the buffer in one call | Medium | **Done** | 2026-08-19. Manual read loop (netstandard2.0 has no `Stream.ReadExactly`); throws `EndOfStreamException` on an early-closed pipe instead of returning truncated data. |
 | [BUG-7](known-issues.md#bug-7--gitattributes-doesnt-actually-protect-line-ending-sensitive-test-fixtures) | `.gitattributes` doesn't actually stop Git from corrupting mzML/mzXML fixture byte offsets on Windows checkout | Medium | **Done** | 2026-08-19. `-text` set for both extensions; working copy renormalized; confirmed stored blobs were already correct (checkout was the only corruption point). No more `dos2unix` needed anywhere. |
 | [BUG-8](known-issues.md#bug-8--filereaderopenspectrumfile-discards-the-underlying-readers-open-result) | `FileReader.OpenSpectrumFile` always returns `true`, ignoring whether the underlying reader's `Open()` actually succeeded | Medium | **Done** | 2026-08-19. `OpenSpectrumFile` now returns `Open()`'s actual result. TEST-2's two characterization tests flipped to assert `false` on a malformed/index-less file. |
 
@@ -48,7 +48,7 @@ generated.)_
 |---|---|---|---|---|
 | [CLEAN-1](known-issues.md#clean-1--tspectrumgetmz-duplicates-its-own-boundary-check-logic) | `TSpectrum.GetMz` has an unreachable duplicated boundary-check block | Low | **Done** | 2026-08-19. Deleted the dead `if (index == 0) {...} else {...}` duplicate; behavior unchanged. |
 | [CLEAN-2](known-issues.md#clean-2--thermorawreaderprocessspectruminformation-sets-fields-redundantly) | `ProcessSpectrumInformation` re-sets `spectrum` fields unconditionally after the `if/else` already did | Low | **Done** | 2026-08-19. Deleted the two redundant trailing lines. |
-| [CLEAN-3](known-issues.md#clean-3--spectrumfilereaderfactory-duplicates-filereaderopenspectrumfiles-dispatch-logic) | Two independent format-dispatch implementations (`FileReader` vs `SpectrumFileReaderFactory`) that can drift | Low | Not Started | |
+| [CLEAN-3](known-issues.md#clean-3--spectrumfilereaderfactory-duplicates-filereaderopenspectrumfiles-dispatch-logic) | Two independent format-dispatch implementations (`FileReader` vs `SpectrumFileReaderFactory`) that can drift | Low | **Done** | 2026-08-19. Unified into `FileReader.CheckFileFormat`/`CreateReader`; both call sites keep their own error-handling contract on top. |
 
 ## CI / Build Infrastructure
 
@@ -61,8 +61,8 @@ generated.)_
 | ID | Summary | Severity | Status | Notes |
 |---|---|---|---|---|
 | [HYG-1](known-issues.md#hyg-1--stray-unused-usings-for-unrelated-packages) | Unused `using`s for ASP.NET Core / Newtonsoft.Json / VisualBasic / Tar across 5 files | Low | **Done** | 2026-08-19. Became load-bearing (not just hygiene) when the Thermo pin bumped to 8.0.37 — see CI-1 addendum. All 6 stray usings removed; verified against the failure it would've caused, then against the fix. |
-| [HYG-2](known-issues.md#hyg-2--testnovas-test-data-path-resolution-is-fragile) | `TestNova` locates test files via fragile parent-directory walking | Low | Not Started | |
-| [HYG-3](known-issues.md#hyg-3--inconsistent-visibility-internal-interfaces-public-implementations) | `IChromatogram`/`IChromatDataPoint` are `internal` while their implementations are `public` | Low | Not Started | |
+| [HYG-2](known-issues.md#hyg-2--testnovas-test-data-path-resolution-is-fragile) | `TestNova` locates test files via fragile parent-directory walking | Low | **Done** | 2026-08-19. Extracted to shared `Test/TestFilePaths.cs`, anchored to `AppContext.BaseDirectory` instead of `Environment.CurrentDirectory`. |
+| [HYG-3](known-issues.md#hyg-3--inconsistent-visibility-internal-interfaces-public-implementations) | `IChromatogram`/`IChromatDataPoint` are `internal` while their implementations are `public` | Low | **Done** | 2026-08-19. Both made `public`, matching `ISpectrum<T>`/`ISpecDataPoint`. |
 | [HYG-4](known-issues.md#hyg-4--scattered-todos-marking-acknowledged-incomplete-features) | Collected pre-existing TODOs (asymmetric isolation windows, `GetHeader()`, trailer mapping, MGF viability) | Low | Not Started | Informational; no single fix — track sub-items as they're addressed |
 
 ## Test Coverage
@@ -84,9 +84,7 @@ generated.)_
 3. ~~**BUG-3, BUG-5, BUG-8**~~ **Done 2026-08-19.**
 4. ~~**CLEAN-1, CLEAN-2**~~ **Done 2026-08-19.** (~~HYG-1~~ also done 2026-08-19, ahead of
    schedule — forced by the Thermo package bump to 8.0.37, see CI-1.)
-5. **BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3** — round out once the above is settled. Note BUG-6's
-   fix approach depends on ARCH-1 having landed (already has — `netstandard2.0` doesn't have
-   `Stream.ReadExactly`, so it needs a manual read-loop instead).
+5. ~~**BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3**~~ **Done 2026-08-19.**
 6. ~~**TEST-3**~~ **Done 2026-08-19.**
 7. **BUG-1 / BUG-2** together — moved to last 2026-08-19 (repo owner's call). Decision made:
    MGF support will actually be implemented (not dropped) — `MGFReader.GetSpectrum`/
@@ -227,3 +225,28 @@ it's the changelog for this document.
   a real `.trx` run (`TestContext Messages:` block per test) before calling this done, since
   the console logger silently drops `TestContext.WriteLine` for passing tests. Verified: full
   solution build clean (same 4 pre-existing warnings, 0 new), `dotnet test` 28/28 passing.
+- 2026-08-19 — **BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3 done**, finishing out step 5. BUG-4:
+  `MzMLWriter.Write` gained `validateSchema`/`schemaPath` params (both off/null by default),
+  so it no longer touches the hardcoded `D:\Data\mzML\...xsd` path unless a caller opts in —
+  `NovaApp.cs`'s existing call site now actually succeeds instead of throwing. BUG-6: added a
+  manual read loop in `PipeIO.Read` (no `Stream.ReadExactly` on `netstandard2.0`), throwing
+  `EndOfStreamException` on an early-closed pipe instead of silently returning truncated data.
+  CLEAN-3: extracted `FileReader.CheckFileFormat` (now `static`) and a new
+  `internal static CreateReader(FileFormat, MSFilter)` as the single source of truth for
+  extension-to-reader dispatch; both `OpenSpectrumFile` and
+  `SpectrumFileReaderFactory.GetReader` now call these, each keeping its own
+  error-handling contract (BUG-1's NRE-on-MGF behavior preserved unchanged, deliberately not
+  fixed here). HYG-2: extracted the duplicated `TestNova`/`TestNovaIOFixtures`
+  path-resolution walk into shared `Test/TestFilePaths.cs`, anchored to
+  `AppContext.BaseDirectory` instead of `Environment.CurrentDirectory` — caught a real bug
+  doing this (`BaseDirectory`'s trailing separator made the first `Directory.GetParent` call
+  a no-op, breaking 13/28 tests on the first attempt; fixed by trimming it first). HYG-3:
+  `IChromatogram`/`IChromatDataPoint` changed from `internal` to `public`, matching
+  `ISpectrum<T>`/`ISpecDataPoint`. Verified: full solution build clean (same 4 pre-existing
+  warnings, 0 new), `dotnet test` 28/28 passing.
+- 2026-08-19 — Mid-session ask: surface each test's `TestContext.WriteLine` message directly
+  in the GitHub Actions log, not just in a downloadable `.trx` artifact (follow-up to TEST-3).
+  Confirmed locally that the plain/minimal console logger drops these for passing tests, but
+  `--logger "console;verbosity=detailed"` shows them under a `TestContext Messages:` block —
+  added that flag (alongside the existing `--verbosity minimal`) to the `Test` step in all
+  three workflows (`ci.yml`, `dev-nuget.yml`, `release.yml`).

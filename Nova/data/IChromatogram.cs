@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace Nova.Data
 {
-  internal interface IChromatogram : IDisposable
+  public interface IChromatogram : IDisposable
   {
     int Count { get; }
     ChromatDataPoint[] DataPoints { get; set; }

@@ -125,7 +125,7 @@ namespace Nova.Io.Read
     /// </summary>
     /// <param name="fileName"></param>
     /// <returns></returns>
-    public FileFormat CheckFileFormat(string fileName)
+    public static FileFormat CheckFileFormat(string fileName)
     {
       string ext = Path.GetExtension(fileName);
       if (ext == null) throw new FormatException("file extension required.");
@@ -138,6 +138,23 @@ namespace Nova.Io.Read
         if (ext == ".mgf") return FileFormat.MGF;
       }
       throw new FormatException(ext + " not recognized.");
+    }
+
+    /// <summary>
+    /// Constructs an unopened reader for the given format, or null if no reader is available
+    /// for it (e.g. FileFormat.MGF/Unknown). Shared by OpenSpectrumFile and
+    /// SpectrumFileReaderFactory.GetReader so extension-to-reader mapping has one source of
+    /// truth (see CLEAN-3 in docs/known-issues.md).
+    /// </summary>
+    internal static ISpectrumFileReader? CreateReader(FileFormat format, MSFilter filter)
+    {
+      switch (format)
+      {
+        case FileFormat.ThermoRaw: return new ThermoRawReader(filter);
+        case FileFormat.MzML: return new MzMLReader(filter);
+        case FileFormat.MzXML: return new MzXMLReader(filter);
+        default: return null;
+      }
     }
 
     public IEnumerator GetEnumerator()
@@ -163,23 +180,16 @@ namespace Nova.Io.Read
     {
       //Check file extension to determine file type.
       FileFormat ff = CheckFileFormat(fileName);
-      switch (ff)
-      {
-        case FileFormat.ThermoRaw:
-          fileReader = new ThermoRawReader(Filter);
-          break;
+      if (ff == FileFormat.Unknown) return false;
 
-        case FileFormat.MzML:
-          fileReader = new MzMLReader(Filter);
-          break;
+      //BUG-1 (docs/known-issues.md): CreateReader returns null for FileFormat.MGF -- there is
+      //no MGFReader wired up here yet. This preserves the pre-existing behavior of leaving
+      //fileReader at whatever it was (null on a fresh FileReader), which throws a
+      //NullReferenceException on Open() below rather than failing predictably. Left as-is; MGF
+      //support (BUG-1/BUG-2) is the last item on the priority list.
+      ISpectrumFileReader? reader = CreateReader(ff, Filter);
+      if (reader != null) fileReader = reader;
 
-        case FileFormat.MzXML:
-          fileReader = new MzXMLReader(Filter);
-          break;
-
-        case FileFormat.Unknown:
-          return false;
-      }
       Format = ff;
       FileName = fileName;
       bool opened = fileReader.Open(fileName);

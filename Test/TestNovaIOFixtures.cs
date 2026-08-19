@@ -37,17 +37,11 @@ namespace TestNova
     public TestNovaIOFixtures(TestContext context)
     {
       testContext = context;
-      string dir = string.Empty;
-      string curDir = Environment.CurrentDirectory;
-      DirectoryInfo? dirInfo = Directory.GetParent(curDir);
-      if (dirInfo?.Parent?.Parent != null)
-      {
-        dir = dirInfo.Parent.Parent.FullName;
-      }
-      dataFilePathMzML = Path.Combine(dir, "Files", "NovaTestFixture.mzML");
-      dataFilePathMzXML = Path.Combine(dir, "Files", "NovaTestFixture.mzXML");
-      dataFilePathMzMLMalformed = Path.Combine(dir, "Files", "NovaTestFixtureMalformed.mzML");
-      dataFilePathMzXMLMalformed = Path.Combine(dir, "Files", "NovaTestFixtureMalformed.mzXML");
+      string filesDir = TestFilePaths.GetFilesDirectory();
+      dataFilePathMzML = Path.Combine(filesDir, "NovaTestFixture.mzML");
+      dataFilePathMzXML = Path.Combine(filesDir, "NovaTestFixture.mzXML");
+      dataFilePathMzMLMalformed = Path.Combine(filesDir, "NovaTestFixtureMalformed.mzML");
+      dataFilePathMzXMLMalformed = Path.Combine(filesDir, "NovaTestFixtureMalformed.mzXML");
     }
 
     [TestMethod]

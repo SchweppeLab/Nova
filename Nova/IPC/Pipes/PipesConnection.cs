@@ -292,7 +292,16 @@ namespace Nova.IPC.Pipes
       len += stream.ReadByte() << 8;
       len += stream.ReadByte();
       pm.MsgData = new byte[len];
-      stream.Read(pm.MsgData, 0, len);
+      int totalRead = 0;
+      while (totalRead < len)
+      {
+        int bytesRead = stream.Read(pm.MsgData, totalRead, len - totalRead);
+        if (bytesRead == 0)
+        {
+          throw new EndOfStreamException("Pipe closed before the expected message data was fully read.");
+        }
+        totalRead += bytesRead;
+      }
       return pm;
     }
 

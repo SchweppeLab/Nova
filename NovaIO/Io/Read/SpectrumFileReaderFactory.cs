@@ -23,36 +23,30 @@ namespace Nova.Io.Read
 {
   public class SpectrumFileReaderFactory
   {
+    // Extension-to-format detection and format-to-reader construction both live on
+    // FileReader (CheckFileFormat / CreateReader) -- delegated to here rather than
+    // duplicated, so the two dispatch paths can't drift out of sync (see CLEAN-3 in
+    // docs/known-issues.md).
     public static ISpectrumFileReader GetReader(string file, MSFilter filter)
     {
-      string extension = Path.GetExtension(file).ToUpper();
-      if (extension == ".MZXML")
+      FileFormat format;
+      try
       {
-        MzXMLReader r = new MzXMLReader(filter);
-        r.Open(file);
-        return r;
+        format = FileReader.CheckFileFormat(file);
       }
-      else if (extension == ".RAW")
+      catch (FormatException ex)
       {
-        ThermoRawReader r = new ThermoRawReader(filter);
-        r.Open(file);
-        return r;
+        throw new ArgumentException("Unrecognized file extension: " + Path.GetExtension(file), ex);
       }
-      else if (extension == ".MZDB")
+
+      ISpectrumFileReader? reader = FileReader.CreateReader(format, filter);
+      if (reader == null)
       {
-        throw new ArgumentException("Unsupported file extension: " + extension);
+        throw new ArgumentException("Unsupported file extension: " + Path.GetExtension(file));
       }
-      else if (extension == ".MGF")
-      {
-        throw new ArgumentException("Unsupported file extension: " + extension);
-      }
-      else if (extension == ".MZML")
-      {
-        MzMLReader r = new MzMLReader(filter);
-        r.Open(file);
-        return r;
-      }
-      throw new ArgumentException("Unrecognized file extension: " + extension);
+
+      reader.Open(file);
+      return reader;
     }
   }
 }

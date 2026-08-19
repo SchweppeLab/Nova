@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace Nova.Data
 {
-  internal interface IChromatDataPoint
+  public interface IChromatDataPoint
   {
     double RT { get; set; } //retention time, unit defined elsewhere
     double Intensity { get; set; }
