@@ -73,6 +73,7 @@ namespace Nova.Data
         MasterIndex = reader.ReadInt32();
 
         ScanFilter = reader.ReadString();
+        ScanDescription = reader.ReadString();
 
         int pre = reader.ReadInt32();
         for (int a = 0; a < pre; a++)
@@ -176,6 +177,7 @@ namespace Nova.Data
         writer.Write(MasterIndex);
 
         writer.Write(ScanFilter);
+        writer.Write(ScanDescription);
 
         writer.Write(Precursors.Count);
         for (int a = 0; a < Precursors.Count; a++)
