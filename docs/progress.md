@@ -13,7 +13,7 @@ relevant). Don't rewrite history here; append.
 |---|---|---|---|---|
 | Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
 | Bugs | 8 | 4 | 0 | 4 |
-| Dead / Redundant Code | 3 | 0 | 0 | 3 |
+| Dead / Redundant Code | 3 | 2 | 0 | 1 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
 | Hygiene / Maintainability | 4 | 1 | 0 | 3 |
 | Test Coverage | 3 | 2 | 0 | 1 |
@@ -46,8 +46,8 @@ generated.)_
 
 | ID | Summary | Severity | Status | Notes |
 |---|---|---|---|---|
-| [CLEAN-1](known-issues.md#clean-1--tspectrumgetmz-duplicates-its-own-boundary-check-logic) | `TSpectrum.GetMz` has an unreachable duplicated boundary-check block | Low | Not Started | |
-| [CLEAN-2](known-issues.md#clean-2--thermorawreaderprocessspectruminformation-sets-fields-redundantly) | `ProcessSpectrumInformation` re-sets `spectrum` fields unconditionally after the `if/else` already did | Low | Not Started | |
+| [CLEAN-1](known-issues.md#clean-1--tspectrumgetmz-duplicates-its-own-boundary-check-logic) | `TSpectrum.GetMz` has an unreachable duplicated boundary-check block | Low | **Done** | 2026-08-19. Deleted the dead `if (index == 0) {...} else {...}` duplicate; behavior unchanged. |
+| [CLEAN-2](known-issues.md#clean-2--thermorawreaderprocessspectruminformation-sets-fields-redundantly) | `ProcessSpectrumInformation` re-sets `spectrum` fields unconditionally after the `if/else` already did | Low | **Done** | 2026-08-19. Deleted the two redundant trailing lines. |
 | [CLEAN-3](known-issues.md#clean-3--spectrumfilereaderfactory-duplicates-filereaderopenspectrumfiles-dispatch-logic) | Two independent format-dispatch implementations (`FileReader` vs `SpectrumFileReaderFactory`) that can drift | Low | Not Started | |
 
 ## CI / Build Infrastructure
@@ -82,9 +82,8 @@ generated.)_
 2. ~~**TEST-1 / TEST-2.**~~ **Done 2026-08-19.** Directly caught BUG-3 live and surfaced a new
    bug, BUG-8 — both pinned as characterization tests, not fixed yet (see below).
 3. ~~**BUG-3, BUG-5, BUG-8**~~ **Done 2026-08-19.**
-4. **CLEAN-1, CLEAN-2** — pure cleanup, no behavior change, easy wins now that tests exist to
-   confirm nothing shifted. (~~HYG-1~~ done 2026-08-19, ahead of schedule — forced by the
-   Thermo package bump to 8.0.37, see CI-1.)
+4. ~~**CLEAN-1, CLEAN-2**~~ **Done 2026-08-19.** (~~HYG-1~~ also done 2026-08-19, ahead of
+   schedule — forced by the Thermo package bump to 8.0.37, see CI-1.)
 5. **BUG-1 / BUG-2** together — requires a real decision on MGF's fate first (see
    known-issues.md); don't fix BUG-1 without resolving BUG-2, or you'll wire up a working
    dispatch path to a reader that still silently returns nothing.
@@ -198,3 +197,13 @@ it's the changelog for this document.
   pinning the old buggy `true` return to asserting the correct `false`, same pattern BUG-3
   used. Verified: full solution build clean (same 4 pre-existing warnings), `dotnet test`
   28/28 passing.
+- 2026-08-19 — **CLEAN-1 and CLEAN-2 done**, finishing out step 4. CLEAN-1: deleted the
+  unreachable duplicated boundary-check block in `TSpectrum.GetMz`
+  (`Nova/Data/ISpectrum.cs`) — the surviving "check both closest points" logic (previously
+  the `else` branch of the dead duplicate) is now unconditional, since it's the only path
+  left that can reach it; behavior unchanged, covered by TEST-1's existing `GetMz` boundary
+  tests. CLEAN-2: deleted the two redundant trailing lines in
+  `ThermoRawReader.ProcessSpectrumInformation` that unconditionally re-ran
+  `RetentionTimeFromScanNumber`/`GetFilterForScanNumber` and reassigned `spectrum` (never
+  `spectrumEx`) after the `if/else` above already handled both cases correctly. Verified:
+  full solution build clean (same 4 pre-existing warnings), `dotnet test` 28/28 passing.

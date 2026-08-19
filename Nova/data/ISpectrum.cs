@@ -127,24 +127,9 @@ namespace Nova.Data
         return -1;
       }
 
-      //if we're before the beginning of the array
-      if (index == 0)
-      {
-        if (DataPoints[index].Mz >= min && DataPoints[index].Mz <= max) return index;
-      }
-      else
-      {
-        if (index >= Count)
-        {
-          if (indexB >= 0 && DataPoints[indexB].Mz >= min && DataPoints[indexB].Mz <= max) return indexB;
-        }
-        else
-        {
-          //Check both closest points
-          if (DataPoints[indexB].Mz >= min && DataPoints[indexB].Mz <= max) return indexB;
-          if (DataPoints[index].Mz >= min && DataPoints[index].Mz <= max) return index;
-        }
-      }
+      //Check both closest points
+      if (DataPoints[indexB].Mz >= min && DataPoints[indexB].Mz <= max) return indexB;
+      if (DataPoints[index].Mz >= min && DataPoints[index].Mz <= max) return index;
       return -1;
     }
 

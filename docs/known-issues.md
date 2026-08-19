@@ -256,6 +256,13 @@ read and modify safely.
 **Suggested fix:** delete the second duplicated block; keep only the first pass (with the
 early returns), or consolidate into one clean set of boundary checks.
 
+**Fixed 2026-08-19.** Deleted the duplicated `if (index == 0) {...} else {...}` block; the
+`index == 0` early-return already handled that case, so the surviving code is just the
+"check both closest points" logic that used to live in the `else` branch, now unconditional
+(the only path that can still reach it). Behavior is identical — covered by TEST-1's existing
+`GetMz` boundary tests, all of which still pass. Verified: full solution build clean,
+`dotnet test` 28/28 passing.
+
 ---
 
 ### CLEAN-2 — `ThermoRawReader.ProcessSpectrumInformation` sets fields redundantly
@@ -284,6 +291,11 @@ native API calls per spectrum read.
 
 **Suggested fix:** delete the two trailing unconditional lines; the `if/else` above already
 covers both cases correctly.
+
+**Fixed 2026-08-19.** Deleted the two redundant trailing lines; the `if/else` above already
+covers both cases. Verified: full solution build clean, `dotnet test` 28/28 passing (including
+`TestNova`'s existing end-to-end ThermoRaw read of `AngioNeuro4.raw`, which exercises this
+method).
 
 ---
 

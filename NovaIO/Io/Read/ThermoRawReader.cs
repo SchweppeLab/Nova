@@ -385,8 +385,6 @@ namespace Nova.Io.Read
         spectrum.RetentionTime = RawFile.RetentionTimeFromScanNumber(CurrentScanNumber);
         spectrum.ScanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber).ToString();  //TODO: consider processing the ScanFilter
       }
-      spectrum.RetentionTime = RawFile.RetentionTimeFromScanNumber(CurrentScanNumber);
-      spectrum.ScanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber).ToString();  //TODO: consider processing the ScanFilter
       ProcessSpectrumStatistics(scanStatistics, ext);
       ProcessSpectrumFilter(scanFilter, ext);
 
