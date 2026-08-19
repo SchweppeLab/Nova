@@ -160,6 +160,14 @@ an mzML file gets a wrong/garbage `Analyzer` value.
 TEST-2 exists, since this is exactly the kind of copy-paste bug that a parameterized
 Spectrum/SpectrumEx test would catch automatically.
 
+**Fixed 2026-08-19.** One-character fix, `"OTMS"` → `"ITMS"` on
+[`MzMLReader.cs:770`](../NovaIO/Io/Read/MzMLReader.cs#L770). TEST-2's characterization test
+(`Test/TestNovaIOFixtures.cs`) had pinned the buggy `"OTMS"` value against a synthetic ITMS
+MS2 fixture; renamed to `MzML_Ms2ItmsSpectrum_NonExPath_IsCorrect` and flipped to assert the
+correct `"ITMS"` value in the same change, so a regression here trips the suite. Verified:
+full solution build clean (same 4 pre-existing `NovaIO` warnings, nothing new),
+`dotnet test Test/Test.csproj` 28/28 passing.
+
 ---
 
 ### BUG-4 — `MzMLWriter.Write` hardcodes an absolute schema path
@@ -330,6 +338,39 @@ matches what was already stored (`git status` shows no diff on the fixture files
 only on `.gitattributes`). `dotnet test` passes 3/3 afterward with no other change. No more
 `dos2unix` step needed anywhere — removed from all three workflows that replaced `dotnet.yml`
 (see CI-1).
+
+---
+
+### BUG-8 — `FileReader.OpenSpectrumFile` discards the underlying reader's `Open()` result
+**Severity:** Medium (silently misleading return value, not a crash)
+**Location:** [`NovaIO/Io/Read/FileReader.cs`](../NovaIO/Io/Read/FileReader.cs), `OpenSpectrumFile`
+
+```csharp
+FileName = fileName;
+fileReader.Open(fileName);   // bool return value discarded
+ScanCount = fileReader.ScanCount;
+...
+return true;                 // always true, regardless of whether Open() actually succeeded
+```
+
+Discovered 2026-08-19 while building TEST-2's malformed-fixture tests. `MzMLReader.Open`/
+`MzXMLReader.Open` both catch their own exceptions internally and return `false` on failure
+(e.g. a file with no `<indexListOffset>`/`<indexOffset>` index) — but `OpenSpectrumFile`
+never looks at that return value, and unconditionally returns `true` regardless. A caller
+checking `if (reader.OpenSpectrumFile(path))` has no way to detect a failed open from the
+return value alone; they'd need to separately check `ScanCount == 0` (which stays at its
+default because the failed `Open()` never populated the scan index) or try reading a
+spectrum and notice it comes back empty. Confirmed directly:
+`TestNovaIOFixtures.MzML_MalformedFile_OpenDoesNotThrow` /
+`MzXML_MalformedFile_OpenDoesNotThrow` open a synthetic index-less fixture, observe
+`OpenSpectrumFile` return `true`, `ScanCount == 0`, and a subsequent `ReadSpectrum` come back
+as an empty, zero-numbered `Spectrum` — pinning this actual current behavior as a
+characterization test rather than asserting the (arguably more correct) `false`.
+
+**Suggested fix:** `return fileReader.Open(fileName);` instead of the unconditional
+`return true;`, and decide what should happen to `FileName`/`ScanCount`/etc. on a failed
+open (currently `FileName` is set even on failure, which also affects `CheckFile`'s
+same-file-already-open shortcut on a later retry with the same path).
 
 ---
 
@@ -535,6 +576,17 @@ directly, covering at minimum: `GetMz` at/near/outside tolerance boundaries and 
 spectrum; a `Serialize`→`Deserialize` round trip for `Spectrum` and `SpectrumEx`; and a
 basic same-process `PipesServer`/`PipesClient` connect-send-receive-disconnect test.
 
+**Fixed 2026-08-19.** Added [`Test/TestSpectrum.cs`](../Test/TestSpectrum.cs) (10 `GetMz`
+cases covering empty/single-point spectra, exact matches, and within/outside-ppm-tolerance
+at both array boundaries and in the middle — enough to exercise every branch CLEAN-1 flags as
+duplicated — plus a full-field `Serialize`/`Deserialize` round trip for both `Spectrum` and
+`SpectrumEx`, including `Precursors` and per-point extended fields) and
+[`Test/TestPipes.cs`](../Test/TestPipes.cs) (one same-process `PipesServer`/`PipesClient`
+connect → send (client→server) → send (server→client) → disconnect test, using a
+GUID-derived server ID per test since `MSTestSettings.cs` parallelizes at method level and
+named pipes are a shared, process-wide namespace). All new tests target `Nova` directly, no
+file I/O involved.
+
 ---
 
 ### TEST-2 — No unit tests for `NovaIO` parsing logic in isolation
@@ -553,6 +605,29 @@ mzML or mzXML input is also entirely untested (`Open()` catches exceptions and r
 **Suggested fix:** build small synthetic mzML/mzXML fixtures (a handful of spectra, not a
 full real acquisition) to unit-test individual `cvParam`/binary-array/trailer code paths in
 isolation, independent of the large integration fixture files already in `Test/Files/`.
+
+**Fixed 2026-08-19.** Added [`Test/TestNovaIOFixtures.cs`](../Test/TestNovaIOFixtures.cs)
+against four new hand-built, byte-offset-indexed fixtures in `Test/Files/`:
+`NovaTestFixture.mzML`/`.mzXML` (4 spectra: MS1 FTMS, MS2 ITMS with a precursor, MS1 FTMS,
+MS2 FTMS with a precursor — enough to exercise `ProcessCvParam`'s scan-level, precursor, and
+binary-array cvParams, plus `ProcessBinaryData`'s 64-bit decode path for both formats,
+without needing a real acquisition) and `NovaTestFixtureMalformed.mzML`/`.mzXML` (same body,
+index block omitted, for the missing-index path). `MzMLReader`/`MzXMLReader` are both
+`internal`, so all tests go through the public `FileReader` facade, same as the pre-existing
+suite. Coverage includes: scan/MS-level counts, per-field spectrum values, decoded m/z and
+intensity data points, and precursor fields (isolation m/z/width, monoisotopic m/z, charge,
+fragmentation method) for both formats. Directly caught two real, previously-uncatalogued
+gaps in the process: **BUG-3** (confirmed live via
+`MzML_Ms2ItmsSpectrum_NonExPath_ReproducesBug3`, which pins the actual `"OTMS"` value rather
+than fixing it here — see BUG-3) and **BUG-8**, a new finding (`OpenSpectrumFile` discarding
+the reader's `Open()` return value — see BUG-8), both left as characterization tests rather
+than fixed in this change, to keep TEST-2 itself a single, reviewable, test-only change.
+Fixtures were generated with an offline Python script (not checked in — the fixtures
+themselves are the durable artifact) that computes exact byte offsets for the
+`<indexListOffset>`/`<indexOffset>` index blocks, matching how `MzMLReader.Open`/
+`MzXMLReader.Open` random-access-seek into the file (see BUG-7 for why byte-exactness here
+matters, including line-ending corruption risk — these new fixtures are pure ASCII, LF only,
+and covered by the existing `*.mzML -text` / `*.mzXML -text` `.gitattributes` rules).
 
 ---
 

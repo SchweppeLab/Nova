@@ -767,7 +767,7 @@ namespace Nova.Io.Read
           else if (val.Contains("ITMS"))
           {
             if (ext) spectrumEx.Analyzer = "ITMS";
-            else spectrum.Analyzer = "OTMS";
+            else spectrum.Analyzer = "ITMS";
           }
           break;
         case "MS:1000514": //m/z array

@@ -12,11 +12,11 @@ relevant). Don't rewrite history here; append.
 | Category | Total | Done | In Progress | Not Started |
 |---|---|---|---|---|
 | Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
-| Bugs | 7 | 1 | 0 | 6 |
+| Bugs | 8 | 2 | 0 | 6 |
 | Dead / Redundant Code | 3 | 0 | 0 | 3 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
 | Hygiene / Maintainability | 4 | 1 | 0 | 3 |
-| Test Coverage | 2 | 0 | 0 | 2 |
+| Test Coverage | 2 | 2 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
 generated.)_
@@ -35,11 +35,12 @@ generated.)_
 |---|---|---|---|---|
 | [BUG-1](known-issues.md#bug-1--mgf-format-not-handled-in-filereaderopenspectrumfiles-switch) | `FileReader.OpenSpectrumFile` switch has no `MGF` case; can null-ref | High | Not Started | Depends on the BUG-2 decision (finish MGF or drop it) |
 | [BUG-2](known-issues.md#bug-2--mgfreader-is-a-non-functional-stub) | `MGFReader` always returns empty spectra | High | Not Started | Needs a decision: finish it or remove `FileFormat.MGF` |
-| [BUG-3](known-issues.md#bug-3--mzmlreader-sets-analyzer--otms-instead-of-itms) | `MzMLReader` typo sets `Analyzer = "OTMS"` instead of `"ITMS"` | Medium | Not Started | One-line fix; add regression test alongside TEST-2 |
+| [BUG-3](known-issues.md#bug-3--mzmlreader-sets-analyzer--otms-instead-of-itms) | `MzMLReader` typo sets `Analyzer = "OTMS"` instead of `"ITMS"` | Medium | **Done** | 2026-08-19. One-character fix; TEST-2's characterization test flipped to assert the correct `"ITMS"` value in the same change. |
 | [BUG-4](known-issues.md#bug-4--mzmlwriterwrite-hardcodes-an-absolute-schema-path) | `MzMLWriter.Write` hardcodes `D:\Data\mzML\...xsd` | Medium | Not Started | Blocks `MzMLWriter` from working on any machine but the author's |
 | [BUG-5](known-issues.md#bug-5--filereaderformat-is-dead-initialized-once-never-updated) | `FileReader.Format` never assigned, permanently `Unknown` | Low | Not Started | |
 | [BUG-6](known-issues.md#bug-6--pipeioread-doesnt-handle-shortpartial-stream-reads) | `PipeIO.Read` assumes `Stream.Read` fills the buffer in one call | Medium | Not Started | Latent risk; not observed failing yet |
 | [BUG-7](known-issues.md#bug-7--gitattributes-doesnt-actually-protect-line-ending-sensitive-test-fixtures) | `.gitattributes` doesn't actually stop Git from corrupting mzML/mzXML fixture byte offsets on Windows checkout | Medium | **Done** | 2026-08-19. `-text` set for both extensions; working copy renormalized; confirmed stored blobs were already correct (checkout was the only corruption point). No more `dos2unix` needed anywhere. |
+| [BUG-8](known-issues.md#bug-8--filereaderopenspectrumfile-discards-the-underlying-readers-open-result) | `FileReader.OpenSpectrumFile` always returns `true`, ignoring whether the underlying reader's `Open()` actually succeeded | Medium | Not Started | Newly found 2026-08-19 while building TEST-2's malformed-fixture tests; pinned as a characterization test there |
 
 ## Dead / Redundant Code
 
@@ -68,8 +69,8 @@ generated.)_
 
 | ID | Summary | Severity | Status | Notes |
 |---|---|---|---|---|
-| [TEST-1](known-issues.md#test-1--no-unit-tests-for-the-nova-core-library) | No unit tests for `Nova` core (`GetMz`, serialization, Pipes IPC) | Medium | Not Started | Do before/alongside riskier fixes above, so regressions get caught |
-| [TEST-2](known-issues.md#test-2--no-unit-tests-for-novaio-parsing-logic-in-isolation) | No unit tests for `NovaIO` parsing logic against synthetic fixtures | Medium | Not Started | Would have caught BUG-3 directly |
+| [TEST-1](known-issues.md#test-1--no-unit-tests-for-the-nova-core-library) | No unit tests for `Nova` core (`GetMz`, serialization, Pipes IPC) | Medium | **Done** | 2026-08-19. `Test/TestSpectrum.cs` (10 `GetMz` cases + Spectrum/SpectrumEx round-trip serialization) and `Test/TestPipes.cs` (same-process connect/send/receive/disconnect). No file I/O. |
+| [TEST-2](known-issues.md#test-2--no-unit-tests-for-novaio-parsing-logic-in-isolation) | No unit tests for `NovaIO` parsing logic against synthetic fixtures | Medium | **Done** | 2026-08-19. `Test/TestNovaIOFixtures.cs` against 4 new hand-built indexed fixtures in `Test/Files/` (2 valid + 2 malformed, mzML+mzXML). Directly caught BUG-3 live and surfaced a new bug, BUG-8 — both pinned as characterization tests, not fixed here. |
 
 ---
 
@@ -77,10 +78,12 @@ generated.)_
 
 0. ~~**ARCH-1 — Nova core to `netstandard2.0`.**~~ **Done 2026-08-18.**
 1. ~~**CI-1 + BUG-7 — GitHub Actions / line-ending fixture bug.**~~ **Done 2026-08-19.**
-2. **TEST-1 / TEST-2** next, or at least started — every fix below is safer to make once
-   there's a test harness that isn't limited to one real integration file.
-3. **BUG-3, BUG-5** — trivial, low-risk, high-value fixes.
-4. **CLEAN-1, CLEAN-2** — pure cleanup, no behavior change, easy wins once tests exist to
+2. ~~**TEST-1 / TEST-2.**~~ **Done 2026-08-19.** Directly caught BUG-3 live and surfaced a new
+   bug, BUG-8 — both pinned as characterization tests, not fixed yet (see below).
+3. ~~**BUG-3**~~ **Done 2026-08-19.** **BUG-5, BUG-8** remain — trivial, low-risk fixes.
+   BUG-8 has a characterization test in `Test/TestNovaIOFixtures.cs` whose expected value
+   flips in the same change that fixes it (same pattern BUG-3 just followed).
+4. **CLEAN-1, CLEAN-2** — pure cleanup, no behavior change, easy wins now that tests exist to
    confirm nothing shifted. (~~HYG-1~~ done 2026-08-19, ahead of schedule — forced by the
    Thermo package bump to 8.0.37, see CI-1.)
 5. **BUG-1 / BUG-2** together — requires a real decision on MGF's fate first (see
@@ -149,3 +152,30 @@ it's the changelog for this document.
   folder and the bundle-staging step (`Net8`'s readme is `Readme.md`, not `Net8Old`'s
   `Readme.txt` — caught by rehearsing the copy, not assuming). Kept the exact-match
   `[8.0.37]` brackets — that part of CI-1's fix was never specific to 8.0.6.
+- 2026-08-19 — **TEST-1 and TEST-2 done.** Added `Test/TestSpectrum.cs` (10 `GetMz` cases
+  spanning empty/single-point spectra, exact matches, and within/outside-ppm-tolerance at
+  both array boundaries and mid-array — exercising every branch CLEAN-1 flags as duplicated —
+  plus full-field `Serialize`/`Deserialize` round trips for `Spectrum` and `SpectrumEx`) and
+  `Test/TestPipes.cs` (one same-process `PipesServer`/`PipesClient` connect, send both
+  directions, disconnect test, GUID-derived server ID to survive MSTest's method-level
+  parallelization). For TEST-2, hand-built four new indexed fixtures in `Test/Files/`
+  (`NovaTestFixture.mzML`/`.mzXML`, 4 spectra: MS1 FTMS / MS2 ITMS+precursor / MS1 FTMS / MS2
+  FTMS+precursor; `NovaTestFixtureMalformed.mzML`/`.mzXML`, same body with the index block
+  omitted) via an offline Python script that computes exact byte offsets for the
+  `<indexListOffset>`/`<indexOffset>` blocks `MzMLReader`/`MzXMLReader` random-access-seek
+  against, since that has to be byte-exact (see BUG-7) — these fixtures are pure ASCII/LF and
+  covered by the existing `-text` `.gitattributes` rules. Added `Test/TestNovaIOFixtures.cs`
+  against them, going through the public `FileReader` facade since both readers are
+  `internal`. This directly reproduced BUG-3 live (pinned as a characterization test, not
+  fixed) and surfaced a new bug, BUG-8 (`FileReader.OpenSpectrumFile` unconditionally
+  returning `true` regardless of whether the underlying reader's `Open()` actually
+  succeeded), also pinned as a characterization test rather than fixed here, to keep this a
+  single, reviewable, test-only change. All 28 tests (3 pre-existing + 25 new) pass:
+  `dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64` clean (same 4
+  pre-existing warnings), `dotnet test Test/Test.csproj --configuration Release --no-build`
+  from repo root, 28/28 passing.
+- 2026-08-19 — **BUG-3 done.** One-character fix in `MzMLReader.ProcessCvParam`
+  (`"OTMS"` → `"ITMS"`, line 770). Flipped the characterization test TEST-2 had added
+  (`MzML_Ms2ItmsSpectrum_NonExPath_ReproducesBug3` → renamed
+  `MzML_Ms2ItmsSpectrum_NonExPath_IsCorrect`) to assert the now-correct `"ITMS"` value.
+  Verified: full solution build clean, `dotnet test` 28/28 passing.

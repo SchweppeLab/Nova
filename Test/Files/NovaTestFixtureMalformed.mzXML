@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.2">
+ <msRun scanCount="4" startTime="PT30S" endTime="PT60S">
+  <scan num="1" msLevel="1" peaksCount="3" polarity="+" retentionTime="PT30.0S" centroided="1" lowMz="400.1" highMz="500.3" startMz="350.0" endMz="1500.0" basePeakMz="450.2" basePeakIntensity="2000" totIonCurrent="4500">
+    <peaks precision="64" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="48">QHkBmZmZmZpAj0AAAAAAAEB8IzMzMzMzQJ9AAAAAAABAf0TMzMzMzUCXcAAAAAAA</peaks>
+  </scan>
+  <scan num="2" msLevel="2" peaksCount="3" polarity="+" retentionTime="PT36.0S" centroided="1" lowMz="150.05" highMz="510.0" startMz="130.0" endMz="1005.0" basePeakMz="300.15" basePeakIntensity="1800" totIonCurrent="4000">
+    <precursorMz precursorScanNum="1" precursorIntensity="50000.0" precursorCharge="2" activationMethod="HCD" windowWideness="2.0">500.25</precursorMz>
+    <peaks precision="64" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="48">QGLBmZmZmZpAjCAAAAAAAEBywmZmZmZmQJwgAAAAAABAf+AAAAAAAECUUAAAAAAA</peaks>
+  </scan>
+  <scan num="3" msLevel="1" peaksCount="3" polarity="+" retentionTime="PT54.0S" centroided="1" lowMz="410.2" highMz="520.6" startMz="350.0" endMz="1500.0" basePeakMz="460.4" basePeakIntensity="2200" totIonCurrent="5100">
+    <peaks precision="64" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="48">QHmjMzMzMzNAkTAAAAAAAEB8xmZmZmZmQKEwAAAAAABAgETMzMzMzUCZAAAAAAAA</peaks>
+  </scan>
+  <scan num="4" msLevel="2" peaksCount="3" polarity="+" retentionTime="PT60.0S" centroided="1" lowMz="140.1" highMz="530.0" startMz="140.0" endMz="1050.0" basePeakMz="280.25" basePeakIntensity="1600" totIonCurrent="3600">
+    <precursorMz precursorScanNum="3" precursorIntensity="50000.0" precursorCharge="2" activationMethod="HCD" windowWideness="2.0">520.6</precursorMz>
+    <peaks precision="64" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="48">QGGDMzMzMzNAiQAAAAAAAEBxhAAAAAAAQJkAAAAAAABAgJAAAAAAAECSwAAAAAAA</peaks>
+  </scan>
+ </msRun>
+</mzXML>
