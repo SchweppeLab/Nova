@@ -23,9 +23,17 @@ namespace TestNova
   [TestClass]
   public sealed class TestPipes
   {
+    public TestContext testContext { get; set; }
+
+    public TestPipes(TestContext context)
+    {
+      testContext = context;
+    }
+
     [TestMethod]
     public void ConnectSendReceiveDisconnect()
     {
+      testContext.WriteLine("Verifies a same-process PipesServer/PipesClient connect, exchange messages in both directions, and disconnect cleanly.");
       string id = "NovaTestPipe_" + Guid.NewGuid().ToString("N");
       PipesServer server = new PipesServer(id);
       PipesClient client = new PipesClient(id);

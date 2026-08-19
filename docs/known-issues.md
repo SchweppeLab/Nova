@@ -116,6 +116,11 @@ instead of failing predictably.
 (contingent on BUG-2 being resolved one way or the other — see below), or explicitly reject
 MGF with a clear exception if it's staying unsupported.
 
+**Decision (2026-08-19, repo owner):** MGF support will be implemented, not dropped. Moved
+to the last item on `progress.md`'s priority list — biggest remaining piece of work, do it
+once everything else is settled. Wire up together with BUG-2; see BUG-2 for the parsing
+spec to follow.
+
 ---
 
 ### BUG-2 — `MGFReader` is a non-functional stub
@@ -136,6 +141,14 @@ return empty spectra forever.
 **Suggested fix:** either finish the reader, or remove `FileFormat.MGF` /
 `SpectrumFileReaderFactory`'s MGF branch and document MGF as unsupported, so failure is
 loud (an exception) rather than silent (empty data).
+
+**Decision (2026-08-19, repo owner):** finish the reader — implement real per-spectrum
+parsing in `GetSpectrum`/`GetSpectrumEx`, following the Matrix Science MGF format spec:
+<https://www.matrixscience.com/help/data_file_help.html>, rather than inferring the format
+from whatever `Open()`'s existing header parsing already assumes. Moved to the last item on
+`progress.md`'s priority list; wire up together with BUG-1 so the two land in the same
+change (a working dispatch path to a reader that still returns nothing is worse than either
+half alone).
 
 ---
 
@@ -678,6 +691,21 @@ paragraph) at the start of each test stating what it's verifying, so `dotnet tes
 `TestContext.WriteLine("Verifies GetMz returns the nearest index when the target m/z is just
 inside the ppm tolerance below the first data point.");`. Keep it terse; this is meant to aid
 scanning output, not duplicate the method name or replace comments in the test body.
+
+**Fixed 2026-08-19.** Added a one-line `testContext.WriteLine(...)` at the top of every test
+method across all four test classes (`TestSpectrum.cs`, `TestPipes.cs`,
+`TestNovaIOFixtures.cs`, `TestNova.cs`), including the pre-existing `TestNova.cs` suite this
+entry called out by name. `TestSpectrum`/`TestPipes`/`TestNovaIOFixtures` didn't have a
+`TestContext` at all before this; added the same public-property + constructor-injection
+pattern `TestNova.cs` already used (`public TestContext testContext { get; set; }` plus a
+constructor parameter) rather than a private field, since MSTest's `MSTEST0005` analyzer
+flags a bare private field as an invalid `TestContext` and only recognizes the public
+property form — caught by a clean rebuild surfacing 3 new warnings, fixed by matching the
+established convention instead of suppressing them. Confirmed the messages actually surface:
+VSTest's console logger doesn't print `TestContext.WriteLine` output for passing tests, but
+the `.trx` logger does, under a `TestContext Messages:` block per test — verified directly
+against a real trx run before considering this done. Verified: full solution build clean
+(same 4 pre-existing warnings, 0 new), `dotnet test` 28/28 passing.
 
 ---
 

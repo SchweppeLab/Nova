@@ -57,6 +57,7 @@ namespace TestNova
     [TestMethod]
     public void TestOpenFile()
     {
+      testContext.WriteLine("Verifies OpenSpectrumFile succeeds and reports the correct scan count for the AngioNeuro4 mzML/mzXML/raw fixtures.");
       if (Reader == null) Assert.Fail();
 
       bool bMzML = Reader.OpenSpectrumFile(dataFilePathMzML);
@@ -78,7 +79,7 @@ namespace TestNova
     [TestMethod]
     public void TestReadSpectrumEx()
     {
-      
+      testContext.WriteLine("Verifies ReadSpectrumEx returns the expected centroid count and MS level for the first scan of each AngioNeuro4 fixture.");
       if(Reader == null) Assert.Fail();
       
       Spec = Reader.ReadSpectrumEx(dataFilePathMzML);
@@ -100,6 +101,7 @@ namespace TestNova
     [TestMethod]
     public void TestSpecTally()
     {
+      testContext.WriteLine("Verifies scanning each AngioNeuro4 fixture end to end tallies the correct MS1/MS2/MS3 counts.");
       int ms1 = 0;
       int ms2 = 0;
       int ms3 = 0;

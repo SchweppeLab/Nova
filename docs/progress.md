@@ -16,7 +16,7 @@ relevant). Don't rewrite history here; append.
 | Dead / Redundant Code | 3 | 2 | 0 | 1 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
 | Hygiene / Maintainability | 4 | 1 | 0 | 3 |
-| Test Coverage | 3 | 2 | 0 | 1 |
+| Test Coverage | 3 | 3 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
 generated.)_
@@ -71,7 +71,7 @@ generated.)_
 |---|---|---|---|---|
 | [TEST-1](known-issues.md#test-1--no-unit-tests-for-the-nova-core-library) | No unit tests for `Nova` core (`GetMz`, serialization, Pipes IPC) | Medium | **Done** | 2026-08-19. `Test/TestSpectrum.cs` (10 `GetMz` cases + Spectrum/SpectrumEx round-trip serialization) and `Test/TestPipes.cs` (same-process connect/send/receive/disconnect). No file I/O. |
 | [TEST-2](known-issues.md#test-2--no-unit-tests-for-novaio-parsing-logic-in-isolation) | No unit tests for `NovaIO` parsing logic against synthetic fixtures | Medium | **Done** | 2026-08-19. `Test/TestNovaIOFixtures.cs` against 4 new hand-built indexed fixtures in `Test/Files/` (2 valid + 2 malformed, mzML+mzXML). Directly caught BUG-3 live and surfaced a new bug, BUG-8 — both pinned as characterization tests, not fixed here. |
-| [TEST-3](known-issues.md#test-3--test-output-doesnt-say-what-each-test-actually-verified) | Test output doesn't say what each test actually verified | Low | Not Started | Added 2026-08-19. Add a one/two-line `TestContext.WriteLine(...)` per test stating what it checks, so pass/fail output is self-explanatory without opening the source. |
+| [TEST-3](known-issues.md#test-3--test-output-doesnt-say-what-each-test-actually-verified) | Test output doesn't say what each test actually verified | Low | **Done** | 2026-08-19. One-line `testContext.WriteLine(...)` added to all 28 tests across all 4 test classes; `TestSpectrum`/`TestPipes`/`TestNovaIOFixtures` gained a `TestContext` (matching `TestNova.cs`'s existing property+constructor pattern) since they didn't have one before. |
 
 ---
 
@@ -84,17 +84,21 @@ generated.)_
 3. ~~**BUG-3, BUG-5, BUG-8**~~ **Done 2026-08-19.**
 4. ~~**CLEAN-1, CLEAN-2**~~ **Done 2026-08-19.** (~~HYG-1~~ also done 2026-08-19, ahead of
    schedule — forced by the Thermo package bump to 8.0.37, see CI-1.)
-5. **BUG-1 / BUG-2** together — requires a real decision on MGF's fate first (see
-   known-issues.md); don't fix BUG-1 without resolving BUG-2, or you'll wire up a working
-   dispatch path to a reader that still silently returns nothing.
-6. **BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3** — round out once the above is settled. Note BUG-6's
+5. **BUG-4, BUG-6, CLEAN-3, HYG-2, HYG-3** — round out once the above is settled. Note BUG-6's
    fix approach depends on ARCH-1 having landed (already has — `netstandard2.0` doesn't have
    `Stream.ReadExactly`, so it needs a manual read-loop instead).
-7. **TEST-3** — moderate-low priority, no rush. Add a short `TestContext.WriteLine(...)`
-   (one or two lines) per existing test stating what it verifies, so `dotnet test` output is
-   self-explanatory without opening the source. Mechanical, touches every existing test
-   method but changes no behavior — fine to batch whenever convenient, including alongside
-   an unrelated session.
+6. ~~**TEST-3**~~ **Done 2026-08-19.**
+7. **BUG-1 / BUG-2** together — moved to last 2026-08-19 (repo owner's call). Decision made:
+   MGF support will actually be implemented (not dropped) — `MGFReader.GetSpectrum`/
+   `GetSpectrumEx` need real per-spectrum parsing, plus `FileReader.OpenSpectrumFile`'s
+   switch needs the missing `MGF` case (BUG-1), wired up together so BUG-1 never dispatches
+   to a reader that still silently returns nothing. When this is picked up, implement
+   against the Matrix Science MGF format spec:
+   <https://www.matrixscience.com/help/data_file_help.html> — the repo owner named this as
+   the reference to follow, not the ad hoc "make something up from the header-parsing code
+   already in `MGFReader.Open`" approach. Biggest remaining item on the list; will need new
+   test fixtures (synthetic `.mgf` files) alongside the parser itself, same pattern TEST-2
+   used for mzML/mzXML.
 
 Everything from step 2 on is a suggestion, not a mandate — reorder freely based on what
 you're actually working on next.
@@ -207,3 +211,19 @@ it's the changelog for this document.
   `RetentionTimeFromScanNumber`/`GetFilterForScanNumber` and reassigned `spectrum` (never
   `spectrumEx`) after the `if/else` above already handled both cases correctly. Verified:
   full solution build clean (same 4 pre-existing warnings), `dotnet test` 28/28 passing.
+- 2026-08-19 — Repo owner made the BUG-1/BUG-2 (MGF) decision: implement real MGF support
+  (not drop it), following the Matrix Science MGF format spec
+  (https://www.matrixscience.com/help/data_file_help.html). Moved BUG-1/BUG-2 to the last
+  item on the priority list — biggest remaining piece of work, deliberately saved for last.
+  No code changed; docs only.
+- 2026-08-19 — **TEST-3 done.** Added a one-line `testContext.WriteLine(...)` at the top of
+  all 28 test methods across all 4 test classes (`TestSpectrum.cs`, `TestPipes.cs`,
+  `TestNovaIOFixtures.cs`, and the pre-existing `TestNova.cs`), stating what each test
+  verifies. `TestSpectrum`/`TestPipes`/`TestNovaIOFixtures` had no `TestContext` before this;
+  added `public TestContext testContext { get; set; }` plus constructor injection, matching
+  `TestNova.cs`'s existing pattern exactly — a private-field-only version was tried first and
+  rejected after a clean rebuild showed 3 new `MSTEST0005` warnings (MSTest's analyzer only
+  recognizes the public-property form). Confirmed the messages actually reach test output via
+  a real `.trx` run (`TestContext Messages:` block per test) before calling this done, since
+  the console logger silently drops `TestContext.WriteLine` for passing tests. Verified: full
+  solution build clean (same 4 pre-existing warnings, 0 new), `dotnet test` 28/28 passing.

@@ -32,9 +32,11 @@ namespace TestNova
     private readonly string dataFilePathMzXML;
     private readonly string dataFilePathMzMLMalformed;
     private readonly string dataFilePathMzXMLMalformed;
+    public TestContext testContext { get; set; }
 
-    public TestNovaIOFixtures()
+    public TestNovaIOFixtures(TestContext context)
     {
+      testContext = context;
       string dir = string.Empty;
       string curDir = Environment.CurrentDirectory;
       DirectoryInfo? dirInfo = Directory.GetParent(curDir);
@@ -51,6 +53,7 @@ namespace TestNova
     [TestMethod]
     public void MzML_OpenAndScanCount()
     {
+      testContext.WriteLine("Verifies OpenSpectrumFile succeeds on the mzML fixture and reports the correct scan count/range/max retention time.");
       FileReader reader = new FileReader();
       Assert.IsTrue(reader.OpenSpectrumFile(dataFilePathMzML));
       Assert.AreEqual(4, reader.ScanCount);
@@ -62,6 +65,7 @@ namespace TestNova
     [TestMethod]
     public void MzML_MsLevelTally()
     {
+      testContext.WriteLine("Verifies scanning the mzML fixture end to end tallies 2 MS1 and 2 MS2 spectra.");
       FileReader reader = new FileReader();
       int ms1 = 0, ms2 = 0, ms3 = 0;
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzML);
@@ -80,6 +84,7 @@ namespace TestNova
     [TestMethod]
     public void MzML_Ms1Spectrum_FieldsAndBinaryData()
     {
+      testContext.WriteLine("Verifies scan-level fields and decoded 64-bit m/z/intensity data points for an MS1 mzML spectrum.");
       FileReader reader = new FileReader();
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzML, 1);
 
@@ -100,6 +105,7 @@ namespace TestNova
     [TestMethod]
     public void MzML_Ms2Spectrum_PrecursorFields()
     {
+      testContext.WriteLine("Verifies precursor fields (isolation m/z/width, monoisotopic m/z, charge, fragmentation method) for an MS2 mzML spectrum.");
       FileReader reader = new FileReader();
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzML, 2);
 
@@ -122,6 +128,7 @@ namespace TestNova
       // string used to set Analyzer to the literal "OTMS" instead of "ITMS" - a copy/paste
       // typo. This test originally pinned that buggy value as a characterization test; now
       // that the typo is fixed, it asserts the correct value so a regression trips this test.
+      testContext.WriteLine("Regression test for BUG-3: verifies the non-Ex (Spectrum) read path sets Analyzer to \"ITMS\", not the old \"OTMS\" typo.");
       FileReader reader = new FileReader();
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzML, 2);
       Assert.AreEqual("ITMS", spec.Analyzer);
@@ -130,6 +137,7 @@ namespace TestNova
     [TestMethod]
     public void MzML_Ms2ItmsSpectrum_ExPath_IsCorrect()
     {
+      testContext.WriteLine("Verifies the Ex (SpectrumEx) read path correctly sets Analyzer to \"ITMS\" for an ion-trap filter string.");
       FileReader reader = new FileReader();
       SpectrumEx spec = reader.ReadSpectrumEx(dataFilePathMzML, 2);
       Assert.AreEqual("ITMS", spec.Analyzer);
@@ -143,6 +151,7 @@ namespace TestNova
       // FileReader.OpenSpectrumFile now propagates that instead of discarding it, so no
       // exception escapes and the caller can tell from the return value alone that the open
       // failed.
+      testContext.WriteLine("Regression test for BUG-8: verifies OpenSpectrumFile returns false (not true) on an mzML file with no index block.");
       FileReader reader = new FileReader();
       bool opened = reader.OpenSpectrumFile(dataFilePathMzMLMalformed);
       Assert.IsFalse(opened);
@@ -156,6 +165,7 @@ namespace TestNova
     [TestMethod]
     public void MzXML_OpenAndScanCount()
     {
+      testContext.WriteLine("Verifies OpenSpectrumFile succeeds on the mzXML fixture and reports the correct scan count/range/max retention time.");
       FileReader reader = new FileReader();
       Assert.IsTrue(reader.OpenSpectrumFile(dataFilePathMzXML));
       Assert.AreEqual(4, reader.ScanCount);
@@ -167,6 +177,7 @@ namespace TestNova
     [TestMethod]
     public void MzXML_MsLevelTally()
     {
+      testContext.WriteLine("Verifies scanning the mzXML fixture end to end tallies 2 MS1 and 2 MS2 spectra.");
       FileReader reader = new FileReader();
       int ms1 = 0, ms2 = 0, ms3 = 0;
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzXML);
@@ -185,6 +196,7 @@ namespace TestNova
     [TestMethod]
     public void MzXML_Ms1Spectrum_FieldsAndBinaryData()
     {
+      testContext.WriteLine("Verifies scan-level fields and decoded 64-bit m/z/intensity data points (big-endian) for an MS1 mzXML spectrum.");
       FileReader reader = new FileReader();
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzXML, 1);
 
@@ -204,6 +216,7 @@ namespace TestNova
     [TestMethod]
     public void MzXML_Ms2Spectrum_PrecursorFields()
     {
+      testContext.WriteLine("Verifies precursor fields (isolation m/z, charge, fragmentation method) for an MS2 mzXML spectrum.");
       FileReader reader = new FileReader();
       Spectrum spec = reader.ReadSpectrum(dataFilePathMzXML, 2);
 
@@ -221,6 +234,7 @@ namespace TestNova
     {
       // Regression test for BUG-8 (docs/known-issues.md, fixed 2026-08-19): see the mzML
       // counterpart above for the full explanation.
+      testContext.WriteLine("Regression test for BUG-8: verifies OpenSpectrumFile returns false (not true) on an mzXML file with no index block.");
       FileReader reader = new FileReader();
       bool opened = reader.OpenSpectrumFile(dataFilePathMzXMLMalformed);
       Assert.IsFalse(opened);

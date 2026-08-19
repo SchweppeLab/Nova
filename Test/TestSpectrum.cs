@@ -22,6 +22,13 @@ namespace TestNova
   [TestClass]
   public sealed class TestSpectrum
   {
+    public TestContext testContext { get; set; }
+
+    public TestSpectrum(TestContext context)
+    {
+      testContext = context;
+    }
+
     private static Spectrum BuildSpectrum(params double[] mzs)
     {
       Spectrum spec = new Spectrum(mzs.Length);
@@ -35,6 +42,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_EmptySpectrum_ReturnsMinusOne()
     {
+      testContext.WriteLine("Verifies GetMz returns -1 on a spectrum with zero data points.");
       Spectrum spec = new Spectrum(0);
       Assert.AreEqual(-1, spec.GetMz(500.0, 10));
     }
@@ -42,6 +50,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_ExactMatch_ReturnsIndex()
     {
+      testContext.WriteLine("Verifies GetMz returns the exact index when the target m/z exactly matches a data point.");
       Spectrum spec = BuildSpectrum(100.0, 200.0, 300.0, 400.0, 500.0);
       Assert.AreEqual(2, spec.GetMz(300.0));
     }
@@ -49,6 +58,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_WithinPpmTolerance_ReturnsNearestIndex()
     {
+      testContext.WriteLine("Verifies GetMz returns the nearest index when the target m/z is a near-miss within the ppm tolerance.");
       Spectrum spec = BuildSpectrum(100.0, 200.0, 300.0, 400.0, 500.0);
       // 300.002 is not an exact match, but is within a 10ppm window of the 300.0 data point.
       Assert.AreEqual(2, spec.GetMz(300.002, 10));
@@ -57,6 +67,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_OutsidePpmTolerance_ReturnsMinusOne()
     {
+      testContext.WriteLine("Verifies GetMz returns -1 when the nearest data point is just outside the ppm tolerance.");
       Spectrum spec = BuildSpectrum(100.0, 200.0, 300.0, 400.0, 500.0);
       Assert.AreEqual(-1, spec.GetMz(300.5, 10));
     }
@@ -64,6 +75,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_BelowFirstPoint_OutsideTolerance_ReturnsMinusOne()
     {
+      testContext.WriteLine("Verifies GetMz returns -1 for a target m/z below the first data point and outside its tolerance.");
       Spectrum spec = BuildSpectrum(100.0, 200.0, 300.0);
       Assert.AreEqual(-1, spec.GetMz(50.0, 10));
     }
@@ -71,6 +83,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_BelowFirstPoint_WithinTolerance_ReturnsFirstIndex()
     {
+      testContext.WriteLine("Verifies GetMz returns index 0 for a target m/z below the first data point but within a wide-enough tolerance.");
       Spectrum spec = BuildSpectrum(100.0, 200.0, 300.0);
       // 99 is below the first point (100.0), but a wide-enough ppm window still covers it.
       Assert.AreEqual(0, spec.GetMz(99.0, 15000));
@@ -79,6 +92,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_AboveLastPoint_WithinTolerance_ReturnsLastIndex()
     {
+      testContext.WriteLine("Verifies GetMz returns the last index for a target m/z past the array end but within a wide-enough tolerance.");
       Spectrum spec = BuildSpectrum(100.0, 200.0, 300.0, 400.0, 500.0);
       // 501 is past the end of the array, but within a wide-enough ppm window of the last point.
       Assert.AreEqual(4, spec.GetMz(501.0, 2000));
@@ -87,6 +101,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_AboveLastPoint_OutsideTolerance_ReturnsMinusOne()
     {
+      testContext.WriteLine("Verifies GetMz returns -1 for a target m/z past the array end and outside its tolerance.");
       Spectrum spec = BuildSpectrum(100.0, 200.0, 300.0, 400.0, 500.0);
       Assert.AreEqual(-1, spec.GetMz(600.0, 1));
     }
@@ -94,6 +109,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_SinglePointSpectrum_ExactMatch()
     {
+      testContext.WriteLine("Verifies GetMz works correctly on a spectrum with exactly one data point.");
       Spectrum spec = BuildSpectrum(250.0);
       Assert.AreEqual(0, spec.GetMz(250.0));
     }
@@ -101,6 +117,7 @@ namespace TestNova
     [TestMethod]
     public void GetMz_ZeroPpm_OnlyExactMatchesSucceed()
     {
+      testContext.WriteLine("Verifies GetMz with ppm=0 rejects a near-miss but still accepts an exact match.");
       Spectrum spec = BuildSpectrum(100.0, 200.0, 300.0);
       Assert.AreEqual(-1, spec.GetMz(250.0, 0));
       Assert.AreEqual(1, spec.GetMz(200.0, 0));
@@ -109,6 +126,7 @@ namespace TestNova
     [TestMethod]
     public void SerializeDeserialize_RoundTrip_Spectrum()
     {
+      testContext.WriteLine("Verifies every Spectrum field, one PrecursorIon, and two SpecDataPoints survive a Serialize/Deserialize round trip.");
       Spectrum original = new Spectrum(2);
       original.ScanNumber = 42;
       original.MsLevel = 2;
@@ -168,6 +186,7 @@ namespace TestNova
     [TestMethod]
     public void SerializeDeserialize_RoundTrip_SpectrumEx()
     {
+      testContext.WriteLine("Verifies SpectrumEx fields, including per-point Noise/Baseline/Charge/Resolution, survive a Serialize/Deserialize round trip.");
       SpectrumEx original = new SpectrumEx(1);
       original.ScanNumber = 99;
       original.MsLevel = 1;
