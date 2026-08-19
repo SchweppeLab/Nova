@@ -96,13 +96,6 @@ jobs:
           dotnet pack Nova\Nova.csproj -c Release -o pack-out --no-restore -p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack NovaIO\NovaIO.csproj -c Release -o pack-out --no-restore -p:PackageVersion=${{ steps.version.outputs.version }}
 
-      - name: Duplicate packages under version-free filenames for the rolling release
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path pack-out-latest | Out-Null
-          Copy-Item pack-out\Nova.*.nupkg pack-out-latest\Nova-dev-latest.nupkg
-          Copy-Item pack-out\Nova.IO.*.nupkg pack-out-latest\Nova.IO-dev-latest.nupkg
-
       # Same exact Thermo packages NovaIO was just built and tested against (pinned checkout
       # above), so a consumer of these dev nupkgs can resolve ThermoFisher.CommonCore.* from
       # this bundle without needing access to Thermo's private feed themselves -- matches how
@@ -149,7 +142,6 @@ jobs:
           }
 
           New-Bundle "bundle-dated" "pack-out/Nova.*.nupkg" "pack-out/Nova.IO.*.nupkg" "Nova.${{ steps.version.outputs.version }}.zip"
-          New-Bundle "bundle-latest" "pack-out-latest/Nova-dev-latest.nupkg" "pack-out-latest/Nova.IO-dev-latest.nupkg" "Nova-dev-latest.zip"
 
       - name: Publish dated dev release (history)
         uses: softprops/action-gh-release@v2
@@ -174,6 +166,27 @@ jobs:
           git tag -f dev-latest
           git push origin dev-latest --force
 
+      # dev-latest's assets are the same real versioned filenames as the dated release (e.g.
+      # Nova.1.1.0-dev.42.nupkg), not a fixed generic name, so a tester can tell at a glance
+      # which build they're on. That means action-gh-release's "replace same-named asset"
+      # behavior no longer naturally sheds last run's files, since each run's filenames differ.
+      # Delete whatever's currently attached to the dev-latest release before uploading this
+      # run's, so it never accumulates a pile of old versioned assets alongside the current one.
+      - name: Clear stale assets from the dev-latest release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view dev-latest --repo ${{ github.repository }} *> $null
+          if ($LASTEXITCODE -eq 0) {
+            $assets = gh release view dev-latest --repo ${{ github.repository }} --json assets --jq ".assets[].name"
+            foreach ($asset in $assets) {
+              if ($asset) {
+                gh release delete-asset dev-latest $asset --repo ${{ github.repository }} -y
+              }
+            }
+          }
+
       - name: Publish rolling dev-latest release (always-fresh link)
         uses: softprops/action-gh-release@v2
         with:
@@ -188,5 +201,5 @@ jobs:
           prerelease: true
           make_latest: "false"
           files: |
-            pack-out-latest/*.nupkg
-            Nova-dev-latest.zip
+            pack-out/*.nupkg
+            Nova.${{ steps.version.outputs.version }}.zip

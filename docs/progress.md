@@ -305,3 +305,21 @@ it's the changelog for this document.
   namespaces, so leaving the usings in place after fixing the extension-method dependency
   would have just been a fresh copy of HYG-1's exact pattern. Verified: full solution build
   clean (same 1 pre-existing warning, 0 new), `dotnet test` 37/37 passing.
+- 2026-08-19 — **`dev-nuget.yml` "Latest dev build" asset naming fixed**, not a catalogued
+  known-issues item, just a workflow usability bug reported directly. Previously the rolling
+  `dev-latest` release published its packages/zip under fixed generic filenames
+  (`Nova-dev-latest.nupkg`, `Nova.IO-dev-latest.nupkg`, `Nova-dev-latest.zip`) built by
+  copying and renaming the real versioned files from `pack-out`, instead of just reusing the
+  dated release's actual `Nova.<version>-dev.<run>.nupkg` filenames. Removed the whole
+  duplicate/rename step and the second `New-Bundle` call for a `pack-out-latest`/`bundle-
+  latest` tree; `dev-latest`'s release now uploads the exact same `pack-out/*.nupkg` +
+  `Nova.<version>.zip` files the dated release does, so a tester can see which build they
+  have at a glance instead of an opaque "latest". That filename change has a side effect:
+  action-gh-release's asset upload only *replaces* an existing asset of the same name for a
+  tag it's seen before — with the old fixed names, that naturally discarded last run's files
+  every time, but with real versioned names now differing run to run, old assets would just
+  pile up under the `dev-latest` release forever. Added a `Clear stale assets from the
+  dev-latest release` step (via `gh release view --json assets` + `gh release delete-asset`)
+  immediately before publishing, so the rolling release never holds more than the current
+  run's files. Not yet verified against a real workflow run (only reasoned through the
+  `action-gh-release`/`gh` CLI behavior) — worth confirming on the next push to `Dev`.
