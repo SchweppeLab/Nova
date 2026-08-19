@@ -20,12 +20,14 @@ jobs:
       - uses: actions/checkout@v4
 
       # Pinned to a specific commit, not a floating branch HEAD. This exact commit is confirmed
-      # (2026-08-19) to have Libs/NetCore/Net8Old holding the 8.0.6 packages that NovaIO.csproj
-      # pins exactly (see the [8.0.6] exact-match version there). The previous unpinned checkout
-      # of this repo's default branch is what silently drifted onto a newer package version with
-      # a different dependency tree and broke this build for ~2 months without anyone noticing
-      # (see docs/known-issues.md CI-1). Bump this SHA deliberately when NovaIO's pinned Thermo
-      # package version changes, not by accident.
+      # (2026-08-19) to have Libs/NetCore/Net8 holding the 8.0.37 packages that NovaIO.csproj
+      # pins exactly (see the [8.0.37] exact-match version there). The previous unpinned
+      # checkout of this repo's default branch is what silently drifted from the then-pinned
+      # 8.0.6 onto 8.0.37 with no version bump intended, breaking the build for ~2 months
+      # without anyone noticing (see docs/known-issues.md CI-1). 8.0.37 is now the deliberate,
+      # tested target (bumped 2026-08-19, alongside fixing HYG-1 -- see NovaIO.csproj's
+      # comment on the PackageReferences below). Bump this SHA deliberately when NovaIO's
+      # pinned Thermo package version changes, not by accident.
       - name: Checkout RawFileReader (pinned)
         uses: actions/checkout@v4
         with:
@@ -38,7 +40,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Point NuGet to the pinned RawFileReader packages
-        run: dotnet nuget add source ${{ github.workspace }}\RawFileReader\Libs\NetCore\Net8Old -n RawFileReaderPinned
+        run: dotnet nuget add source ${{ github.workspace }}\RawFileReader\Libs\NetCore\Net8 -n RawFileReaderPinned
 
       - name: Restore
         run: dotnet restore Nova\Nova.sln

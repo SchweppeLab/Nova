@@ -15,7 +15,7 @@ relevant). Don't rewrite history here; append.
 | Bugs | 7 | 1 | 0 | 6 |
 | Dead / Redundant Code | 3 | 0 | 0 | 3 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
-| Hygiene / Maintainability | 4 | 0 | 0 | 4 |
+| Hygiene / Maintainability | 4 | 1 | 0 | 3 |
 | Test Coverage | 2 | 0 | 0 | 2 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
@@ -59,7 +59,7 @@ generated.)_
 
 | ID | Summary | Severity | Status | Notes |
 |---|---|---|---|---|
-| [HYG-1](known-issues.md#hyg-1--stray-unused-usings-for-unrelated-packages) | Unused `using`s for ASP.NET Core / Newtonsoft.Json / VisualBasic / Tar across 4 files | Low | Not Started | Only resolves today via Thermo package's transitive deps |
+| [HYG-1](known-issues.md#hyg-1--stray-unused-usings-for-unrelated-packages) | Unused `using`s for ASP.NET Core / Newtonsoft.Json / VisualBasic / Tar across 5 files | Low | **Done** | 2026-08-19. Became load-bearing (not just hygiene) when the Thermo pin bumped to 8.0.37 — see CI-1 addendum. All 6 stray usings removed; verified against the failure it would've caused, then against the fix. |
 | [HYG-2](known-issues.md#hyg-2--testnovas-test-data-path-resolution-is-fragile) | `TestNova` locates test files via fragile parent-directory walking | Low | Not Started | |
 | [HYG-3](known-issues.md#hyg-3--inconsistent-visibility-internal-interfaces-public-implementations) | `IChromatogram`/`IChromatDataPoint` are `internal` while their implementations are `public` | Low | Not Started | |
 | [HYG-4](known-issues.md#hyg-4--scattered-todos-marking-acknowledged-incomplete-features) | Collected pre-existing TODOs (asymmetric isolation windows, `GetHeader()`, trailer mapping, MGF viability) | Low | Not Started | Informational; no single fix — track sub-items as they're addressed |
@@ -80,9 +80,9 @@ generated.)_
 2. **TEST-1 / TEST-2** next, or at least started — every fix below is safer to make once
    there's a test harness that isn't limited to one real integration file.
 3. **BUG-3, BUG-5** — trivial, low-risk, high-value fixes.
-4. **CLEAN-1, CLEAN-2, HYG-1** — pure cleanup, no behavior change, easy wins once tests exist
-   to confirm nothing shifted. HYG-1 in particular is no longer just hygiene — see CI-1;
-   fixing it removes the exact landmine that broke CI for two months.
+4. **CLEAN-1, CLEAN-2** — pure cleanup, no behavior change, easy wins once tests exist to
+   confirm nothing shifted. (~~HYG-1~~ done 2026-08-19, ahead of schedule — forced by the
+   Thermo package bump to 8.0.37, see CI-1.)
 5. **BUG-1 / BUG-2** together — requires a real decision on MGF's fate first (see
    known-issues.md); don't fix BUG-1 without resolving BUG-2, or you'll wire up a working
    dispatch path to a reader that still silently returns nothing.
@@ -138,3 +138,14 @@ it's the changelog for this document.
   bundle-assembly PowerShell logic end-to-end (output structurally matches the real
   `v1.0.0.18` release). YAML syntax-validated with PyYAML. Nothing pushed — local commit only,
   per standing instruction never to push.
+- 2026-08-19 — Repo owner pushed the CI-1 commit and watched it run: worked well. While
+  watching, asked whether CI should package current/latest RawFileReader instead of the
+  older 8.0.6 it was pinned to. Checked: upstream HEAD hadn't moved, so just repointing
+  `Net8Old` → `Net8` at the same pinned commit. Proved it wasn't safe to just flip the
+  version first — bumping `NovaIO.csproj`'s pin to `[8.0.37]` alone reproduced CI-1's exact
+  failure, confirming 8.0.37 dropped the dependency HYG-1's stray usings needed. **Fixed
+  HYG-1** (ahead of its scheduled turn) as a direct prerequisite, then confirmed clean
+  build + `dotnet test` 3/3 against 8.0.37. Updated all three workflows' pinned source
+  folder and the bundle-staging step (`Net8`'s readme is `Readme.md`, not `Net8Old`'s
+  `Readme.txt` — caught by rehearsing the copy, not assuming). Kept the exact-match
+  `[8.0.37]` brackets — that part of CI-1's fix was never specific to 8.0.6.

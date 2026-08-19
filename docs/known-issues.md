@@ -417,6 +417,23 @@ id="Nova" version="[matching dev version]">` (confirms MSBuild's command-line
 full bundle-assembly PowerShell logic was rehearsed end-to-end locally and its output
 structurally matches the real `v1.0.0.18` release, file for file.
 
+**Addendum 2026-08-19 — bumped the pinned target from `8.0.6` to `8.0.37`.** Repo owner asked
+whether CI should package the current/latest RawFileReader instead of the older `8.0.6` it
+had been pinned to. Checked first: `thermofisherlsms/RawFileReader`'s HEAD hadn't moved since
+the pin was set, still exactly `b0fdf86931971d00c4576d148ecac2bc6568ba79`, so no re-pinning
+needed, just pointing at `Libs/NetCore/Net8` (`8.0.37`) instead of `Libs/NetCore/Net8Old`
+(`8.0.6`) at that same commit. Proved this was safe rather than assuming it: bumped
+`NovaIO.csproj`'s exact-match pin to `[8.0.37]` and rebuilt *before* touching HYG-1 — this
+reproduced the identical CI-1 failure (same two files, same errors), confirming 8.0.37 really
+does drop the transitive dependency those stray usings needed. Fixed HYG-1 (see its entry
+below) and rebuilt again: clean build, `dotnet test` 3/3 passing against `8.0.37`. Updated all
+three workflows' pinned source folder from `Net8Old` to `Net8`, including the bundle-staging
+copy step, which needed `Readme.md` there instead of `Net8Old`'s `Readme.txt` (different
+filename, caught by rehearsing the copy against the real folder rather than assuming
+parity). `NovaIO.csproj`'s exact-match brackets (`[8.0.37]`, not a bare version) stayed —
+that part of CI-1's original fix wasn't specific to `8.0.6`, it's the general defense against
+this exact drift happening again with whatever version is pinned.
+
 ---
 
 ## Hygiene / Maintainability
@@ -437,8 +454,15 @@ is fragile: a Thermo package update that drops or changes those transitive depen
 would break the build with confusing "type or namespace not found" errors that have nothing
 to do with the actual change being made.
 
-**Suggested fix:** delete all of the above `using` statements; verify `dotnet build` still
-succeeds afterward (it should — none are referenced).
+**Fixed 2026-08-19.** All six stray `using`s deleted — the four listed above, plus one this
+entry's original catalog had actually missed: `NovaIO/Io/Read/MzXMLReader.cs`'s
+`Microsoft.AspNetCore.Mvc` (visible all along in the CI-1 failure logs, just not caught when
+this list was first written). Not a routine cleanup pass — this became load-bearing the
+moment CI-1 bumped the pinned Thermo package to `8.0.37` (see CI-1's addendum below), which
+dropped the exact transitive dependency these usings needed. Verified directly, in order:
+rebuilt against `8.0.37` first to reproduce the original CI failure exactly (same files, same
+errors), then removed the usings and confirmed both a clean build and a full `dotnet test`
+pass (3/3) against `8.0.37`.
 
 ---
 

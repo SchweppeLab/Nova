@@ -41,12 +41,14 @@
 
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
-    <!-- Exact-match brackets, not a bare "8.0.6": a bare version string is a NuGet *minimum*
-         bound ([8.0.6,)), not a pin. That's exactly how CI silently drifted onto 8.0.37 (which
-         dropped this package's Microsoft.AspNetCore.Mvc.NewtonsoftJson dependency, breaking the
-         build) even though this line always said "8.0.6". See docs/known-issues.md CI-1/BUG-7. -->
-    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="[8.0.6]" />
-    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="[8.0.6]" />
+    <!-- Exact-match brackets, not a bare version number: a bare version string is a NuGet
+         *minimum* bound ([X,)), not a pin. That's exactly how CI silently drifted from 8.0.6
+         onto 8.0.37 originally (see docs/known-issues.md CI-1/BUG-7); 8.0.37 is now the
+         deliberate, tested target (bumped 2026-08-19, after fixing HYG-1: 8.0.37 dropped the
+         Microsoft.AspNetCore.Mvc.NewtonsoftJson dependency this package's stray unused usings
+         had been quietly relying on to compile). Keep these brackets when bumping again. -->
+    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="[8.0.37]" />
+    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="[8.0.37]" />
   </ItemGroup>
 
   <ItemGroup>

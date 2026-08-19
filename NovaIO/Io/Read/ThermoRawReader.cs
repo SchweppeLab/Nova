@@ -21,7 +21,6 @@ using ThermoFisher.CommonCore.RawFileReader;
 
 using Nova.Data;
 using Nova.Io.Meta;
-using System.Formats.Tar;
 using System.Globalization;
 
 

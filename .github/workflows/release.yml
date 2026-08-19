@@ -46,7 +46,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Point NuGet to the pinned RawFileReader packages
-        run: dotnet nuget add source ${{ github.workspace }}\RawFileReader\Libs\NetCore\Net8Old -n RawFileReaderPinned
+        run: dotnet nuget add source ${{ github.workspace }}\RawFileReader\Libs\NetCore\Net8 -n RawFileReaderPinned
 
       - name: Restore
         run: dotnet restore Nova\Nova.sln
@@ -105,8 +105,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path thermo-bundle | Out-Null
-          Copy-Item RawFileReader\Libs\NetCore\Net8Old\*.nupkg thermo-bundle\
-          Copy-Item RawFileReader\Libs\NetCore\Net8Old\Readme.txt thermo-bundle\
+          Copy-Item RawFileReader\Libs\NetCore\Net8\*.nupkg thermo-bundle\
+          Copy-Item RawFileReader\Libs\NetCore\Net8\Readme.md thermo-bundle\
           Copy-Item RawFileReader\License.doc thermo-bundle\
           Copy-Item RawFileReader\ReleaseNotes.docx thermo-bundle\
 

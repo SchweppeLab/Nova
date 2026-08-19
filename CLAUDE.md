@@ -77,9 +77,14 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
   The old `dotnet.yml` checked that repo out at a floating, unpinned HEAD instead, which is
   exactly how it silently drifted onto a Thermo package version with a different transitive
   dependency tree and broke CI for ~2 months without anyone noticing (see CI-1). To build
-  locally: `dotnet nuget add source <path-to-that-pinned-checkout>\Libs\NetCore\Net8Old`
-  (that specific subfolder, not `Net8` — it holds the `8.0.6` build `NovaIO.csproj` pins
-  exactly via `[8.0.6]` version brackets, not a floating minimum).
+  locally: `dotnet nuget add source <path-to-that-pinned-checkout>\Libs\NetCore\Net8`
+  (that specific subfolder — it holds the `8.0.37` build `NovaIO.csproj` pins exactly via
+  `[8.0.37]` version brackets, not a floating minimum). `8.0.37` is a deliberate target, not
+  an accident: bumped 2026-08-19 from the original `8.0.6`, after first confirming that jump
+  requires HYG-1 to be fixed (8.0.37 dropped a transitive dependency HYG-1's stray unused
+  `using`s were quietly relying on — verified by bumping locally *before* fixing HYG-1 and
+  watching it fail with the exact same errors that broke CI, then fixing HYG-1 and confirming
+  both compile and all 3 tests pass against 8.0.37).
 
 ## CI/CD
 
@@ -150,11 +155,8 @@ already been fixed vs. still open. When you fix something from that list, update
   empty spectrum regardless of file contents.
 - `MzMLWriter.Write` hardcodes a Windows path (`D:\Data\mzML\mzML1.1.0.utf8.xsd`) for
   self-validation — this only works on the original author's machine.
-- Several files carry unused `using`s for unrelated packages (`Microsoft.AspNetCore.*`,
-  `Newtonsoft.Json`, `Microsoft.VisualBasic`, `System.Formats.Tar`) that only resolve
-  because they're transitively pulled in by the Thermo NuGet packages — **this is not
-  theoretical**: it's the confirmed, exact cause of CI being broken on `main` for ~2 months
-  (see CI-1/HYG-1). It's currently masked again by the version pin described under "Build &
-  Test" above, but the pin is a mitigation, not a fix — the stray `using`s are still there
-  and will break again the moment that pinned dependency tree ever changes. Fix HYG-1 properly
-  (delete the unused `using`s) rather than treating the pin as the actual solution.
+- HYG-1 (stray unused `using`s riding on the Thermo package's transitive dependencies) is
+  **fixed** (2026-08-19, alongside the `8.0.37` bump above) — don't reintroduce unused
+  `using`s for packages not referenced in the csproj; this exact pattern is what broke CI for
+  ~2 months (see CI-1/HYG-1 in `docs/known-issues.md`) and it's a landmine specifically
+  because it compiles fine right up until the transitive dependency tree changes.

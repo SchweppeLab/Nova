@@ -20,7 +20,6 @@ using Nova.Io.Write;
 using Nova.Io.Read;
 using System.Diagnostics;
 using System.Collections.Specialized;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 //using SpectrumNew2 = Nova.Data.TSpectrum<Nova.Data.DataPoint>;
 //using SpectrumNewEx2 = Nova.Data.TSpectrum<Nova.Data.DataPointEx>;

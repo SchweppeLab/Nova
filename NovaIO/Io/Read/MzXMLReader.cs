@@ -19,7 +19,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Buffers.Binary;
 using System.Xml;
-using Microsoft.AspNetCore.Mvc;
 using Nova.Data;
 using ThermoFisher.CommonCore.Data;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;

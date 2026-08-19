@@ -18,7 +18,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using Microsoft.VisualBasic;
 using System.Xml.Linq;
 using Nova.Data;
 using ThermoFisher.CommonCore.Data.Business;
