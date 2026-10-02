@@ -238,5 +238,70 @@ namespace TestNova
       Assert.AreEqual(0, spec.ScanNumber);
       Assert.AreEqual(0, spec.Count);
     }
+
+    // ---- BUG-10: a failed open must reach the caller, not become an empty spectrum ----
+    //
+    // SpectrumFileReaderFactory.GetReader used to call Open() and discard the result, handing
+    // back a reader that returned a 0-peak Spectrum for every scan -- indistinguishable from
+    // "that scan isn't in this file". That is how BUG-9's 2 GiB ceiling reached downstream
+    // software as "Scan N was not found" instead of as a read error.
+
+    [TestMethod]
+    public void MzML_MalformedFile_FactoryThrowsInsteadOfReturningDudReader()
+    {
+      testContext.WriteLine("Regression test for BUG-10: SpectrumFileReaderFactory.GetReader must throw SpectrumFileOpenException on an mzML it cannot index, rather than returning a reader that yields 0 peaks for every scan.");
+      var ex = Assert.ThrowsException<SpectrumFileOpenException>(() =>
+        SpectrumFileReaderFactory.GetReader(dataFilePathMzMLMalformed, MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3));
+
+      Assert.AreEqual(dataFilePathMzMLMalformed, ex.FileName);
+      StringAssert.Contains(ex.Message, "No index found",
+        "the exception should carry the reader's own reason, not just a generic failure");
+      testContext.WriteLine("  message: " + ex.Message);
+    }
+
+    [TestMethod]
+    public void MzXML_MalformedFile_FactoryThrowsInsteadOfReturningDudReader()
+    {
+      testContext.WriteLine("Regression test for BUG-10: the mzXML counterpart -- GetReader must throw SpectrumFileOpenException rather than returning a reader that yields 0 peaks for every scan.");
+      var ex = Assert.ThrowsException<SpectrumFileOpenException>(() =>
+        SpectrumFileReaderFactory.GetReader(dataFilePathMzXMLMalformed, MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3));
+
+      Assert.AreEqual(dataFilePathMzXMLMalformed, ex.FileName);
+      StringAssert.Contains(ex.Message, "No index found",
+        "the exception should carry the reader's own reason, not just a generic failure");
+      testContext.WriteLine("  message: " + ex.Message);
+    }
+
+    [TestMethod]
+    public void MzML_GoodFile_FactoryStillReturnsWorkingReader()
+    {
+      testContext.WriteLine("Guards the BUG-10 fix against over-reach: GetReader must still return a working, already-opened reader for a file that opens cleanly.");
+      ISpectrumFileReader reader = SpectrumFileReaderFactory.GetReader(
+        dataFilePathMzML, MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3);
+
+      Assert.AreEqual(4, reader.ScanCount);
+      Spectrum spec = reader.GetSpectrum(1, true);
+      Assert.AreEqual(1, spec.ScanNumber);
+      Assert.IsTrue(spec.Count > 0);
+      reader.Close();
+    }
+
+    [TestMethod]
+    public void FileReader_SwitchingToAnUnreadableFile_Throws()
+    {
+      // The same discarded-bool defect existed on FileReader's Read* overloads: passing a new
+      // file name re-opens, and that open's result was dropped on the floor, so a failed switch
+      // silently read on against a reader that had never opened.
+      testContext.WriteLine("Regression test for BUG-10 on FileReader: after reading a good file, switching to an unreadable one must throw SpectrumFileOpenException rather than quietly returning an empty spectrum.");
+
+      FileReader reader = new FileReader();
+      Spectrum good = reader.ReadSpectrum(dataFilePathMzML, 1);
+      Assert.AreEqual(1, good.ScanNumber, "precondition: the good file should read normally first");
+
+      var ex = Assert.ThrowsException<SpectrumFileOpenException>(() =>
+        reader.ReadSpectrum(dataFilePathMzMLMalformed, 1));
+      Assert.AreEqual(dataFilePathMzMLMalformed, ex.FileName);
+      testContext.WriteLine("  message: " + ex.Message);
+    }
   }
 }

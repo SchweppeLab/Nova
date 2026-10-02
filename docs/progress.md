@@ -13,19 +13,21 @@ verification) and the complete session-by-session log, see [`history.md`](histor
 | Category | Total | Done | In Progress | Not Started |
 |---|---|---|---|---|
 | Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
-| Bugs | 8 | 8 | 0 | 0 |
+| Bugs | 11 | 10 | 0 | 1 |
 | Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
 | Hygiene / Maintainability | 5 | 5 | 0 | 0 |
-| Test Coverage | 3 | 3 | 0 | 0 |
+| Test Coverage | 4 | 4 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
 generated.)_
 
-**Everything from the initial 2026-08-18 review pass is Done as of 2026-08-19.** See
-[`history.md`](history.md) for the full write-up of each item and the complete session log.
-The tables below stay as a quick per-ID reference; new work should add new rows here (and a
-matching entry in `known-issues.md`) rather than reopening the archived ones.
+**Everything from the initial 2026-08-18 review pass is Done as of 2026-08-19**, and the
+2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) is Done as well. **One item is open:
+BUG-11**, logged while fixing BUG-10 — see [`known-issues.md`](known-issues.md). See
+[`history.md`](history.md) for the full write-up of each resolved item and the complete
+session log. The tables below stay as a quick per-ID reference; new work should add new rows
+here (and a matching entry in `known-issues.md`) rather than reopening the archived ones.
 
 ---
 
@@ -47,6 +49,9 @@ matching entry in `known-issues.md`) rather than reopening the archived ones.
 | [BUG-6](history.md#bug-6--pipeioread-doesnt-handle-shortpartial-stream-reads) | `PipeIO.Read` assumes `Stream.Read` fills the buffer in one call | Medium | **Done** | 2026-08-19. |
 | [BUG-7](history.md#bug-7--gitattributes-doesnt-actually-protect-line-ending-sensitive-test-fixtures) | `.gitattributes` doesn't actually stop Git from corrupting mzML/mzXML fixture byte offsets on Windows checkout | Medium | **Done** | 2026-08-19. |
 | [BUG-8](history.md#bug-8--filereaderopenspectrumfile-discards-the-underlying-readers-open-result) | `FileReader.OpenSpectrumFile` always returns `true`, ignoring whether the underlying reader's `Open()` actually succeeded | Medium | **Done** | 2026-08-19. |
+| [BUG-9](history.md#bug-9--mzmlmzxml-byte-offsets-parsed-and-stored-as-int-so-no-file-over-2-gib-could-be-read) | mzML/mzXML byte offsets parsed/stored as `int`, so no file over 2 GiB could be read | High | **Done** | 2026-10-02. Field report. All byte positions now `long` via `ByteOffset.Parse`. |
+| [BUG-10](history.md#bug-10--a-failed-open-was-swallowed-so-an-unreadable-file-was-indistinguishable-from-a-missing-scan) | `GetReader` and `FileReader`'s `Read*` overloads discard the open result, yielding a reader that returns 0 peaks for every scan | High | **Done** | 2026-10-02. New `SpectrumFileOpenException`; no change to `ISpectrumFileReader`. |
+| [BUG-11](known-issues.md#bug-11--mzmlreaderclosemzxmlreaderclose-are-no-ops-and-never-release-the-file-handle) | `Close()` is a no-op in both XML readers; `XmlFS` is never disposed, leaking a handle per file switch | Medium | **Not Started** | Found 2026-10-02 while fixing BUG-10. Needs a downstream-impact check first. |
 
 ## Dead / Redundant Code
 
@@ -79,6 +84,7 @@ matching entry in `known-issues.md`) rather than reopening the archived ones.
 | [TEST-1](history.md#test-1--no-unit-tests-for-the-nova-core-library) | No unit tests for `Nova` core (`GetMz`, serialization, Pipes IPC) | Medium | **Done** | 2026-08-19. |
 | [TEST-2](history.md#test-2--no-unit-tests-for-novaio-parsing-logic-in-isolation) | No unit tests for `NovaIO` parsing logic against synthetic fixtures | Medium | **Done** | 2026-08-19. Directly caught BUG-3 live and surfaced BUG-8. |
 | [TEST-3](history.md#test-3--test-output-doesnt-say-what-each-test-actually-verified) | Test output doesn't say what each test actually verified | Low | **Done** | 2026-08-19. |
+| [TEST-4](history.md#test-4--no-coverage-for-files-larger-than-2-gib) | No coverage for files larger than 2 GiB — why BUG-9 went unnoticed | Medium | **Done** | 2026-10-02. Sparse fixtures at 2.5/4.5 GiB, generated at test time, 0 bytes on disk. |
 
 ---
 
@@ -87,3 +93,10 @@ matching entry in `known-issues.md`) rather than reopening the archived ones.
 Append a line here each time you complete a work session on open items. The full log through
 2026-08-19 (everything above) has been moved to [`history.md`](history.md#full-session-log)
 to keep this file focused on whatever's currently in progress.
+
+- 2026-10-02 — **BUG-9, BUG-10, TEST-4 done** from a field report of mzML files over 2 GiB
+  failing to read. Byte offsets widened to `long` throughout `MzMLReader`/`MzXMLReader`;
+  failed opens now reach the caller as `SpectrumFileOpenException` instead of a console
+  print. Verified against sparse 2.5/4.5 GiB fixtures, a negative control, and a real
+  3.18 GiB Astral mzML. Tests 37 → 45. Logged **BUG-11** (open). No version bump. See
+  [`history.md`](history.md) for the full write-up.

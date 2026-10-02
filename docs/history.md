@@ -262,6 +262,127 @@ asserting the correct `false`. Verified: `FileReader`'s constructor overload (wh
 `FileNotFoundException` if `OpenSpectrumFile` returns `false`) now actually fires instead of
 being dead code. Full solution build clean, `dotnet test` 28/28 passing.
 
+### BUG-9 — mzML/mzXML byte offsets parsed and stored as `int`, so no file over 2 GiB could be read
+**Severity:** High · **Status: Done 2026-10-02**
+**Location:** `NovaIO/Io/Read/MzMLReader.cs`, `NovaIO/Io/Read/MzXMLReader.cs`
+
+Reported from the field: `Nova.Io.Read.MzMLReader` failed to open *any* mzML larger than
+2 GiB (2,147,483,647 bytes), printing `Failed to open Value was either too large or too small
+for an Int32.` and then — because the failure was discarded, see BUG-10 — handing back a
+reader whose every `GetSpectrum` call returned a `Spectrum` with zero data points. Downstream
+software (Scops's spectrum viewer) surfaced this as "Scan N was not found in &lt;file&gt;" for
+every PSM, even though the scans existed. Modern Orbitrap runs routinely produce 2-3 GB mzML,
+so this affected real data. Reproduced across 20 indexed mzML files from pwiz 3.0.24326: all
+12 files under 2 GiB read every scan correctly; all 8 files over 2 GiB failed, with an exact
+boundary (largest working `indexListOffset` 2,024,931,947; smallest failing 2,344,714,782).
+
+The reporter's first hypothesis was the right one, and it was the *only* thing that fired —
+the open blew up before any per-spectrum offset was ever parsed:
+
+- `MzMLReader.Open` parsed `<indexListOffset>` with `int.Parse` into an `int` local.
+- Both readers stored their whole offset table as `List<int>` (`scanIndex`, and `chrIndex`
+  for chromatograms), filled via `Convert.ToInt32(XmlFile.ReadElementContentAsString())`.
+- `MzXMLReader` had the identical bug on `<indexOffset>` — same index design, same ceiling.
+
+**Mechanism of the silent-empty-spectra symptom:** `Open` caught, printed, and returned
+`false`, leaving `scanIndex` empty and `lastScanNumber` at 0. Every later `GetSpectrum(n)` hit
+the `CurrentScanNumber > lastScanNumber` guard and returned `new Spectrum(0)` — identical to
+what a genuinely absent scan returns.
+
+**Fix:** all file byte positions are now `long` end to end. `scanIndex`/`chrIndex` became
+`List<long>`; every offset is parsed through a new shared helper,
+[`NovaIO/Io/Read/ByteOffset.cs`](../NovaIO/Io/Read/ByteOffset.cs), which uses `long.Parse`
+under `CultureInfo.InvariantCulture`. `FileStream.Seek` already took `long`, so every seek
+site was fixed for free. Scan numbers deliberately stay `int` — only byte positions needed
+widening. Note that a *uint* would not have fixed this; it only moves the cliff to 4 GiB,
+which is why the test suite covers 2^32 as well as 2^31.
+
+Two incidental cleanups fell out of the same lines: `offset` was being reused as both the byte
+position and the *buffer* offset argument to `XmlFS.Read(bytes, offset, 200)` (harmless but
+confusing, and it stopped compiling once the type widened), and the 200-byte tail read now
+decodes only the bytes `Stream.Read` actually returned rather than the whole buffer. The
+invariant-culture change is not cosmetic either: this repo shipped a culture-dependent
+number-parsing bug once before (commit `b486948`).
+
+**Other readers checked, per the report's request:**
+- `MGFReader` — *not* affected. It indexes by **line number** into an in-memory `string[]`,
+  not byte offsets, so `int` is correct there. It does carry a different large-file limit:
+  `File.ReadAllLines` means a multi-GB MGF fails on memory, not on `Int32`. That is a
+  pre-existing, already-documented design tradeoff (see the `lines` field comment in
+  `MGFReader.cs`), not part of this bug; left alone deliberately.
+- `ThermoRawReader` — no byte offsets at all, goes through Thermo's API. Nothing to do.
+- `MzMLWriter` — already correct. It writes offsets from `XmlFS.Position`, which is a `long`.
+  Nova could already *write* a >2 GiB indexed mzML that it could not read back.
+
+**Verification:**
+- A sparse-file test fixture generated at test time (`Test/LargeMzMLFixture.cs`), giving real
+  2.5 GiB and 4.5 GiB indexed mzML files at ~0 bytes on disk and ~20 ms per test. See TEST-4.
+- **Negative control:** reverting only `ByteOffset.Parse` to `int.Parse` makes 3 of the 4 new
+  large-file tests fail with the exact reported message, *"Value was either too large or too
+  small for an Int32."* — confirming the new tests genuinely reproduce the bug rather than
+  passing vacuously. Restored afterwards.
+- **Real file:** `D:\Data\Astral\20250425_MH_Hela100ng_DIDDA_30m_06.mono.mzML`, 3,416,549,519
+  bytes (3.18 GiB), 332,687 spectra, `indexListOffset` 3,387,525,212. 206,605 spectra sit
+  below 2^31 and 126,082 at or above it. Opens in 380 ms; scans 206605 (offset 2,147,475,087)
+  and 206606 (offset 2,147,487,376) — the exact pair straddling the boundary — both read back
+  with peak arrays matching an independent decode of the same byte offset to within 1e-9, as
+  do the first scan, a middle scan, and the last scan (offset 3,382,833,004). 25 consecutive
+  sequential reads across the boundary returned zero empty spectra. The file's chromatogram
+  index (`TIC`, `Pump Pressure 1/2`, all three offsets past 2^31) also reads correctly,
+  exercising `chrIndex`. This file is local-only and is deliberately **not** referenced by any
+  committed test.
+- Full solution build clean (0 new warnings), `dotnet test` 45/45 passing.
+
+### BUG-10 — A failed open was swallowed, so an unreadable file was indistinguishable from a missing scan
+**Severity:** High · **Status: Done 2026-10-02**
+**Location:** `NovaIO/Io/Read/SpectrumFileReaderFactory.cs`, `NovaIO/Io/Read/FileReader.cs`,
+all four format readers
+
+The second half of the same field report. BUG-9 made files unreadable; this is what made it
+*invisible*. `SpectrumFileReaderFactory.GetReader` called `reader.Open(file)` and **discarded
+the `bool`**, returning the reader regardless — so a caller received something that looked
+fine and yielded an empty `Spectrum` for every scan. The readers, meanwhile, wrote the real
+reason to `Console.WriteLine` and dropped it.
+
+This is the same defect BUG-8 fixed in `FileReader.OpenSpectrumFile` back in August; the
+factory path simply kept it. Worse, auditing for it turned up **two more** instances: all
+three of `FileReader`'s `ReadChromatogram`/`ReadSpectrum`/`ReadSpectrumEx` overloads call
+`OpenSpectrumFile(fileName)` when handed a new file name and discard that result too, so a
+failed file switch silently read on against a reader that had never opened.
+
+**Fix:** a new public `SpectrumFileOpenException` (deriving from `IOException`, carrying the
+`FileName`) and an **internal** `IOpenFailureDetail` interface, both in
+[`NovaIO/Io/Read/OpenFailure.cs`](../NovaIO/Io/Read/OpenFailure.cs). The four readers
+implement `IOpenFailureDetail` *explicitly* and record their failure reason instead of
+printing it; `GetReader` and the three `FileReader.Read*` overloads check the open result and
+throw with that reason attached.
+
+Deliberate design choices:
+- `ISpectrumFileReader` keeps **exactly** the shape it has always had, and `ThermoRawReader`
+  (the one public reader) gains **no new public member** — hence the internal interface and
+  explicit implementation. `Open` still returns `bool`; the existing BUG-8 tests that assert
+  `OpenSpectrumFile` returns `false` are unchanged and still pass.
+- The rethrow added to `FileReader`'s three catch-alls is `catch (SpectrumFileOpenException)`,
+  not `catch (IOException)`. Widening it to `IOException` would also start propagating the
+  `FileNotFoundException` that `CheckFile` raises, which those methods have always swallowed —
+  an unrequested behavior change. The narrow type keeps this surgical.
+- `ThermoRawReader.Open` gained no `try`/`catch`. Unlike the XML readers it has never
+  swallowed exceptions from the Thermo API, and those keep propagating as they always have.
+
+**One real leak found and fixed as a direct consequence:** making a failed open throw means
+the caller never receives the reader and so can never call `Close()` on it. The XML readers
+create their `FileStream` before the failure point, so the handle was being orphaned. Both
+readers now dispose it on the failure path. This surfaced concretely — a scratch harness
+couldn't delete its own temp file afterwards. It also exposed **BUG-11** (`Close()` is a
+no-op in both XML readers and never releases `XmlFS` at all), which is left **open**; see
+[`known-issues.md`](known-issues.md).
+
+**Verification:** 5 new tests in `Test/TestNovaIOFixtures.cs` covering both readers' failure
+paths, the `FileReader` file-switch path, and a guard that a *good* file still returns a
+working reader. Against the real 3.18 GiB Astral file, an unindexed mzML now raises
+`SpectrumFileOpenException: Failed to open '<path>': ...` instead of printing and returning a
+dud. Full solution build clean, `dotnet test` 45/45 passing.
+
 ---
 
 ## Dead / Redundant Code
@@ -560,6 +681,42 @@ logger drops them for passing tests, but `--logger "console;verbosity=detailed"`
 under a `TestContext Messages:` block — added that flag (alongside the existing
 `--verbosity minimal`) to the `Test` step in all three workflows.
 
+### TEST-4 — No coverage for files larger than 2 GiB
+**Severity:** Medium · **Status: Done 2026-10-02**
+**Location:** `Test/LargeMzMLFixture.cs`, `Test/TestLargeFiles.cs`
+
+BUG-9 went unnoticed because nothing in the suite read a file anywhere near 2 GiB — every
+fixture in `Test/Files/` is a few MB at most. The obvious fix (check in a big file) is a
+non-starter: the repo owner's standing rule is that **no additional mzML of any size goes
+into the repo**, and a 2.5 GB fixture has no business in Git regardless.
+
+**Fix:** generate the fixture at test time as a **sparse file**. `LargeMzMLFixture` marks the
+file sparse (NTFS `FSCTL_SET_SPARSE`) *before* writing anything, then `SetLength`s it to
+2.5 or 4.5 GiB and writes a few KB of real XML at scattered positions. The multi-gigabyte
+span in between is a hole: it reads back as zeros without ever being written or occupying
+disk. This works because Nova never parses these files as one document — `Open()` seeks
+straight to the index and `ParseSpectrum()` seeks straight to one spectrum — so a file that
+is mostly hole exercises exactly the code path under test. Measured: **0 bytes allocated on
+disk**, 8-22 ms per test, whole suite still ~390 ms. Files go to the OS temp directory and
+are deleted in `Dispose`; nothing lands in `Test/Files/`.
+
+**The safety gate is the important part.** If the sparse flag ever fails to apply (non-NTFS
+temp volume, a future runner image change, a P/Invoke that fails), then `SetLength` followed
+by a write near the end makes NTFS zero-fill the gap *for real* — gigabytes physically
+written on a CI runner with limited free space, failing for a reason that looks nothing like
+its cause. So `TryCreate` verifies the `SparseFile` attribute actually took and bails out
+**before** writing past the hole, and the tests report `Inconclusive` with a readable reason
+rather than proceeding. **Do not remove that check.** All three .NET workflows run on
+`windows-2022`, so NTFS is available in CI; the non-Windows path skips cleanly.
+
+**Why both 2.5 and 4.5 GiB:** an offset stored as *unsigned* 32-bit would pass between 2 and
+4 GiB and still fail past it, so only the larger fixture distinguishes a real 64-bit fix from
+a half-fix. Note the real Astral verification file is 3.18 GiB and so could not have caught
+that on its own.
+
+4 new tests, and the negative control described under BUG-9 confirms 3 of them fail against
+the unfixed parse with the exact message from the field report.
+
 ---
 
 ## Full Session Log
@@ -669,3 +826,17 @@ Chronological record of every work session on this list, preserved verbatim from
   the severity guide, a one-line resolved-item index (for ID numbering continuity), and the
   contributing-instructions footer. Slimmed `progress.md` down to the summary table and a
   pointer here. No code changed — documentation-only reorganization.
+- 2026-10-02 — **BUG-9, BUG-10 and TEST-4 done**, from a field report that mzML files over
+  2 GiB could not be read. Confirmed the reporter's diagnosis exactly: `int.Parse`/
+  `Convert.ToInt32` on byte offsets in `MzMLReader`/`MzXMLReader`. Widened every file byte
+  position to `long` behind a new shared `ByteOffset.Parse` (invariant culture); made
+  `SpectrumFileReaderFactory.GetReader` and `FileReader`'s three `Read*` overloads stop
+  discarding the open result, throwing a new `SpectrumFileOpenException` instead, without
+  changing `ISpectrumFileReader` or adding any public member to `ThermoRawReader`. Verified
+  three ways: sparse-file fixtures at 2.5 and 4.5 GiB (0 bytes on disk, ~20 ms each), a
+  negative control proving the new tests fail against the unfixed parse with the exact
+  reported error text, and a real 3.18 GiB / 332,687-spectrum Astral mzML read end to end
+  with peaks matching an independent decode. Found and fixed an orphaned `FileStream` on the
+  new failure path; found and logged **BUG-11** (`Close()` is a no-op in both XML readers),
+  left open. Tests 37 → 45, all passing; build clean, no new warnings. No version bump —
+  `1.1.0` had not shipped as a non-prerelease release.

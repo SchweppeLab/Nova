@@ -68,7 +68,9 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
   `Test/Files/` (mzML, mzXML, RAW, and MGF versions of the same acquisition — scan counts and
   MS-level tallies) and unit-style tests against small synthetic fixtures for
   `Nova` core (`TestSpectrum.cs`, `TestPipes.cs`) and `NovaIO` parsing logic in isolation
-  (`TestNovaIOFixtures.cs`, `TestMgf.cs`) — added as TEST-1/TEST-2, see `docs/history.md`.
+  (`TestNovaIOFixtures.cs`, `TestMgf.cs`) — added as TEST-1/TEST-2, see `docs/history.md` — plus
+  `TestLargeFiles.cs`, which generates multi-gigabyte sparse mzML fixtures at test time (TEST-4;
+  see the gotcha below before touching it). 45 tests as of 2026-10-02.
   (`Test/Files/*.mzML`/`.mzXML` used to get corrupted by Git on Windows checkout regardless
   of `core.autocrlf` — fixed as BUG-7, `.gitattributes` now marks them `-text`. If you ever
   see `XmlException: Data at the root level is invalid` reading these files again, that fix
@@ -146,13 +148,38 @@ version cycle; no workflow file needs editing to match.
 ## Before You Touch This Repo
 
 Read `docs/known-issues.md` for currently-open bugs, dead/redundant code, and hygiene
-problems, and `docs/progress.md` for a per-item status table. Both are lean by design — the
+problems (BUG-11 is open as of 2026-10-02), and `docs/progress.md` for a per-item status table. Both are lean by design — the
 full write-up of everything already resolved (background, decision, fix, verification, and
 the complete session log) lives in `docs/history.md`, not in the working docs. When you fix
 something from `known-issues.md`, update `docs/progress.md` in the same change (status + a
 one-line note), then move the full write-up into `docs/history.md` once it's done.
 
 ## Known Gotchas (see docs/history.md for full detail)
+
+- **File byte offsets are `long`, and must stay that way.** mzML/mzXML offsets
+  (`indexListOffset`, `indexOffset`, and every per-spectrum/chromatogram `<offset>`) are parsed
+  through [`NovaIO/Io/Read/ByteOffset.cs`](NovaIO/Io/Read/ByteOffset.cs) and stored in
+  `List<long>`. Narrowing any of this back to `int` reintroduces BUG-9 (fixed 2026-10-02): every
+  mzML over 2 GiB became unreadable, and because the open failure was swallowed, every scan came
+  back with zero peaks rather than an error. `uint` is not a fix either — it just moves the cliff
+  to 4 GiB, which is why `Test/TestLargeFiles.cs` covers 2^32 as well as 2^31. Scan numbers stay
+  `int` deliberately; only byte positions need the wider type.
+- **A failed `Open` must reach the caller.** `SpectrumFileReaderFactory.GetReader` and
+  `FileReader`'s `ReadSpectrum`/`ReadSpectrumEx`/`ReadChromatogram` overloads throw
+  `SpectrumFileOpenException` when a file can't be opened or indexed (BUG-10, fixed 2026-10-02).
+  Don't go back to discarding `Open`'s `bool` — a reader that opened unsuccessfully returns an
+  empty `Spectrum` for every scan, which is indistinguishable from "that scan isn't in this file"
+  and is exactly how BUG-9 reached downstream software as "Scan N was not found". The readers
+  record their failure reason via the internal `IOpenFailureDetail` rather than
+  `Console.WriteLine`-ing it; `ISpectrumFileReader` and `ThermoRawReader`'s public surface are
+  deliberately unchanged by this.
+- **The large-file tests generate a sparse fixture; don't "simplify" the safety gate away.**
+  `Test/LargeMzMLFixture.cs` builds real 2.5 GiB and 4.5 GiB mzML files in the OS temp directory
+  at test time, marked sparse so they cost ~0 bytes on disk and ~20 ms. It verifies the
+  `SparseFile` attribute actually applied *before* writing anything past the hole, and reports
+  `Inconclusive` if not. Without that check, a failed sparse flag makes NTFS zero-fill gigabytes
+  for real on a CI runner. No mzML of any size is checked into this repo — that's a standing
+  rule, and these fixtures exist precisely so it stays that way.
 
 - MGF support (BUG-1/BUG-2) is **fixed** (2026-08-19) — `FileReader.OpenSpectrumFile` and
   `SpectrumFileReaderFactory.GetReader` both dispatch `.mgf` to a real `MGFReader`, which

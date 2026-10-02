@@ -26,13 +26,22 @@ using System.Globalization;
 
 namespace Nova.Io.Read
 {
-  public class ThermoRawReader : ISpectrumFileReader
+  public class ThermoRawReader : ISpectrumFileReader, IOpenFailureDetail
   {
 
     /// <summary>
     /// A basic spectrum type reading only mz and intensity values for each data point.
     /// </summary>
     private Spectrum spectrum;
+
+    /// <summary>
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded. Implemented
+    /// explicitly against the internal <see cref="IOpenFailureDetail"/> so this public class gains no
+    /// new public member (BUG-10).
+    /// </summary>
+    private string? openFailure;
+
+    string? IOpenFailureDetail.OpenFailure => openFailure;
 
     private Chromatogram chromatogram;
 
@@ -330,8 +339,18 @@ namespace Nova.Io.Read
     /// <returns>true if file opened successfully, false otherwise.</returns>
     public bool Open(string fileName)
     {
+      openFailure = null;
       RawFile = RawFileReaderAdapter.FileFactory(fileName);
-      if (!RawFile.IsOpen) return false;
+      if (!RawFile.IsOpen)
+      {
+        //Carried out to the caller as a SpectrumFileOpenException rather than being discarded (BUG-10).
+        //No try/catch here deliberately: unlike the XML readers, this one has never swallowed
+        //exceptions from the Thermo API, and they should keep propagating as they always have.
+        openFailure = RawFile.FileError?.ErrorMessage.IsNullOrEmpty() == false
+          ? RawFile.FileError.ErrorMessage
+          : "RawFileReader could not open the file.";
+        return false;
+      }
       RawFile.SelectInstrument(Device.MS, 1);
       CurrentScanNumber = 0;
       LastScan = lastScanNumber = RawFile.RunHeaderEx.LastSpectrum;

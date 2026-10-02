@@ -30,12 +30,20 @@ namespace Nova.Io.Read
   /// line-oriented format with no built-in random-access index (unlike mzML/mzXML), and every
   /// spectrum in it is inherently an MS/MS (MsLevel 2) spectrum -- there is no MS1 concept.
   /// </summary>
-  internal class MGFReader : ISpectrumFileReader
+  internal class MGFReader : ISpectrumFileReader, IOpenFailureDetail
   {
     /// <summary>
     /// A basic spectrum type reading only mz and intensity values for each data point.
     /// </summary>
     private Spectrum spectrum;
+
+    /// <summary>
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded. Surfaced to the
+    /// caller through <see cref="SpectrumFileOpenException"/> rather than written to the console (BUG-10).
+    /// </summary>
+    private string? openFailure;
+
+    string? IOpenFailureDetail.OpenFailure => openFailure;
 
     /// <summary>
     /// An extended spectrum type that reads mz, intensity, charge, resolution, etc. for each data point.
@@ -129,6 +137,7 @@ namespace Nova.Io.Read
     /// <returns>true if file opened successfully and at least one spectrum was found, false otherwise.</returns>
     public bool Open(string fileName)
     {
+      openFailure = null;
       try
       {
         lines = File.ReadAllLines(fileName);
@@ -197,7 +206,7 @@ namespace Nova.Io.Read
 
         if (scanOrder.Count == 0)
         {
-          Console.WriteLine("Failed to open: no BEGIN IONS/END IONS spectrum blocks found.");
+          openFailure = "no BEGIN IONS/END IONS spectrum blocks found.";
           return false;
         }
 
@@ -212,7 +221,9 @@ namespace Nova.Io.Read
       }
       catch (Exception ex)
       {
-        Console.WriteLine($"Failed to open: {ex.Message}");
+        //Record, don't print: the caller gets this back as a SpectrumFileOpenException so it can
+        //tell a file it couldn't read from a scan that isn't in the file (BUG-10).
+        openFailure = ex.Message;
         return false;
       }
       return true;

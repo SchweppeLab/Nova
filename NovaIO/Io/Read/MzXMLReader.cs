@@ -28,8 +28,16 @@ using System.Globalization;
 
 namespace Nova.Io.Read
 {
-  internal class MzXMLReader : ISpectrumFileReader
+  internal class MzXMLReader : ISpectrumFileReader, IOpenFailureDetail
   {
+
+    /// <summary>
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded. Surfaced to the
+    /// caller through <see cref="SpectrumFileOpenException"/> rather than written to the console (BUG-10).
+    /// </summary>
+    private string? openFailure;
+
+    string? IOpenFailureDetail.OpenFailure => openFailure;
     /// <summary>
     /// A basic spectrum type reading only mz and intensity values for each data point.
     /// </summary>
@@ -53,8 +61,12 @@ namespace Nova.Io.Read
     /// <summary>
     /// List of offsets for each spectrum in the mzML file. The position in the index equals the scan number, and a value of zero
     /// indicates the scan number is not in the mzML file.
+    /// <para>
+    /// These are byte positions into the file and must be <see cref="long"/>, not <see cref="int"/> -- mzXML shares mzML's
+    /// index design and so shared its 2 GiB ceiling. See <see cref="ByteOffset.Parse"/> and BUG-9 in docs/history.md.
+    /// </para>
     /// </summary>
-    private List<int> scanIndex = new List<int>();
+    private List<long> scanIndex = new List<long>();
 
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
@@ -110,23 +122,25 @@ namespace Nova.Io.Read
     /// <returns>true if file opened successfully, false otherwise.</returns>
     public bool Open(string fileName)
     {
+      openFailure = null;
       try
       {
         //Get the offset of the index.
         //TODO: Check to make sure the mzXML is indeed indexed.
-        int offset = 0;
         XmlFS = new FileStream(fileName, FileMode.Open, FileAccess.Read);
         byte[] bytes = new byte[200];
         XmlFS.Seek(-200, SeekOrigin.End);
-        XmlFS.Read(bytes, offset, 200);
-        string block = System.Text.Encoding.Default.GetString(bytes);
+        //Stream.Read is allowed to return fewer bytes than asked for, so decode only what arrived
+        //rather than trailing whatever the unwritten remainder of the buffer happens to hold.
+        int read = XmlFS.Read(bytes, 0, 200);
+        string block = System.Text.Encoding.Default.GetString(bytes, 0, read);
         int indexA = block.IndexOf("<indexOffset>");
         int indexB = block.IndexOf("</indexOffset>");
         if(indexA < 0 || indexB < 0)
         {
           throw new Exception("No index found. Please index your mzXML file.");
         }
-        offset = int.Parse(block.Substring(indexA + 13, indexB - indexA - 13));
+        long offset = ByteOffset.Parse(block.Substring(indexA + 13, indexB - indexA - 13));
 
         //read the whole damn index
         scanIndex.Clear();
@@ -155,7 +169,7 @@ namespace Nova.Io.Read
                   scanIndex.Add(0);
                 }
               }
-              scanIndex.Add(Convert.ToInt32(XmlFile.ReadElementContentAsString()));
+              scanIndex.Add(ByteOffset.Parse(XmlFile.ReadElementContentAsString()));
             }
           }
           else if (XmlFile.NodeType == XmlNodeType.EndElement)
@@ -183,7 +197,14 @@ namespace Nova.Io.Read
       }
       catch (Exception ex)
       {
-        Console.WriteLine($"Failed to open: {ex.Message}");
+        //Record, don't print: the caller gets this back as a SpectrumFileOpenException so it can
+        //tell a file it couldn't read from a scan that isn't in the file (BUG-10).
+        openFailure = ex.Message;
+        //Release the handle on the way out. A failed open now surfaces as an exception, so the
+        //caller never receives this reader and can never Close() it -- and Close() wouldn't help
+        //anyway, since it doesn't release XmlFS either (BUG-11, still open).
+        XmlFS?.Dispose();
+        XmlFS = null;
         return false;
       }
       //Console.WriteLine("Last scan number: " + lastScanNumber.ToString());

@@ -45,7 +45,16 @@ namespace Nova.Io.Read
         throw new ArgumentException("Unsupported file extension: " + Path.GetExtension(file));
       }
 
-      reader.Open(file);
+      //Do NOT discard Open's result. Returning a reader whose Open failed hands the caller
+      //something that looks fine but yields an empty Spectrum for every scan, indistinguishable
+      //from "that scan isn't in this file" -- which is exactly how a 2 GiB mzML ceiling (BUG-9)
+      //went unnoticed downstream. GetReader returns the reader itself, so an exception is the
+      //only way it can report this (BUG-10).
+      if (!reader.Open(file))
+      {
+        string detail = (reader as IOpenFailureDetail)?.OpenFailure ?? "the reader reported failure without detail.";
+        throw new SpectrumFileOpenException(file, detail);
+      }
       return reader;
     }
   }
