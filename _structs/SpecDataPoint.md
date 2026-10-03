@@ -9,15 +9,6 @@ namespaces: Data
 type: Struct
 interfaces: [ISpecDataPoint]
 siblings: [SpecDataPointEx]
-menu:
-  - item1:
-    name: Data
-    title: Data Namespace
-    collection: namespaces
-  - item2:
-    name: SpecDataPointEx
-    title: SpecDataPointEx
-    collection: ns_data
 ---
 
 <br/>

@@ -194,8 +194,8 @@ collections:
     output: true
     sort_by: name
   downloads:
-    output: true;
-    sort_by: date;
+    output: false
+    sort_by: date
 
 
 defaults:
