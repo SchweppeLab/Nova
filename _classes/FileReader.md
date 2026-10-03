@@ -27,7 +27,7 @@ IEnumerable
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
 | FileReader(MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3) | Initializes the FileReader class and defaults to parsing all MS, MS/MS, and MS3 scans.  |
-| FileReader(string filename,MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3) | Initializes the FileReader class and opens the requeested file, defaults to parsing all MS, MS/MS, and MS3 scans.  |
+| FileReader(string filename,MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3) | Initializes the FileReader class and opens the requested file, defaults to parsing all MS, MS/MS, and MS3 scans.  |
 
 * * *
 ## Properties

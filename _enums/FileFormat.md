@@ -22,7 +22,7 @@ Nova recognizes these file formats, but not all of them are supported for readin
 |:-------------|:---------|:----------------------------------------------------------|
 | Unknown     | 0   | Default format until otherwise determined.       |
 | MGF         | 1   | Mascot generic format.  |
-| MzML        | 2   | Proteomics Standards Intiative mass spectrometry markup language format.   |
+| MzML        | 2   | Proteomics Standards Initiative mass spectrometry markup language format.   |
 | MzXML       | 3   | Original XML-based open format from the Trans-Proteomic Pipeline.   |
 | ThermoRaw   | 4   | Proprietary vendor format (.raw) from Thermo Fisher Scientific.   |
 
