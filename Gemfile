@@ -2,7 +2,9 @@
 
 source "https://rubygems.org"
 
-gem "jekyll-theme-chirpy", "~> 7.2", ">= 7.2.4"
+# Pinned to the exact version that built the currently deployed site.
+# Do not change without agreeing on a Chirpy upgrade first.
+gem "jekyll-theme-chirpy", "7.5.0"
 
 gem "jekyll-github-metadata"
 
