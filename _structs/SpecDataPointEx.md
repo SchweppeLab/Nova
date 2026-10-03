@@ -4,7 +4,7 @@ title: SpecDataPointEx
 description: An extended unit of information in a spectrum (i.e., m/z, intensity, and more).
 date: 2025-04-15 11:18:14 -0700
 layout: post
-tags: [favicon]
+tags: []
 namespaces: Data
 type: Struct
 interfaces: [ISpecDataPoint]

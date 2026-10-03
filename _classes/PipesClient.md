@@ -4,7 +4,7 @@ title: PipesClient
 description: A class for sending data to and receiving data from a server process.
 date: 2025-04-23 11:45:00 -0700
 layout: post
-tags: [favicon]
+tags: []
 namespaces: IPC.Pipes
 type: Class
 interfaces: []

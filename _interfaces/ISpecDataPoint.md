@@ -4,7 +4,7 @@ title: ISpecDataPoint
 description: Abstract design for the data points stored in a spectrum.
 date: 2025-04-15 11:18:14 -0700
 layout: post
-tags: [favicon]
+tags: []
 namespaces: Data
 type: Interface
 ---

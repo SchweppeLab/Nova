@@ -4,7 +4,7 @@ title: SpecDataPoint
 description: The basic unit of information in a spectrum (i.e., m/z and intensity).
 date: 2025-04-15 11:18:14 -0700
 layout: post
-tags: [favicon]
+tags: []
 namespaces: Data
 type: Struct
 interfaces: [ISpecDataPoint]

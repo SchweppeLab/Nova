@@ -4,7 +4,7 @@ title: TSpectrum&lt;T>
 description: A generic class for creating spectrum objects with any type of data point.
 date: 2025-04-15 11:18:14 -0700
 layout: post
-tags: [favicon]
+tags: []
 namespaces: Data
 type: Class
 interfaces: [ISpectrum]

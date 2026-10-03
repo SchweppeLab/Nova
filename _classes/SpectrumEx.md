@@ -4,7 +4,7 @@ title: SpectrumEx
 description: A collection of extended data points acquired during ion analysis.
 date: 2025-04-15 11:18:14 -0700
 layout: post
-tags: [favicon]
+tags: []
 namespaces: Data
 type: Class
 interfaces: [ISpectrum]
