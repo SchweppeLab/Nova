@@ -150,16 +150,27 @@ bundle exec jekyll build
 
 Compare the rendered output before and after a change, not just the source.
 
-**Link checking.** `html-proofer` is declared in the `Gemfile` and used by
-`tools/test.sh`, but it cannot run on Windows without a `libcurl` library that is not
-installed. A deliberate decision was made not to install it. Instead:
+**Link checking is manual, by deliberate choice.** Nothing checks this site
+automatically. A push that has not been through a review pass has nothing standing
+between a broken link and the published site. That is a known and accepted tradeoff.
 
-- Internal link checking runs on CI, where the library is available. The
-  `html-proofer` step currently sits in the unused `pages-deploy.yml` workflow and
-  is to be moved into the live `jekyll.yml` workflow. This must happen only after
-  known problems are fixed, because adding the check first would fail the build and
-  stop the site from deploying.
-- External links are checked with `curl` during each review pass.
+Each review pass checks links in three ways, as step 3 of the checklist below:
+
+- Internal links, by walking the built site and confirming every target exists.
+- Page anchors, by confirming every `href="#..."` matches an element id on that page.
+- External links, with `curl`, against the live network.
+
+Images, their alt text, and script references are worth checking the same way when
+anything touches a layout.
+
+Some background, so nobody re-opens this by accident. Chirpy ships a tool called
+`html-proofer`, which does all of the above automatically. It is declared in the
+`Gemfile` and `tools/test.sh` is built around it. It cannot run on this machine,
+because it reaches the network through a `libcurl` library that Windows does not
+provide, and installing one was declined. Adding it to the publishing workflow
+instead was considered and also declined. Both entries stay where they are: the
+script references the gem and both work on Linux, so neither is cruft by the
+definition used here.
 
 **Local review before any push.** Changes are reviewed on the local server before
 they go out:
