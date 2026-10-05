@@ -103,6 +103,12 @@ namespace Nova.Io.Read
 
     public int ScanCount { get; private set; } = 0;
 
+    /// <summary>
+    /// Always 0: the MGF format carries no chromatograms, and <see cref="GetChromatogram"/>
+    /// returns an empty one for any index.
+    /// </summary>
+    public int ChromatCount => 0;
+
     public int FirstScan { get; private set; } = 0;
     public int LastScan { get; private set; } = 0;
     public double MaxRetentionTime { get; private set; } = 0;

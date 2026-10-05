@@ -699,9 +699,67 @@ substitution was case-sensitive on the capital `F` stem). Verified: a case-insen
 for `framentation` across `.cs`, `.md` and `.csproj` returns zero hits; clean full-solution
 rebuild with 0 new warnings; `dotnet test` 45/45 passing.
 
-**Note for whoever cuts 1.1.0:** this is the release's one breaking change and belongs in its
-release notes. `NovaIO.csproj`'s `<PackageReleaseNotes>` still reads "Initial release",
-which is stale regardless and would ship that way in the 1.1.0 nupkg.
+**Note for whoever cuts 1.1.0:** this belongs in the release notes. (Written before HYG-7 and
+the release-notes pass; 1.1.0 ended up with several breaking changes, all now in the notes.)
+
+### HYG-7 — Inconsistent reader visibility, and an unreachable `ChromatCount`
+**Severity:** Low · **Status: Done 2026-10-05**
+**Location:** `NovaIO/Io/Read/ThermoRawReader.cs`, `ISpectrumFileReader.cs`, `FileReader.cs`,
+`MzXMLReader.cs`, `MGFReader.cs`
+
+Raised by the repo owner as an API-shape question: should `MzMLReader`/`MzXMLReader` be public?
+
+Checking the actual surface settled it. Diffing every reader's public members against
+`ISpectrumFileReader` showed the interface already covers **everything**, with exactly one
+exception: `MzMLReader.ChromatCount`. So making the concrete classes public would buy a consumer
+nothing but direct construction — while permanently committing four implementation types whose
+rough edges we were still actively fixing (BUG-9/10/11 all landed in them that same week).
+
+Two real problems were hiding behind that question, though:
+
+1. **`ThermoRawReader` was public while the other three readers were internal**, for no reason
+   anyone could point at. It exposes nothing beyond the interface either, so its public-ness
+   bought only direct construction as well.
+2. **`ChromatCount` was public on an internal class**, which means nothing outside the assembly
+   could reach it. Dead API: a caller had no way to learn how many chromatograms a file held, or
+   whether asking for one was worthwhile.
+
+**Decision: narrow rather than widen**, and close the gap on the interface. The reasoning that
+decided it was reversibility — widening `internal` to `public` later is non-breaking and can be
+done any time, while narrowing costs a major version. With no demonstrated need for public
+readers, taking the irreversible option was the wrong default. Narrowing `ThermoRawReader`,
+conversely, *does* have a deadline, and 1.1.0 (unreleased, already carrying breaking changes)
+was the one cheap moment for it.
+
+**Fix:**
+- `ThermoRawReader` is now `internal`. Nothing outside `NovaIO` referenced it.
+- `ISpectrumFileReader` gained `int ChromatCount { get; }`. `MzMLReader` already had it;
+  `MzXMLReader` and `MGFReader` return a constant 0 (neither format carries chromatograms);
+  `ThermoRawReader` returns 1 once open, because its `GetChromatogram` builds the run TIC and
+  ignores the index it is given — if that ever grows real per-index support, the property must
+  follow.
+- `FileReader` surfaces `ChromatCount` alongside `ScanCount`, so the facade isn't the one entry
+  point that still can't see it.
+
+The public surface is now: `FileReader`, `SpectrumFileReaderFactory`, `ISpectrumFileReader`,
+`SpectrumFileOpenException`, the data types and the enums. No concrete reader is public.
+
+**Also considered and deliberately rejected: a format-forcing overload**
+(`GetReader(path, filter, FileFormat)`). Extension is currently the sole detection mechanism —
+`CheckFileFormat` throws on anything but `.raw`/`.mzml`/`.mzxml`/`.mgf` — so an mzML named
+`.xml`, or a path with no extension, is unreadable by any route. But the scenarios turned out
+thin: converters emit correct extensions, and a caller writing a temp file chooses its own name.
+The only case where forcing is uniquely right is a large file you can neither rename nor afford
+to copy. Crucially, unlike the visibility change this one has **no deadline** — an overload is
+purely additive, so it costs exactly the same to add the day someone actually hits the wall.
+Deferred on that basis, not rejected on principle. If the extension problem ever does become
+real, content sniffing (peek for `<indexedmzML`/`<mzML`, `<mzXML`, `BEGIN IONS`, the RAW magic)
+is the better shape than making the caller declare the format.
+
+**Verification:** 2 new tests — `ChromatCount` is 0 for mzXML and for the chromatogram-free mzML
+fixture via both the facade and the factory, and 1 for `AngioNeuro4.mzML`, which does carry a
+TIC, with the counted chromatogram confirmed actually retrievable. Build clean, `dotnet test`
+50/50 passing.
 
 ---
 

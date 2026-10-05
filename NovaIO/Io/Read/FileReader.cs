@@ -68,6 +68,13 @@ namespace Nova.Io.Read
 
     public int ScanCount { get; private set; } = 0;
 
+    /// <summary>
+    /// Number of chromatograms in the open file, or 0 for formats that carry none. Surfaced here
+    /// as well as on <see cref="ISpectrumFileReader"/> so the facade is not the one entry point
+    /// that cannot see it (HYG-7).
+    /// </summary>
+    public int ChromatCount { get; private set; } = 0;
+
     public int FirstScan { get; private set; } = 0;
     public int LastScan { get; private set; } = 0;
     public double MaxRetentionTime { get; private set; } = 0;
@@ -192,6 +199,7 @@ namespace Nova.Io.Read
       FileName = fileName;
       bool opened = fileReader.Open(fileName);
       ScanCount = fileReader.ScanCount;
+      ChromatCount = fileReader.ChromatCount;
       FirstScan = fileReader.FirstScan;
       LastScan = fileReader.LastScan;
       MaxRetentionTime = fileReader.MaxRetentionTime;

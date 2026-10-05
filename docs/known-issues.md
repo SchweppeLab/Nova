@@ -10,7 +10,7 @@ Architecture items use **Priority** instead of Severity — they're initiatives,
 
 **Currently open: none.** Everything from the initial 2026-08-18 review pass was resolved by
 2026-08-19; the 2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) and the 2026-10-05
-follow-ups (HYG-6, BUG-11) are resolved too. The full write-up for each — background,
+follow-ups (HYG-6, BUG-11, HYG-7) are resolved too. The full write-up for each — background,
 decision, fix, and verification — lives in [`history.md`](history.md), organized by the same
 categories as below. Add new items here as they come up; the next available ID in each
 category is noted below so IDs don't collide with the archived ones.
@@ -21,7 +21,7 @@ category is noted below so IDs don't collide with the archived ones.
 | Bugs | BUG-1 – BUG-11 | BUG-12 |
 | Dead / Redundant Code | CLEAN-1 – CLEAN-3 | CLEAN-4 |
 | CI / Build Infrastructure | CI-1 | CI-2 |
-| Hygiene / Maintainability | HYG-1 – HYG-6 | HYG-7 |
+| Hygiene / Maintainability | HYG-1 – HYG-7 | HYG-8 |
 | Test Coverage | TEST-1 – TEST-4 | TEST-5 |
 
 ---

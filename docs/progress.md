@@ -16,7 +16,7 @@ verification) and the complete session-by-session log, see [`history.md`](histor
 | Bugs | 11 | 11 | 0 | 0 |
 | Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
-| Hygiene / Maintainability | 6 | 6 | 0 | 0 |
+| Hygiene / Maintainability | 7 | 7 | 0 | 0 |
 | Test Coverage | 4 | 4 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
@@ -24,7 +24,7 @@ generated.)_
 
 **Everything from the initial 2026-08-18 review pass is Done as of 2026-08-19**, as is the
 2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) and the 2026-10-05 follow-ups (HYG-6,
-BUG-11). **Nothing is currently open.** See [`history.md`](history.md) for the full write-up
+BUG-11, HYG-7). **Nothing is currently open.** See [`history.md`](history.md) for the full write-up
 of each resolved item and the complete session log. The tables below stay as a quick per-ID reference; new work should add new rows
 here (and a matching entry in `known-issues.md`) rather than reopening the archived ones.
 
@@ -76,6 +76,7 @@ here (and a matching entry in `known-issues.md`) rather than reopening the archi
 | [HYG-4](history.md#hyg-4--scattered-todos-marking-acknowledged-incomplete-features) | Collected pre-existing TODOs (asymmetric isolation windows, `GetHeader()`, trailer mapping, MGF viability) | Low | **Done** | 2026-08-19. Closed as a tracking item; 3 non-MGF TODOs remain unimplemented by design. |
 | [HYG-5](history.md#hyg-5--several-files-use-thermofishercommoncoredatas-isnullorempty-extension-as-if-it-were-project-local) | `FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` use `ThermoFisher.CommonCore.Data`'s `IsNullOrEmpty` extension as if it were project-local | Low | **Done** | 2026-08-19. |
 | [HYG-6](history.md#hyg-6--framentationtypeframentationmethod-misspelled-in-public-api) | `FramentationType`/`FramentationMethod` misspelled (missing `g`) in public API | Low | **Done** | 2026-10-05. Straight rename, **breaking**; ships in 1.1.0. Wire format unaffected. |
+| [HYG-7](history.md#hyg-7--inconsistent-reader-visibility-and-an-unreachable-chromatcount) | `ThermoRawReader` public while the other three readers are internal; `ChromatCount` public on an internal class and therefore unreachable | Low | **Done** | 2026-10-05. Narrowed rather than widened, **breaking**; `ChromatCount` added to `ISpectrumFileReader`. Format-forcing overload considered and deferred (no deadline). |
 
 ## Test Coverage
 
@@ -122,3 +123,10 @@ to keep this file focused on whatever's currently in progress.
   `MGFReader.Close()` drops its line buffer. Large-file tests now fail rather than skip when
   `NOVA_REQUIRE_LARGE_FILE_TESTS` is set, which all three workflows now do. Both verified
   with negative controls. Tests 45 → 48. **This closes every open item in the repo.**
+- 2026-10-05 — **HYG-7 done.** API-shape question from the repo owner (should the XML readers be
+  public?) resolved by narrowing instead: `ThermoRawReader` is now `internal` like the other
+  three, since the interface already covered every reader's behavior except one stranded
+  property. That property, `ChromatCount`, is now on `ISpectrumFileReader` and surfaced by
+  `FileReader`. **Breaking**, and 1.1.0 was the one cheap moment for it; release notes updated.
+  A format-forcing overload was considered in the same discussion and deliberately deferred —
+  purely additive, so no deadline, and no demonstrated need. Tests 48 → 50.

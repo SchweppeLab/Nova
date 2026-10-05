@@ -26,7 +26,11 @@ using System.Globalization;
 
 namespace Nova.Io.Read
 {
-  public class ThermoRawReader : ISpectrumFileReader, IOpenFailureDetail
+  // Internal, like every other format reader (HYG-7). This was the odd one out: public while
+  // MzMLReader/MzXMLReader/MGFReader were not, for no reason anyone could point at. It exposes
+  // nothing beyond ISpectrumFileReader, so being public bought callers only direct construction;
+  // the supported entry points are FileReader and SpectrumFileReaderFactory.GetReader.
+  internal class ThermoRawReader : ISpectrumFileReader, IOpenFailureDetail
   {
 
     /// <summary>
@@ -71,6 +75,13 @@ namespace Nova.Io.Read
     private int CurrentScanNumber = 0;
 
     public int ScanCount { get; private set; } = 0;
+
+    /// <summary>
+    /// 1 once a file is open, 0 otherwise. <see cref="GetChromatogram"/> builds the TIC for the
+    /// whole run and ignores the index it is given, so exactly one chromatogram is retrievable.
+    /// If that method ever grows real per-index support (see its TODO), this must follow.
+    /// </summary>
+    public int ChromatCount { get; private set; } = 0;
 
     public int FirstScan { get; private set; } = 0;
     public int LastScan { get; private set; } = 0;
@@ -357,6 +368,7 @@ namespace Nova.Io.Read
       FirstScan = RawFile.RunHeaderEx.FirstSpectrum;
       MaxRetentionTime = RawFile.RunHeaderEx.ExpectedRunTime; //not sure if this is the best value here.
       ScanCount = RawFile.RunHeaderEx.SpectraCount;
+      ChromatCount = 1; //the TIC; see the property's remarks.
 
       //This little indexer is so that we can quickly grab the Master Scan Number from any spectrum
       //trailer without having to parse the whole trailer. If it doesn't exist, then the value is -1;

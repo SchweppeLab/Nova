@@ -70,7 +70,7 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
   `Nova` core (`TestSpectrum.cs`, `TestPipes.cs`) and `NovaIO` parsing logic in isolation
   (`TestNovaIOFixtures.cs`, `TestMgf.cs`) — added as TEST-1/TEST-2, see `docs/history.md` — plus
   `TestLargeFiles.cs`, which generates multi-gigabyte sparse mzML fixtures at test time (TEST-4;
-  see the gotcha below before touching it). 48 tests as of 2026-10-05.
+  see the gotcha below before touching it). 50 tests as of 2026-10-05.
   (`Test/Files/*.mzML`/`.mzXML` used to get corrupted by Git on Windows checkout regardless
   of `core.autocrlf` — fixed as BUG-7, `.gitattributes` now marks them `-text`. If you ever
   see `XmlException: Data at the root level is invalid` reading these files again, that fix
@@ -146,6 +146,14 @@ version cycle; no workflow file needs editing to match.
   annotations — left that way deliberately during the ARCH-1 retarget to keep it
   behavior-preserving; enabling nullable there would mean auditing the whole `Data/`/
   `IPC/Pipes/` surface, a separate piece of work).
+- **All four format readers are `internal`** as of 2026-10-05 (HYG-7); `ThermoRawReader` used to
+  be the odd one out. The public surface is `FileReader`, `SpectrumFileReaderFactory`,
+  `ISpectrumFileReader`, `SpectrumFileOpenException`, the data types and the enums. The question
+  "should the readers be public?" was asked and settled: the interface already covers every
+  reader's behavior, so public classes would add only direct construction while permanently
+  committing implementation types. Widening later is non-breaking if a real need appears;
+  narrowing is not, which is why it went this direction. See HYG-7 in `docs/history.md`, which
+  also records why a format-forcing overload was considered and deferred rather than rejected.
 - Format-specific readers (`ThermoRawReader`, `MzMLReader`, `MzXMLReader`, `MGFReader`) each
   hold a single mutable `spectrum`/`spectrumEx` field that's overwritten on every read call.
   This is a deliberate simplicity tradeoff for sequential single-threaded reads, not a bug —

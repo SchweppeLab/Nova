@@ -57,9 +57,10 @@ namespace Nova.Io.Read
   /// Implemented by the format readers to carry the reason a failed <c>Open</c> failed, so the
   /// caller gets the real detail instead of a bare "false".
   /// <para>
-  /// Deliberately internal, and implemented explicitly by the readers, so that none of this adds
-  /// public API surface: <see cref="ISpectrumFileReader"/> keeps the exact shape it has always
-  /// had, and <see cref="ThermoRawReader"/> (the one public reader) gains no new public member.
+  /// Deliberately internal, and implemented explicitly by the readers, so it adds no public API
+  /// surface of its own. When this was written <c>ThermoRawReader</c> was still public, which
+  /// made the explicit implementation load-bearing; all four readers are internal as of HYG-7,
+  /// so it is now consistency rather than necessity.
   /// </para>
   /// </summary>
   internal interface IOpenFailureDetail

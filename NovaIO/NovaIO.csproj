@@ -25,6 +25,10 @@ BREAKING
   SpectrumFileReaderFactory.GetReader, and FileReader.ReadSpectrum /
   ReadSpectrumEx / ReadChromatogram when given a new file name.
 * FramentationType/FramentationMethod renamed to Fragmentation*.
+* ThermoRawReader is now internal, matching the other format readers. Use
+  FileReader or SpectrumFileReaderFactory.GetReader to obtain one.
+* ISpectrumFileReader gained ChromatCount, and FileReader surfaces it. Breaking
+  only for external implementers of the interface.
 * Requires Nova 1.1.0; the IPC wire format changed.
 
 NEW

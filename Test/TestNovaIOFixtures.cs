@@ -286,6 +286,44 @@ namespace TestNova
       reader.Close();
     }
 
+    // ---- HYG-7: ChromatCount is reachable, and honest per format ----
+
+    [TestMethod]
+    public void ChromatCount_IsZeroForFormatsWithoutChromatograms()
+    {
+      // Before HYG-7 this property existed only on the internal MzMLReader, so nothing outside
+      // the assembly could read it at all. It is now on ISpectrumFileReader and surfaced by the
+      // FileReader facade.
+      testContext.WriteLine("HYG-7: verifies ChromatCount reports 0 for mzXML and for an mzML with no chromatogram list, via both the FileReader facade and the factory.");
+
+      FileReader reader = new FileReader();
+      Assert.IsTrue(reader.OpenSpectrumFile(dataFilePathMzXML));
+      Assert.AreEqual(0, reader.ChromatCount, "mzXML carries no chromatograms");
+
+      Assert.IsTrue(reader.OpenSpectrumFile(dataFilePathMzML));
+      Assert.AreEqual(0, reader.ChromatCount, "this mzML fixture has no chromatogram list");
+
+      ISpectrumFileReader direct = SpectrumFileReaderFactory.GetReader(
+        dataFilePathMzXML, MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3);
+      Assert.AreEqual(0, direct.ChromatCount);
+      direct.Close();
+    }
+
+    [TestMethod]
+    public void ChromatCount_CountsRealChromatogramsInMzML()
+    {
+      testContext.WriteLine("HYG-7: verifies ChromatCount reports the real count for an mzML that does have a chromatogram index -- AngioNeuro4.mzML carries one (the TIC) -- and that the chromatogram is actually retrievable.");
+
+      string angioMzML = Path.Combine(TestFilePaths.GetFilesDirectory(), "AngioNeuro4.mzML");
+      FileReader reader = new FileReader();
+      Assert.IsTrue(reader.OpenSpectrumFile(angioMzML));
+      Assert.AreEqual(1, reader.ChromatCount, "AngioNeuro4.mzML has exactly one chromatogram (TIC)");
+
+      Chromatogram chromat = reader.ReadChromatogram(angioMzML, 0);
+      Assert.IsTrue(chromat.Count > 0, "the counted chromatogram should actually be readable");
+      testContext.WriteLine($"  chromatogram 0: {chromat.Count} points");
+    }
+
     // ---- BUG-11: Close() must actually release the file handle ----
 
     [TestMethod]
