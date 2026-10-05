@@ -18,6 +18,26 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>mass spectrometry;spectrum</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReleaseNotes>
+1.1.0 - first release since 1.0.0.18.
+
+BREAKING
+* Retargeted from .NET Framework 4.8 to netstandard2.0; one build now serves
+  net48 and net8.0+ consumers.
+* IPC wire format changed: Spectrum serialization now includes ScanDescription.
+  1.1.0 cannot talk to 1.0.0.18 over a pipe - upgrade both ends together.
+* FramentationType and PrecursorIon.FramentationMethod renamed to
+  FragmentationType and FragmentationMethod. Recompile.
+
+NEW
+* ISpectrum carries ScanDescription.
+* IChromatogram and IChromatDataPoint are now public.
+
+FIXED
+* PipeIO.Read handles partial stream reads; larger messages could be truncated.
+
+https://github.com/SchweppeLab/Nova
+    </PackageReleaseNotes>
     <Version>1.1.0</Version>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <FileVersion>1.1.0.0</FileVersion>

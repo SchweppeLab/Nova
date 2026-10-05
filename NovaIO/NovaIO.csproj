@@ -16,7 +16,35 @@
     <RepositoryUrl>https://github.com/SchweppeLab/Nova</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>mass spectrometry;spectrum</PackageTags>
-    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <PackageReleaseNotes>
+1.1.0 - first release since 1.0.0.18.
+
+BREAKING
+* Files that cannot be opened or indexed now throw SpectrumFileOpenException
+  instead of returning a reader that yields empty spectra. Affects
+  SpectrumFileReaderFactory.GetReader, and FileReader.ReadSpectrum /
+  ReadSpectrumEx / ReadChromatogram when given a new file name.
+* FramentationType/FramentationMethod renamed to Fragmentation*.
+* Requires Nova 1.1.0; the IPC wire format changed.
+
+NEW
+* MGF reading implemented; it was previously a stub returning empty spectra.
+* mzML and mzXML larger than 2 GiB are now readable; byte offsets are 64-bit.
+  Earlier versions returned zero peaks for every scan in such files, silently.
+* MzMLWriter.Write takes optional validateSchema and schemaPath; validation is
+  off by default and no longer uses a hardcoded path.
+* ThermoRawReader reads Scan Description from the trailer.
+
+FIXED
+* MzMLReader set Analyzer to "OTMS" instead of "ITMS" for ion-trap filters.
+* FileReader.OpenSpectrumFile returned true on a failed open.
+* FileReader.Format stayed Unknown.
+
+DEPENDENCIES
+* ThermoFisher.CommonCore.* pinned to 8.0.37.
+
+https://github.com/SchweppeLab/Nova
+    </PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Version>1.1.0</Version>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
