@@ -5,7 +5,9 @@ panel_includes:
   - toc
 tail_includes:
   - related-posts
-  - post-nav
+# post-nav is deliberately absent. It renders older and newer buttons driven by
+# collection order, which is meaningless on API documentation pages: on a class
+# page it offers the alphabetically adjacent class as the "next post".
 script_includes:
   - comment
 ---
