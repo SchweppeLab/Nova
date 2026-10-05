@@ -14,6 +14,19 @@ layout: page
 {% assign ns = site.namespaces | sort %}
 {% assign y = ns | size %}
 
+<!--
+  Which release this documentation describes. Driven by the newest entry in the
+  downloads collection, so it follows the release history instead of needing a
+  separate edit. Add a release entry and this updates itself.
+-->
+{% assign latest_release = site.downloads | last %}
+{% if latest_release.version %}
+  <p class="text-muted">
+    This documentation describes Nova {{ latest_release.version }}, the current release.
+    <a href="{{ '/download/' | relative_url }}">Downloads and release history</a>.
+  </p>
+{% endif %}
+
 
 <div class="card categories">
   <!-- top-category -->
