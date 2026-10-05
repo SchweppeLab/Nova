@@ -123,6 +123,9 @@ namespace Nova.Io.Read
     public bool Open(string fileName)
     {
       openFailure = null;
+      //Release anything a previous Open on this instance left behind before replacing it,
+      //rather than silently orphaning its handle (BUG-11).
+      Close();
       try
       {
         //Get the offset of the index.
@@ -200,20 +203,28 @@ namespace Nova.Io.Read
         //Record, don't print: the caller gets this back as a SpectrumFileOpenException so it can
         //tell a file it couldn't read from a scan that isn't in the file (BUG-10).
         openFailure = ex.Message;
-        //Release the handle on the way out. A failed open now surfaces as an exception, so the
-        //caller never receives this reader and can never Close() it -- and Close() wouldn't help
-        //anyway, since it doesn't release XmlFS either (BUG-11, still open).
-        XmlFS?.Dispose();
-        XmlFS = null;
+        //Release the handle on the way out. A failed open surfaces as an exception, so the
+        //caller never receives this reader and can never Close() it themselves.
+        Close();
         return false;
       }
       //Console.WriteLine("Last scan number: " + lastScanNumber.ToString());
       return true;
     }
 
+    /// <summary>
+    /// Closes the mzXML file, releasing the underlying file handle. Safe to call more than once,
+    /// or before any successful <see cref="Open"/>. The reader cannot be read from again until
+    /// <see cref="Open"/> is called.
+    /// </summary>
     public void Close()
     {
-      //if (RawFile != null) RawFile.Dispose();
+      //BUG-11: see the MzMLReader counterpart. This was an empty method holding a commented-out
+      //line copied from ThermoRawReader, so XmlFS leaked a handle per file switch.
+      XmlFile?.Dispose();
+      XmlFile = null;
+      XmlFS?.Dispose();
+      XmlFS = null;
     }
 
     /// <summary>

@@ -383,6 +383,54 @@ working reader. Against the real 3.18 GiB Astral file, an unindexed mzML now rai
 `SpectrumFileOpenException: Failed to open '<path>': ...` instead of printing and returning a
 dud. Full solution build clean, `dotnet test` 45/45 passing.
 
+### BUG-11 — `MzMLReader.Close()`/`MzXMLReader.Close()` were no-ops and leaked a file handle
+**Severity:** Medium · **Status: Done 2026-10-05** · *Found 2026-10-02 while fixing BUG-10.*
+**Location:** `NovaIO/Io/Read/MzMLReader.cs`, `NovaIO/Io/Read/MzXMLReader.cs`
+
+Both XML readers hold the open file in a `FileStream` field (`XmlFS`) for random access, but
+`Close()` in both was an empty method whose only content was a commented-out line copied from
+`ThermoRawReader` — where the same line is real and does dispose its handle. `XmlFS` was
+therefore never released, so the handle survived until the finalizer ran and, on Windows, kept
+the file locked against deletion or rename meanwhile.
+
+This was reachable in normal use: `FileReader`'s `ReadSpectrum`/`ReadSpectrumEx`/
+`ReadChromatogram` call `fileReader.Close()` every time the caller switches files, expecting
+that to release the previous one. A process iterating over many files leaked a handle per file.
+
+Found concretely rather than by inspection: while verifying BUG-10, a scratch harness could not
+delete its own temp file after Nova had opened it.
+
+**Why it wasn't fixed alongside BUG-10:** `Close()` doing nothing meant any downstream caller
+that closed a reader and kept reading from it would have been working *by accident*, and would
+break the moment `Close()` actually closed. That needed an answer before it was safe to change.
+The repo owner confirmed on 2026-10-05 that no downstream software has ever called `Close()`,
+which removed the concern.
+
+**Fix:** `Close()` in both readers now disposes `XmlFile` and `XmlFS` and nulls both, making it
+idempotent and safe to call before any successful `Open`. `Open()` now calls `Close()` first, so
+re-opening on the same instance releases the previous handle instead of orphaning it, and
+BUG-10's failure path was simplified to call `Close()` rather than repeat the disposal inline.
+
+Two adjacent things fixed because supporting re-open made them reachable:
+- `MzMLReader.Open` cleared `scanIndex` but **not** `chrIndex`, so re-opening appended a second
+  copy of the chromatogram index to the first. Harmless while `Open` was effectively single-use;
+  a real bug once Close/Open on one instance works.
+- `MGFReader.Close()` (which holds no file handle — it reads the whole file up front) now drops
+  its `lines` buffer, by far the largest thing that reader holds. Not BUG-11 itself, but the
+  same principle: `Close()` is the caller's signal that they are done.
+
+`ThermoRawReader.Close()` was checked and is correct — it genuinely disposes `RawFile`. It is
+the original the other two were mis-copied from, not a third instance of the bug.
+
+**Verification:** 3 new tests in `Test/TestNovaIOFixtures.cs` — one per XML reader asserting
+that the file can be **deleted** after `Close()` (the sharpest available probe on Windows, and
+the exact symptom that exposed this), plus one asserting `Close()` is idempotent and that
+re-opening rebuilds the index rather than doubling it. **Negative control:** restoring
+`MzMLReader.Close()` to its old no-op makes `MzML_Close_ReleasesTheFileHandle` fail with
+`IOException: The process cannot access the file ... because it is being used by another
+process` — the original symptom — while the mzXML test still passes, confirming the tests are
+per-reader and not incidentally coupled. Build clean, `dotnet test` 48/48 passing.
+
 ---
 
 ## Dead / Redundant Code
@@ -756,6 +804,17 @@ that on its own.
 4 new tests, and the negative control described under BUG-9 confirms 3 of them fail against
 the unfixed parse with the exact message from the field report.
 
+**Addendum 2026-10-05 — a skip in CI is now a failure.** The Inconclusive gate above is right
+for safety, but a skip still reports green, so CI could quietly stop covering BUG-9 after a
+runner image or temp-volume change and nobody would notice — uncomfortably close to the defect
+this area exists to prevent. The tests now check a `NOVA_REQUIRE_LARGE_FILE_TESTS` environment
+variable (any value except empty, `0` or `false`): when it is set, an unavailable fixture is an
+`Assert.Fail` explaining why, instead of an `Assert.Inconclusive`. All three workflows set it on
+their `Test` step, so CI is loud while local and non-Windows runs still skip gracefully.
+Verified in both directions by forcing `TryCreate` to fail: without the variable, 4 skipped and
+the run is green; with it, 4 failed with the explanatory message. Normal runs are unaffected —
+48/48 pass identically with and without it set.
+
 ---
 
 ## Full Session Log
@@ -879,3 +938,25 @@ Chronological record of every work session on this list, preserved verbatim from
   new failure path; found and logged **BUG-11** (`Close()` is a no-op in both XML readers),
   left open. Tests 37 → 45, all passing; build clean, no new warnings. No version bump —
   `1.1.0` had not shipped as a non-prerelease release.
+- 2026-10-05 — **HYG-6 done.** Repo owner spotted the misspelled public `FramentationType` /
+  `PrecursorIon.FramentationMethod`. Renamed across all 13 occurrences, straight rename with
+  no compatibility shims, chosen because 1.1.0 had not shipped and the IPC wire format never
+  serialized that property (checked, not assumed). Breaking for package consumers; build
+  clean, 45/45 passing.
+- 2026-10-05 — **1.1.0 release notes written** into both `Nova.csproj` (which had none) and
+  `NovaIO.csproj` (which still said "Initial release" and would have shipped that way).
+  Verified by packing and reading the resulting `.nuspec`, not by reading the csproj XML. Also
+  corrected `README.md`, which still told readers Nova must be on .NET Framework 4.8 for IAPI
+  work — untrue since ARCH-1, and the first thing anyone reads before downloading. Noted while
+  drafting: the IPC wire format changed in this release (commit `fb8dfd8` added
+  `ScanDescription` to `Spectrum` serialization), so 1.1.0 and 1.0.0.18 desynchronize over a
+  named pipe — a runtime failure, unlike the HYG-6 rename's compile error, so the notes lead
+  with it.
+- 2026-10-05 — **BUG-11 done**, plus the TEST-4 CI guard. Repo owner confirmed no downstream
+  software has ever called `Close()`, which cleared the one question blocking the fix. Both
+  XML readers now release their handle; `Open()` releases a prior one; `chrIndex` is cleared
+  on re-open; `MGFReader.Close()` drops its line buffer. Large-file tests now fail rather than
+  skip when `NOVA_REQUIRE_LARGE_FILE_TESTS` is set, and all three workflows set it. Both
+  changes verified with negative controls — the old no-op `Close()` reproduces the original
+  "file in use" error, and a forced-unavailable fixture skips without the variable and fails
+  with it. Tests 45 → 48, all passing. **This closes every open item in the repo.**

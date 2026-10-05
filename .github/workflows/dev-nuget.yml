@@ -66,6 +66,11 @@ jobs:
       # message (see TEST-3, docs/history.md) in this log, for passing tests too --
       # --verbosity alone only does that for failures.
       - name: Test
+        # Make an unavailable large-file fixture a hard failure here rather than an
+        # Inconclusive skip: a skip still reports green, which would silently drop the
+        # >2 GiB regression coverage (BUG-9). Locally it stays a skip. See TestLargeFiles.
+        env:
+          NOVA_REQUIRE_LARGE_FILE_TESTS: "1"
         run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=detailed"
 
       # Base version comes from Nova.csproj rather than being hardcoded here, so bumping the

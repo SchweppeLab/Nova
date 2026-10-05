@@ -13,7 +13,7 @@ verification) and the complete session-by-session log, see [`history.md`](histor
 | Category | Total | Done | In Progress | Not Started |
 |---|---|---|---|---|
 | Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
-| Bugs | 11 | 10 | 0 | 1 |
+| Bugs | 11 | 11 | 0 | 0 |
 | Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
 | Hygiene / Maintainability | 6 | 6 | 0 | 0 |
@@ -22,11 +22,10 @@ verification) and the complete session-by-session log, see [`history.md`](histor
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
 generated.)_
 
-**Everything from the initial 2026-08-18 review pass is Done as of 2026-08-19**, and the
-2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) is Done as well. **One item is open:
-BUG-11**, logged while fixing BUG-10 — see [`known-issues.md`](known-issues.md). See
-[`history.md`](history.md) for the full write-up of each resolved item and the complete
-session log. The tables below stay as a quick per-ID reference; new work should add new rows
+**Everything from the initial 2026-08-18 review pass is Done as of 2026-08-19**, as is the
+2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) and the 2026-10-05 follow-ups (HYG-6,
+BUG-11). **Nothing is currently open.** See [`history.md`](history.md) for the full write-up
+of each resolved item and the complete session log. The tables below stay as a quick per-ID reference; new work should add new rows
 here (and a matching entry in `known-issues.md`) rather than reopening the archived ones.
 
 ---
@@ -51,7 +50,7 @@ here (and a matching entry in `known-issues.md`) rather than reopening the archi
 | [BUG-8](history.md#bug-8--filereaderopenspectrumfile-discards-the-underlying-readers-open-result) | `FileReader.OpenSpectrumFile` always returns `true`, ignoring whether the underlying reader's `Open()` actually succeeded | Medium | **Done** | 2026-08-19. |
 | [BUG-9](history.md#bug-9--mzmlmzxml-byte-offsets-parsed-and-stored-as-int-so-no-file-over-2-gib-could-be-read) | mzML/mzXML byte offsets parsed/stored as `int`, so no file over 2 GiB could be read | High | **Done** | 2026-10-02. Field report. All byte positions now `long` via `ByteOffset.Parse`. |
 | [BUG-10](history.md#bug-10--a-failed-open-was-swallowed-so-an-unreadable-file-was-indistinguishable-from-a-missing-scan) | `GetReader` and `FileReader`'s `Read*` overloads discard the open result, yielding a reader that returns 0 peaks for every scan | High | **Done** | 2026-10-02. New `SpectrumFileOpenException`; no change to `ISpectrumFileReader`. |
-| [BUG-11](known-issues.md#bug-11--mzmlreaderclosemzxmlreaderclose-are-no-ops-and-never-release-the-file-handle) | `Close()` is a no-op in both XML readers; `XmlFS` is never disposed, leaking a handle per file switch | Medium | **Not Started** | Found 2026-10-02 while fixing BUG-10. Needs a downstream-impact check first. |
+| [BUG-11](history.md#bug-11--mzmlreaderclosemzxmlreaderclose-were-no-ops-and-leaked-a-file-handle) | `Close()` is a no-op in both XML readers; `XmlFS` is never disposed, leaking a handle per file switch | Medium | **Done** | 2026-10-05. Unblocked by the owner confirming nothing downstream has ever called `Close()`. |
 
 ## Dead / Redundant Code
 
@@ -107,3 +106,19 @@ to keep this file focused on whatever's currently in progress.
   and the IPC wire format never serialized the property. **This is a breaking change for
   consumers of the `Nova` package and is the one breaking change in 1.1.0 — it belongs in the
   release notes.** Build clean, `dotnet test` 45/45 passing.
+- 2026-10-05 — **HYG-6 done.** Renamed the misspelled public `FramentationType` /
+  `PrecursorIon.FramentationMethod` to `Fragmentation*` across all 13 occurrences. Straight
+  rename with no compatibility shims, taken deliberately because 1.1.0 had not shipped yet
+  and the IPC wire format never serialized the property. **This is a breaking change for
+  consumers of the `Nova` package and is one of three in 1.1.0 — see the release notes.**
+  Build clean, `dotnet test` 45/45 passing.
+- 2026-10-05 — **1.1.0 release notes** added to `Nova.csproj` (had none) and `NovaIO.csproj`
+  (still said "Initial release"), verified by packing and reading the resulting `.nuspec`.
+  Corrected `README.md`'s stale "Nova needs to be in Framework 4.8" line. Flagged while
+  drafting: the IPC wire format changed in 1.1.0 (`fb8dfd8` added `ScanDescription` to
+  `Spectrum` serialization), so 1.1.0 and 1.0.0.18 cannot share a named pipe.
+- 2026-10-05 — **BUG-11 done** plus the TEST-4 CI guard. Both XML readers now release their
+  file handle in `Close()`; `Open()` releases a prior one; `chrIndex` is cleared on re-open;
+  `MGFReader.Close()` drops its line buffer. Large-file tests now fail rather than skip when
+  `NOVA_REQUIRE_LARGE_FILE_TESTS` is set, which all three workflows now do. Both verified
+  with negative controls. Tests 45 → 48. **This closes every open item in the repo.**

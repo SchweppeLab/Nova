@@ -286,6 +286,76 @@ namespace TestNova
       reader.Close();
     }
 
+    // ---- BUG-11: Close() must actually release the file handle ----
+
+    [TestMethod]
+    public void MzML_Close_ReleasesTheFileHandle()
+    {
+      // Close() used to be an empty method holding a commented-out line copied from
+      // ThermoRawReader, so the FileStream was never disposed: the handle leaked and the file
+      // stayed locked against deletion until the finalizer ran. Deleting the file is the
+      // sharpest available probe -- on Windows it fails outright while a handle is open, which
+      // is exactly how this was discovered.
+      testContext.WriteLine("Regression test for BUG-11: after Close(), the mzML file must no longer be locked -- deleting a copy of it must succeed.");
+      string temp = Path.Combine(Path.GetTempPath(), $"NovaCloseTest_{Guid.NewGuid():N}.mzML");
+      File.Copy(dataFilePathMzML, temp);
+      try
+      {
+        ISpectrumFileReader reader = SpectrumFileReaderFactory.GetReader(temp, MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3);
+        Assert.IsTrue(reader.GetSpectrum(1, true).Count > 0, "precondition: the reader should read before being closed");
+        reader.Close();
+
+        File.Delete(temp);
+        Assert.IsFalse(File.Exists(temp), "the file should be gone after Close() released the handle");
+      }
+      finally
+      {
+        try { if (File.Exists(temp)) File.Delete(temp); } catch { /* best effort */ }
+      }
+    }
+
+    [TestMethod]
+    public void MzXML_Close_ReleasesTheFileHandle()
+    {
+      testContext.WriteLine("Regression test for BUG-11: the mzXML counterpart -- after Close(), deleting the file must succeed.");
+      string temp = Path.Combine(Path.GetTempPath(), $"NovaCloseTest_{Guid.NewGuid():N}.mzXML");
+      File.Copy(dataFilePathMzXML, temp);
+      try
+      {
+        ISpectrumFileReader reader = SpectrumFileReaderFactory.GetReader(temp, MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3);
+        Assert.IsTrue(reader.GetSpectrum(1, true).Count > 0, "precondition: the reader should read before being closed");
+        reader.Close();
+
+        File.Delete(temp);
+        Assert.IsFalse(File.Exists(temp), "the file should be gone after Close() released the handle");
+      }
+      finally
+      {
+        try { if (File.Exists(temp)) File.Delete(temp); } catch { /* best effort */ }
+      }
+    }
+
+    [TestMethod]
+    public void MzML_CloseIsIdempotentAndReopenWorks()
+    {
+      // Close() is now destructive, so two things that were previously vacuous need to hold:
+      // calling it twice must not throw, and Open() after Close() must give a working reader
+      // with a correctly rebuilt index rather than one appended to the old one.
+      testContext.WriteLine("Verifies the BUG-11 fix is safe to repeat: Close() twice does not throw, and re-opening the same reader instance rebuilds its index rather than appending to it.");
+      FileReader reader = new FileReader();
+
+      Assert.IsTrue(reader.OpenSpectrumFile(dataFilePathMzML));
+      Assert.AreEqual(4, reader.ScanCount);
+
+      reader.ReadSpectrum(dataFilePathMzML, 1);
+      Assert.IsTrue(reader.OpenSpectrumFile(dataFilePathMzML), "re-opening the same file should succeed");
+      Assert.AreEqual(4, reader.ScanCount, "scan count should be rebuilt, not doubled");
+
+      Spectrum spec = reader.ReadSpectrum(dataFilePathMzML, 1);
+      Assert.AreEqual(1, spec.ScanNumber);
+      Assert.IsTrue(spec.Count > 0, "the re-opened reader should still return real data");
+    }
+
     [TestMethod]
     public void FileReader_SwitchingToAnUnreadableFile_Throws()
     {

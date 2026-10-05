@@ -35,11 +35,64 @@ namespace TestNova
     private const long TwoGiB = 2147483648L;   // 2^31, where an int offset overflows
     private const long FourGiB = 4294967296L;  // 2^32, where a uint offset would overflow
 
+    /// <summary>
+    /// Set this environment variable (to anything other than empty, "0" or "false") to turn an
+    /// unavailable large-file fixture into a test *failure* instead of an Inconclusive skip.
+    /// <para>
+    /// The skip exists so these tests degrade gracefully where sparse files aren't available --
+    /// a non-NTFS temp volume, a non-Windows run. But a skip still reports green, which means CI
+    /// could quietly stop covering BUG-9 after, say, a runner image change and nobody would
+    /// notice. That is uncomfortably close to the defect this whole area exists to prevent. All
+    /// three workflows set this, so in CI an unavailable fixture is loud; locally it stays a skip.
+    /// </para>
+    /// </summary>
+    private const string RequireEnvVar = "NOVA_REQUIRE_LARGE_FILE_TESTS";
+
+    private static bool LargeFileTestsRequired
+    {
+      get
+      {
+        string? value = Environment.GetEnvironmentVariable(RequireEnvVar);
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        value = value.Trim();
+        //Treat an explicit "0"/"false" as off, so setting it to 0 does the obvious thing
+        //rather than the opposite.
+        return !value.Equals("0", StringComparison.Ordinal)
+            && !value.Equals("false", StringComparison.OrdinalIgnoreCase);
+      }
+    }
+
     public TestContext testContext { get; set; }
 
     public TestLargeFiles(TestContext context)
     {
       testContext = context;
+    }
+
+    /// <summary>
+    /// Builds the fixture, or ends the test -- as a failure when <see cref="RequireEnvVar"/> is
+    /// set, otherwise as an Inconclusive skip. Never returns null in practice; both exit paths
+    /// throw.
+    /// </summary>
+    private LargeMzMLFixture? CreateOrSkip(long logicalSize, long[] offsets)
+    {
+      if (LargeMzMLFixture.TryCreate(logicalSize, offsets, out var fixture, out string skip))
+      {
+        ReportFixture(fixture!);
+        return fixture;
+      }
+
+      if (LargeFileTestsRequired)
+      {
+        Assert.Fail(
+          $"Large-file fixture unavailable: {skip} {RequireEnvVar} is set, so this is a failure " +
+          "rather than a skip -- the >2 GiB regression coverage (BUG-9) would otherwise have been " +
+          "silently lost while the build still reported green.");
+      }
+
+      testContext.WriteLine($"SKIPPED: {skip} (set {RequireEnvVar} to make this a failure instead.)");
+      Assert.Inconclusive(skip);
+      return null;
     }
 
     /// <summary>
@@ -72,16 +125,8 @@ namespace TestNova
     {
       testContext.WriteLine("BUG-9/BUG-10 regression on the exact path from the bug report: SpectrumFileReaderFactory.GetReader on a >2 GiB mzML must return a reader that yields real spectra, not one that silently returns 0 peaks for every scan.");
 
-      if (!LargeMzMLFixture.TryCreate(2684354560L, OffsetsAcross2GiB, out var fixture, out string skip))
+      using (var fixture = CreateOrSkip(2684354560L, OffsetsAcross2GiB))
       {
-        testContext.WriteLine("SKIPPED: " + skip);
-        Assert.Inconclusive(skip);
-        return;
-      }
-
-      using (fixture)
-      {
-        ReportFixture(fixture!);
         ISpectrumFileReader reader = SpectrumFileReaderFactory.GetReader(
           fixture!.Path, MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3);
 
@@ -100,16 +145,8 @@ namespace TestNova
     {
       testContext.WriteLine("Pins down the specific value that used to overflow: the fixture's own indexListOffset must be past int.MaxValue, otherwise these tests would pass even against the unfixed code.");
 
-      if (!LargeMzMLFixture.TryCreate(2684354560L, OffsetsAcross2GiB, out var fixture, out string skip))
+      using (var fixture = CreateOrSkip(2684354560L, OffsetsAcross2GiB))
       {
-        testContext.WriteLine("SKIPPED: " + skip);
-        Assert.Inconclusive(skip);
-        return;
-      }
-
-      using (fixture)
-      {
-        ReportFixture(fixture!);
         Assert.IsTrue(fixture!.IndexListOffset > int.MaxValue,
           $"fixture indexListOffset {fixture.IndexListOffset} does not exceed int.MaxValue, so it would not reproduce BUG-9");
         Assert.IsTrue(fixture.Offsets.Any(o => o > int.MaxValue),
@@ -123,17 +160,8 @@ namespace TestNova
     /// </summary>
     private void RunFixture(long logicalSize, long[] offsets)
     {
-      if (!LargeMzMLFixture.TryCreate(logicalSize, offsets, out var fixture, out string skip))
+      using (var fixture = CreateOrSkip(logicalSize, offsets))
       {
-        testContext.WriteLine("SKIPPED: " + skip);
-        Assert.Inconclusive(skip);
-        return;
-      }
-
-      using (fixture)
-      {
-        ReportFixture(fixture!);
-
         FileReader reader = new FileReader();
         Assert.IsTrue(reader.OpenSpectrumFile(fixture!.Path),
           "OpenSpectrumFile failed on the large fixture");

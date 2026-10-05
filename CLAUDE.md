@@ -70,7 +70,7 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
   `Nova` core (`TestSpectrum.cs`, `TestPipes.cs`) and `NovaIO` parsing logic in isolation
   (`TestNovaIOFixtures.cs`, `TestMgf.cs`) — added as TEST-1/TEST-2, see `docs/history.md` — plus
   `TestLargeFiles.cs`, which generates multi-gigabyte sparse mzML fixtures at test time (TEST-4;
-  see the gotcha below before touching it). 45 tests as of 2026-10-02.
+  see the gotcha below before touching it). 48 tests as of 2026-10-05.
   (`Test/Files/*.mzML`/`.mzXML` used to get corrupted by Git on Windows checkout regardless
   of `core.autocrlf` — fixed as BUG-7, `.gitattributes` now marks them `-text`. If you ever
   see `XmlException: Data at the root level is invalid` reading these files again, that fix
@@ -156,7 +156,7 @@ version cycle; no workflow file needs editing to match.
 ## Before You Touch This Repo
 
 Read `docs/known-issues.md` for currently-open bugs, dead/redundant code, and hygiene
-problems (BUG-11 is open as of 2026-10-02), and `docs/progress.md` for a per-item status table. Both are lean by design — the
+problems (nothing is open as of 2026-10-05), and `docs/progress.md` for a per-item status table. Both are lean by design — the
 full write-up of everything already resolved (background, decision, fix, verification, and
 the complete session log) lives in `docs/history.md`, not in the working docs. When you fix
 something from `known-issues.md`, update `docs/progress.md` in the same change (status + a
@@ -188,6 +188,15 @@ one-line note), then move the full write-up into `docs/history.md` once it's don
   `Inconclusive` if not. Without that check, a failed sparse flag makes NTFS zero-fill gigabytes
   for real on a CI runner. No mzML of any size is checked into this repo — that's a standing
   rule, and these fixtures exist precisely so it stays that way.
+  In CI that skip is a **failure** instead: all three workflows set
+  `NOVA_REQUIRE_LARGE_FILE_TESTS=1` on their `Test` step, because a skip still reports green and
+  would silently drop the BUG-9 coverage. Locally, and on non-Windows, it stays a graceful skip.
+- **`Close()` on a reader really closes it now** (BUG-11, fixed 2026-10-05). The XML readers'
+  `Close()` used to be an empty method, so `XmlFS` leaked a handle per file switch and kept the
+  file locked. It now disposes, `Open()` releases any prior handle, and `MGFReader.Close()` drops
+  its line buffer. Consequence: a reader is unusable after `Close()` until re-opened. Nothing
+  downstream called `Close()` when this changed (confirmed by the repo owner), which is what made
+  it safe — if that ever stops being true, this is the change to look at.
 
 - MGF support (BUG-1/BUG-2) is **fixed** (2026-08-19) — `FileReader.OpenSpectrumFile` and
   `SpectrumFileReaderFactory.GetReader` both dispatch `.mgf` to a real `MGFReader`, which

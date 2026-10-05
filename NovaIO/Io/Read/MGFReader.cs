@@ -229,9 +229,17 @@ namespace Nova.Io.Read
       return true;
     }
 
+    /// <summary>
+    /// Releases the in-memory copy of the file. The reader cannot be read from again until
+    /// <see cref="Open"/> is called.
+    /// </summary>
     public void Close()
     {
-      //Nothing to release -- Open() reads the whole file up front and holds no file handle.
+      //No file handle to release -- Open() reads the whole file up front and closes it. The line
+      //buffer is dropped though: for a large MGF it is by far the biggest thing this reader
+      //holds, and Close() is the caller's signal that they are done with it. Not BUG-11 itself
+      //(that was about leaked file handles in the XML readers), but the same principle.
+      lines = Array.Empty<string>();
     }
 
     /// <summary>
