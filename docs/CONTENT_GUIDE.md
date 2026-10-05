@@ -40,7 +40,13 @@ library and the documentation disagree, the release tag wins, not the tip of `ma
 To document a release, read the source at that release tag rather than at `main`,
 because `main` may contain work that has not shipped yet.
 
-The site may state which version the documentation describes.
+The namespaces page states which release the documentation describes. That line is
+generated, not typed: `_layouts/namespaces.html` reads `site.downloads | last` and
+prints its `version` field. Adding a release entry updates it automatically.
+
+It is guarded by `{% if latest_release.version %}`, so a download entry missing its
+`version` field makes the line disappear silently rather than print something wrong.
+That is the safer failure, but it does mean the field is not optional in practice.
 
 ## Release news
 
@@ -67,7 +73,13 @@ Every news item is approved before it goes on the site.
 ## Download entries
 
 Each official release gets one file in `_downloads`. The front matter carries four
-links: `zip`, `tar`, `gh`, and `nupkg`.
+links: `zip`, `tar`, `gh`, and `nupkg`, plus a `version` field holding the bare
+version number, for example `1.0.0.18`.
+
+The `version` field is required. The namespaces page uses the newest entry's version
+to state which release the documentation describes, and leaving it out makes that
+line vanish. The entry titles are not consistently formatted, which is why the
+version is carried in its own field rather than parsed out of the title.
 
 Check every link resolves before publishing. Check that the `nupkg` link points at
 the correct release tag directory, because that is the one most easily copied from a
