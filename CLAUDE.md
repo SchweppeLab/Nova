@@ -121,7 +121,15 @@ Three workflows, replacing the old single `dotnet.yml` (deleted 2026-08-19 — s
 ## Versioning
 
 Nova moved from an old 4-part scheme (`1.0.0.18`) to 3-part SemVer (`major.minor.revision`)
-starting with this work, `1.1.0` — decided 2026-08-19, see CI-1. `Nova.csproj` and
+starting with this work, `1.1.0` — decided 2026-08-19, see CI-1.
+
+**1.1.0 contains one breaking change** (HYG-6, 2026-10-05): the misspelled public
+`FramentationType` enum and `PrecursorIon.FramentationMethod` property were renamed to
+`FragmentationType`/`FragmentationMethod`. Consumers of the `Nova` package must recompile.
+This was taken deliberately while 1.1.0 was still unreleased; the named-pipe wire format never
+serialized that property, so IPC compatibility is unaffected. Put it in the release notes —
+and note `NovaIO.csproj`'s `<PackageReleaseNotes>` still says "Initial release", which is
+stale and would ship that way. `Nova.csproj` and
 `NovaIO.csproj` are kept in lockstep (same `Version`/`AssemblyVersion`/`FileVersion` always —
 they've always shipped together as a matched pair in every past release) and are the single
 source of truth: `dev-nuget.yml` reads the base version from `Nova.csproj` and appends

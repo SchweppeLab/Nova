@@ -81,7 +81,7 @@ namespace Nova.Data
     /// </summary>
     public double CollisionEnergy { get; set; } = 0;
 
-    public FramentationType FramentationMethod { get; set; } = FramentationType.None;
+    public FragmentationType FragmentationMethod { get; set; } = FragmentationType.None;
 
     /// <summary>
     /// The m/z that the instrument targeted for isolation.

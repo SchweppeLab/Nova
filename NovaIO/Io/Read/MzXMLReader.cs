@@ -405,9 +405,9 @@ namespace Nova.Io.Read
             string activationMethod = XmlFile.GetAttribute("activationMethod");
             string windowWideness = XmlFile.GetAttribute("windowWideness");
             double mz = XmlFile.ReadElementContentAsDouble();
-            if (activationMethod == "HCD") precursorIon.FramentationMethod = FramentationType.HCD;
-            else if (activationMethod == "CID") precursorIon.FramentationMethod = FramentationType.CID;
-            else if (activationMethod == "ETD") precursorIon.FramentationMethod = FramentationType.ETD;
+            if (activationMethod == "HCD") precursorIon.FragmentationMethod = FragmentationType.HCD;
+            else if (activationMethod == "CID") precursorIon.FragmentationMethod = FragmentationType.CID;
+            else if (activationMethod == "ETD") precursorIon.FragmentationMethod = FragmentationType.ETD;
             if (!precursorCharge.IsNullOrEmpty())
             {
               precursorIon.Charge = Convert.ToInt32(precursorCharge);

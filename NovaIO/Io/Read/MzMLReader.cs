@@ -748,7 +748,7 @@ namespace Nova.Io.Read
           else spectrum.Polarity = true;
           break;
         case "MS:1000133":
-          precursorIon.FramentationMethod = FramentationType.CID;
+          precursorIon.FragmentationMethod = FragmentationType.CID;
           break;
         case "MS:1000285": //total ion current
           if (ext) spectrumEx.TotalIonCurrent = Convert.ToDouble(val, CultureInfo.InvariantCulture);
@@ -756,7 +756,7 @@ namespace Nova.Io.Read
           break;
         case "MS:1000421": //high energy collision (obsolete)
         case "MS:1000422": //beam-type collision-induced dissociation
-          precursorIon.FramentationMethod = FramentationType.HCD;
+          precursorIon.FragmentationMethod = FragmentationType.HCD;
           break;
         case "MS:1000500": //scan window upper limit
           if (ext) spectrumEx.EndMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
@@ -825,10 +825,10 @@ namespace Nova.Io.Read
           break;
 
         case "MS:1000598": //electron transfer dissociation
-          precursorIon.FramentationMethod = FramentationType.ETD;
+          precursorIon.FragmentationMethod = FragmentationType.ETD;
           break;
         case "MS:1000599": //pulsed q dissociation
-          precursorIon.FramentationMethod = FramentationType.PQD;
+          precursorIon.FragmentationMethod = FragmentationType.PQD;
           break;
         case "MS:1000744": //selected ion m/z
           //Note that in ProteoWizard mzML files, this value may be set with the IsolationMz if the MonoisotopicMz

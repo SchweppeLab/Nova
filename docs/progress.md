@@ -16,7 +16,7 @@ verification) and the complete session-by-session log, see [`history.md`](histor
 | Bugs | 11 | 10 | 0 | 1 |
 | Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
-| Hygiene / Maintainability | 5 | 5 | 0 | 0 |
+| Hygiene / Maintainability | 6 | 6 | 0 | 0 |
 | Test Coverage | 4 | 4 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
@@ -76,6 +76,7 @@ here (and a matching entry in `known-issues.md`) rather than reopening the archi
 | [HYG-3](history.md#hyg-3--inconsistent-visibility-internal-interfaces-public-implementations) | `IChromatogram`/`IChromatDataPoint` are `internal` while their implementations are `public` | Low | **Done** | 2026-08-19. |
 | [HYG-4](history.md#hyg-4--scattered-todos-marking-acknowledged-incomplete-features) | Collected pre-existing TODOs (asymmetric isolation windows, `GetHeader()`, trailer mapping, MGF viability) | Low | **Done** | 2026-08-19. Closed as a tracking item; 3 non-MGF TODOs remain unimplemented by design. |
 | [HYG-5](history.md#hyg-5--several-files-use-thermofishercommoncoredatas-isnullorempty-extension-as-if-it-were-project-local) | `FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` use `ThermoFisher.CommonCore.Data`'s `IsNullOrEmpty` extension as if it were project-local | Low | **Done** | 2026-08-19. |
+| [HYG-6](history.md#hyg-6--framentationtypeframentationmethod-misspelled-in-public-api) | `FramentationType`/`FramentationMethod` misspelled (missing `g`) in public API | Low | **Done** | 2026-10-05. Straight rename, **breaking**; ships in 1.1.0. Wire format unaffected. |
 
 ## Test Coverage
 
@@ -100,3 +101,9 @@ to keep this file focused on whatever's currently in progress.
   print. Verified against sparse 2.5/4.5 GiB fixtures, a negative control, and a real
   3.18 GiB Astral mzML. Tests 37 → 45. Logged **BUG-11** (open). No version bump. See
   [`history.md`](history.md) for the full write-up.
+- 2026-10-05 — **HYG-6 done.** Renamed the misspelled public `FramentationType` /
+  `PrecursorIon.FramentationMethod` to `Fragmentation*` across all 13 occurrences. Straight
+  rename with no compatibility shims, taken deliberately because 1.1.0 had not shipped yet
+  and the IPC wire format never serialized the property. **This is a breaking change for
+  consumers of the `Nova` package and is the one breaking change in 1.1.0 — it belongs in the
+  release notes.** Build clean, `dotnet test` 45/45 passing.

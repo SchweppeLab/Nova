@@ -616,6 +616,45 @@ to be unused for anything else in any of the three files either — verified emp
 (deleted, rebuilt, confirmed nothing broke), not assumed. Verified: full solution build clean
 (same 1 pre-existing warning, 0 new), `dotnet test` 37/37 passing.
 
+### HYG-6 — `FramentationType`/`FramentationMethod` misspelled in public API
+**Severity:** Low · **Status: Done 2026-10-05**
+**Location:** `Nova/data/SpectrumFoundation.cs`, `Nova/data/Precursor.cs`, plus 11 call sites
+
+Two public names in the `Nova` core package were missing a `g`: the enum
+`FramentationType` and the `PrecursorIon.FramentationMethod` property that uses it. Spotted by
+the repo owner. Unlike NeoPepXMLParser's deliberately odd `Cnpx*` class names, this mirrored
+nothing — "framentation" is not a term of art, just a misspelling, repeated consistently
+across 13 occurrences in 6 files.
+
+**Decision: straight rename, no compatibility shims** (option A of three offered). Both names
+are public API, so this is a source- *and* binary-breaking change for anything consuming the
+`Nova` package — consumers must recompile. Three things made that the right call rather than
+the cautious one:
+
+1. **1.1.0 had not shipped** as a non-prerelease release when this was fixed — only
+   `-dev.N` prereleases existed. This was the cheapest moment the fix would ever have; after
+   1.1.0 went out the choice would have been living with the typo or waiting for 2.0.0.
+2. **The IPC wire format is unaffected.** `TSpectrum.Serialize`/`Deserialize` writes only
+   `IsolationMz`, `IsolationWidth`, `MonoisotopicMz` and `Charge` for each precursor —
+   `FramentationMethod` was never serialized, so named-pipe compatibility with Helios and
+   anything else on the IPC layer is untouched by the rename. This was checked before
+   recommending the rename, not assumed.
+3. The alternative (keeping a deprecated `FramentationType` enum alongside the new one, plus
+   an `[Obsolete]` forwarding property casting between two identical enums) would have bought
+   only a deferred recompile, at the cost of carrying two parallel enums until 2.0.0.
+
+**Fix:** mechanical `Framentation` → `Fragmentation` across all 13 occurrences — the enum
+declaration, the property, 4 sites in `MzMLReader`, 3 in `MzXMLReader`, 2 in `MzMLWriter`,
+and 2 test assertions. Nothing in `Examples/` referenced either name. Lowercase
+"fragmentation" already appearing correctly in prose comments was left alone (the
+substitution was case-sensitive on the capital `F` stem). Verified: a case-insensitive sweep
+for `framentation` across `.cs`, `.md` and `.csproj` returns zero hits; clean full-solution
+rebuild with 0 new warnings; `dotnet test` 45/45 passing.
+
+**Note for whoever cuts 1.1.0:** this is the release's one breaking change and belongs in its
+release notes. `NovaIO.csproj`'s `<PackageReleaseNotes>` still reads "Initial release",
+which is stale regardless and would ship that way in the 1.1.0 nupkg.
+
 ---
 
 ## Test Coverage Gaps

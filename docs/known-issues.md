@@ -20,7 +20,7 @@ each category is noted below so IDs don't collide with the archived ones.
 | Bugs | BUG-1 – BUG-10 | BUG-12 |
 | Dead / Redundant Code | CLEAN-1 – CLEAN-3 | CLEAN-4 |
 | CI / Build Infrastructure | CI-1 | CI-2 |
-| Hygiene / Maintainability | HYG-1 – HYG-5 | HYG-6 |
+| Hygiene / Maintainability | HYG-1 – HYG-6 | HYG-7 |
 | Test Coverage | TEST-1 – TEST-4 | TEST-5 |
 
 ---

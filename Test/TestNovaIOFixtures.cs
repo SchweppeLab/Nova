@@ -111,7 +111,7 @@ namespace TestNova
       Assert.AreEqual(2.0, spec.Precursors[0].IsolationWidth, 1e-9);
       Assert.AreEqual(500.2, spec.Precursors[0].MonoisotopicMz, 1e-9);
       Assert.AreEqual(2, spec.Precursors[0].Charge);
-      Assert.AreEqual(FramentationType.HCD, spec.Precursors[0].FramentationMethod);
+      Assert.AreEqual(FragmentationType.HCD, spec.Precursors[0].FragmentationMethod);
     }
 
     [TestMethod]
@@ -220,7 +220,7 @@ namespace TestNova
       Assert.AreEqual(1, spec.Precursors.Count);
       Assert.AreEqual(500.25, spec.Precursors[0].IsolationMz, 1e-9);
       Assert.AreEqual(2, spec.Precursors[0].Charge);
-      Assert.AreEqual(FramentationType.HCD, spec.Precursors[0].FramentationMethod);
+      Assert.AreEqual(FragmentationType.HCD, spec.Precursors[0].FragmentationMethod);
     }
 
     [TestMethod]

@@ -303,9 +303,9 @@ namespace Nova.Io.Write
         pre.AddElement(selIonList);
 
         NovaXmlElement activation = new NovaXmlElement("activation");
-        switch (precursor.FramentationMethod)
+        switch (precursor.FragmentationMethod)
         {
-          case FramentationType.HCD:
+          case FragmentationType.HCD:
             activation.AddElement(MakeCvParam("MS", "MS:1000422", "beam-type collision-induced dissociation"));
             activation.AddElement(MakeCvParam("MS", "MS:1000045", "collision energy", precursor.CollisionEnergy.ToString(), "UO", "UO:0000266", "electronvolt"));
             break;

@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace Nova.Data
 {
-  public enum FramentationType
+  public enum FragmentationType
   {
     None,
     CID,
