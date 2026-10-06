@@ -24,3 +24,8 @@ package-lock.json
 # Misc
 _sass/vendors
 assets/js/dist
+
+# NovaSnippets build output and fetched release packages
+snippets/**/bin/
+snippets/**/obj/
+snippets/packages/

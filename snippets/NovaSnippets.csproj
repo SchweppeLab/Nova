@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    NovaSnippets exists so that every code example published on the Nova
+    website is compiled before it is published. A snippet that does not build
+    here does not go on the site.
+
+    This is not a test project. The snippets are written the way a user writes
+    code against Nova in their own project, which is also why Nova is restored
+    from the release nupkg rather than from a project reference.
+
+    See README.md in this folder for the restore step.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- Nova.IO targets net8.0; Nova 1.0.0.18 targets net48 and is consumed
+         through the framework compatibility shim, which warns. v1.1.0 moves
+         Nova to netstandard2.0 and this goes away. -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Snippets are illustrative, so unused variables and unawaited calls are
+         expected and must not fail the build. Real errors still do. -->
+    <NoWarn>$(NoWarn);CS0168;CS0219;CS1998</NoWarn>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exact versions. Nova.IO's nuspec asks for Nova >= 1.0.0, which would
+         otherwise resolve to the lowest match available. -->
+    <PackageReference Include="Nova" Version="[1.0.0.18]" />
+    <PackageReference Include="Nova.IO" Version="[1.0.0.18]" />
+  </ItemGroup>
+
+</Project>
