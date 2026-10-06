@@ -22,8 +22,8 @@ IEnumerable
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| FirstScanNumber  | int   | Number of the first scan event in the file.      |
-| LastScanNumber   | int   | Number of the last scan event in the file.   |
+| FirstScan  | int   | Number of the first scan event in the file.      |
+| LastScan   | int   | Number of the last scan event in the file.   |
 | MaxRetentionTime    | double   | Retention time (in minutes) of the last scan event in the file.   |
 | ScanCount   | int   | Total number of scan events in the file.   |
 

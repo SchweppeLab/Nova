@@ -35,8 +35,9 @@ IEnumerable
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
 | FileName  | string   | The names of the file currently being read, or empty if no file has been opened.      |
-| FirstScanNumber  | int   | Number of the first scan event in the file.      |
-| LastScanNumber   | int   | Number of the last scan event in the file.   |
+| FirstScan  | int   | Number of the first scan event in the file.      |
+| Format   | FileFormat   | Identifies the format of the most recently opened file.   |
+| LastScan   | int   | Number of the last scan event in the file.   |
 | MaxRetentionTime    | double   | Retention time (in minutes) of the last scan event in the file.   |
 | ScanCount   | int   | Total number of scan events in the file.   |
 
@@ -45,9 +46,10 @@ IEnumerable
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
+| CheckFile(string fileName)     | bool   | Checks whether a valid file is available to read from. Returns true if the file is already open. Pass an empty string to keep reading from the file already open. Throws ArgumentNullException if no file name is given and none is open, and FileNotFoundException if the file does not exist.  |
 | CheckFileFormat(string fileName)     | FileFormat   | Reads a file name string and returns the FileFormat value based on the file extension characters. FormatException thrown if file doesn't have an exception or the extension isn't recognized.  |
-| Close()     | void   | Closes an open MS data file.  |
 | OpenSpectrumFile(string fileName)      | bool   |Opens an mzML file and parses the index and meta information.         |
+| ReadChromatogram(string fileName = "", int chromatIndex = -1)      | Chromatogram   |Reads the requested chromatogram, or the next one if a valid chromatIndex is not given. Providing an empty string for the file name reads from the previously opened data file.   |
 | ReadSpectrum(string filename="", int scanNumber = -1, bool centroid = true)      | Spectrum   |Opens and/or reads the requested spectrum or the next spectrum if a valid scanNumber is not given. Data are returned in centroid, if possible, unless otherwise requested. Providing an empty string for the file name reads from the previously opened data file, or throws an exception if a file has not been previously opened.   |
 | ReadSpectrumEx(string filename="", int scanNumber = -1, bool centroid = true)      | SpectrumEx   |Opens and/or reads the requested spectrum or the next spectrum if a valid scanNumber is not given, and returns the data in the extended spectrum format. Data are returned in centroid, if possible, unless otherwise requested. Providing an empty string for the file name reads from the previously opened data file, or throws an exception if a file has not been previously opened.     |
 | Reset()      | void   |Resets the reader to the beginning of the file if sequentially reading the spectra.    |
