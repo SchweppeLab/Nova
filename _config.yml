@@ -187,6 +187,9 @@ collections:
   classes:
     output: true
     sort_by: name
+  methods:
+    output: true
+    sort_by: name
   enums:
     output: true
     sort_by: name

@@ -51,7 +51,23 @@
             </span>
           {% endif %}
 
-          <span>{{ page.title }}</span>
+          <!-- A method page sits under the type that declares it. -->
+          {% if page.class %}
+            {% assign owner = site.classes | where: 'name', page.class | first %}
+            {% unless owner %}
+              {% assign owner = site.structs | where: 'name', page.class | first %}
+            {% endunless %}
+            {% unless owner %}
+              {% assign owner = site.interfaces | where: 'name', page.class | first %}
+            {% endunless %}
+            {% if owner %}
+              <span>
+                <a href="{{ owner.url | relative_url }}">{{ owner.name }}</a>
+              </span>
+            {% endif %}
+          {% endif %}
+
+          <span>{{ page.member | default: page.title }}</span>
 
         {% else %}
           {% for item in paths %}
