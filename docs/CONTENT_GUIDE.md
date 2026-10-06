@@ -40,6 +40,25 @@ library and the documentation disagree, the release tag wins, not the tip of `ma
 To document a release, read the source at that release tag rather than at `main`,
 because `main` may contain work that has not shipped yet.
 
+**Document the public surface only.** A type declared `internal` is not part of the
+API, cannot be constructed by anyone using the library, and gets no page. When a type
+changes access between releases, its page follows: a type that becomes public gets a
+page, and a type that becomes internal loses one.
+
+This is not always obvious from the folder layout. At v1.0.0.18 `ThermoRawReader` is
+public while `MzMLReader`, `MzXMLReader` and `MGFReader`, sitting beside it, are
+internal. Check the declaration, never the location.
+
+**Verify every documented member against the source.** Do not carry members forward
+on trust, and do not copy them from a sibling page. Read the type at the release tag
+and check each name, each signature and each return type against it.
+
+The first review found five pages documenting `FirstScanNumber` and `LastScanNumber`,
+properties that have never existed in the library under those names, and one page
+documenting a `Close()` method that is not a public member. Those errors had been
+published for a year. A name that is almost right is worse than a missing page,
+because it fails at compile time in the reader's editor rather than here.
+
 The namespaces page states which release the documentation describes. That line is
 generated, not typed: `_layouts/namespaces.html` reads `site.downloads | last` and
 prints its `version` field. Adding a release entry updates it automatically.
