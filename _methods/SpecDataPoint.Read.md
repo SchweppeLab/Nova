@@ -14,20 +14,13 @@ siblings: [SpecDataPoint, SpecDataPointEx, ISpecDataPoint]
 
 <br/>
 ## Remarks
-Reads 16 bytes from the reader's current position and assigns them to Mz and Intensity,
-in that order. It overwrites both properties, so it replaces the contents of the point
-rather than adding to them.
+Reads 16 bytes from the reader's current position into Mz and then Intensity,
+overwriting both.
 
-The layout is the one [SpecDataPoint.Write](/methods/SpecDataPoint.Write.html)
-produces. Reading bytes written by SpecDataPointEx gives silently wrong values, because
-that type writes six fields and the first two are not enough to tell them apart.
+This is the layout [SpecDataPoint.Write](/methods/SpecDataPoint.Write.html) produces.
+SpecDataPointEx uses a different one, with six fields.
 
-Nothing validates the stream. A reader positioned at the wrong offset returns whatever
-the next sixteen bytes happen to mean.
-
-> The library carries no documentation comments for this member. This page is written
-> from the implementation at the release tag.
-{: .prompt-info }
+*Written from the implementation. Nova carries no comments for this member.*
 
 * * *
 ## Syntax

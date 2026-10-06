@@ -15,19 +15,12 @@ siblings: [SpecDataPoint, SpecDataPointEx, ISpecDataPoint]
 <br/>
 ## Remarks
 Writes 16 bytes at the writer's current position: Mz first, then Intensity, each as a
-double. Nothing else is written, so a point carries no length prefix, no type tag and
-no terminator.
+double. No length prefix, no type tag, no terminator.
 
-That layout is the contract between Write and
-[SpecDataPoint.Read](/methods/SpecDataPoint.Read.html). Anything reading the bytes back
-must expect the same two fields in the same order.
+This is the layout [SpecDataPoint.Read](/methods/SpecDataPoint.Read.html) expects.
+SpecDataPointEx uses a different one, with six fields.
 
-SpecDataPointEx writes six fields rather than two, so the two types are not
-interchangeable on the wire.
-
-> The library carries no documentation comments for this member. This page is written
-> from the implementation at the release tag.
-{: .prompt-info }
+*Written from the implementation. Nova carries no comments for this member.*
 
 * * *
 ## Syntax

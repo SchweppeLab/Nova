@@ -51,35 +51,32 @@ of these lacks a summary. They are in `Nova/data/`, alongside
 **Partial:** `FileReader` (4 of 17 complete), `ThermoRawReader` (7 of 13),
 `MzMLWriter` (1 of 9).
 
-## Where it costs the most
+## Where it would help most
 
-These are the places where a missing comment is doing real damage, rather than
-merely being absent.
+Not a severity ranking, and nothing here is a defect. These are the members a
+caller reaches for most often, or where the behavior cannot be read off the
+signature.
 
-**`SpecDataPoint.Read` and `SpecDataPoint.Write` define a binary layout and say
-nothing about it.** The two methods are a contract: Write emits Mz then Intensity
-as doubles, and Read expects exactly that. `SpecDataPointEx` writes six fields in
-its own order. Nothing in the source says so, so nothing stops a caller reading
-one with the other and getting plausible, wrong numbers. Given that the 1.1.0
-notes record an IPC wire format change, this layout deserves to be stated rather
-than inferred.
+**`FileReader`.** The library's main entry point, and most of it is undocumented.
+`ReadSpectrum`, `ReadSpectrumEx`, `ReadChromatogram`, `OpenSpectrumFile` and
+`SetFilter` have no summary, no parameter descriptions and no return description
+between them. `CheckFile` and `CheckFileFormat`, which a caller touches far less
+often, are complete including their exceptions.
 
-**`SpecDataPoint.CompareTo` ignores Intensity.** It orders on Mz alone, so two
-points at the same m/z compare equal however different their intensities. That is
-almost certainly intended, and it is exactly the kind of thing a caller sorting a
-spectrum needs told.
-
-**`FileReader` is the library's main entry point and most of it is
-undocumented.** `ReadSpectrum`, `ReadSpectrumEx`, `ReadChromatogram`,
-`OpenSpectrumFile` and `SetFilter` have no summary, no parameter descriptions and
-no return description between them. `CheckFile` and `CheckFileFormat`, which a
-caller touches far less often, are fully documented including their exceptions.
-
-**`SpectrumFileReaderFactory.GetReader` has no comments at all.** It is the one
-public member of that class and the documented way to obtain a reader now that
+**`SpectrumFileReaderFactory.GetReader`.** No comments at all. It is the one
+public member of that class, and the documented way to obtain a reader now that
 the concrete readers are internal.
 
-**`PrecursorIon.FramentationMethod`** lacks a summary, and is also the misspelling
+**`MzMLWriter`.** Eight of nine members undocumented, and the `Add*` methods take
+parameters with no descriptions.
+
+**Read and Write on the data types.** `SpecDataPoint`, `SpecDataPointEx`,
+`ChromatDataPoint`, `Chromatogram` and `TSpectrum` all serialize themselves, and
+the field order is a format rather than an implementation detail. A signature of
+`void Write(BinaryWriter)` does not say what lands in the stream, so the layout
+currently has to be read out of the body.
+
+**`PrecursorIon.FramentationMethod`.** Lacks a summary, and is the misspelling
 being corrected in 1.1.0.
 
 ## Full detail

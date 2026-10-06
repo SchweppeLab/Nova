@@ -20,9 +20,7 @@ at zero intensity.
 SpecDataPoint is a struct, so an uninitialized array element is already a zeroed point
 rather than a null reference.
 
-> The library carries no documentation comments for this member. This page is written
-> from the implementation at the release tag.
-{: .prompt-info }
+*Written from the implementation. Nova carries no comments for this member.*
 
 * * *
 ## Syntax

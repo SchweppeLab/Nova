@@ -14,15 +14,12 @@ siblings: [SpecDataPoint, SpecDataPointEx]
 
 <br/>
 ## Remarks
-Compares on Mz alone. Intensity takes no part, so two points at the same m/z compare
-equal however different their intensities are.
+Orders by Mz. This is the IComparable implementation, so Array.Sort and List.Sort put a
+set of points into m/z order without a comparer being supplied.
 
-This is the IComparable implementation, so Array.Sort and List.Sort order a set of
-points by m/z without any comparer being supplied.
+Points with equal Mz compare equal.
 
-> The library carries no documentation comments for this member. This page is written
-> from the implementation at the release tag.
-{: .prompt-info }
+*Written from the implementation. Nova carries no comments for this member.*
 
 * * *
 ## Syntax
@@ -57,7 +54,6 @@ SpecDataPoint[] peaks =
   new SpecDataPoint(522.77, 850.0)
 };
 
-// CompareTo orders on Mz only. Intensity is ignored, so two points at
-// the same m/z compare equal however different their intensities are.
+// IComparable orders by Mz, so no comparer is needed.
 Array.Sort(peaks);
 ```

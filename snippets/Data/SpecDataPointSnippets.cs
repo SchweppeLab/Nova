@@ -70,8 +70,7 @@ namespace NovaSnippets.Data
         new SpecDataPoint(522.77, 850.0)
       };
 
-      // CompareTo orders on Mz only. Intensity is ignored, so two points at
-      // the same m/z compare equal however different their intensities are.
+      // IComparable orders by Mz, so no comparer is needed.
       Array.Sort(peaks);
 
       foreach (SpecDataPoint peak in peaks)

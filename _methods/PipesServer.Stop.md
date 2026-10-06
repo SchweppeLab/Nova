@@ -17,9 +17,8 @@ siblings: [PipesServer, PipesClient]
 Closes each active client connection, which raises ClientDisconnected for each, then
 releases the listener.
 
-This does not return instantly. The listening task is blocked waiting for a connection,
-so Stop connects a throwaway client of its own to unblock it. That handshake takes a
-moment.
+Stop unblocks its own listening task by connecting a throwaway client, so it takes a
+moment rather than returning instantly.
 
 * * *
 ## Syntax
