@@ -16,8 +16,8 @@ using Nova.Data;
 
 namespace TestNova
 {
-  // TEST-1: Nova core has no unit test coverage at all. These tests exercise TSpectrum<T>.GetMz
-  // (binary search + ppm-tolerance boundary logic, see CLEAN-1) and the Serialize/Deserialize
+  // Nova core had no unit test coverage at all. These tests exercise TSpectrum<T>.GetMz
+  // (binary search + ppm-tolerance boundary logic) and the Serialize/Deserialize
   // round trip, independent of any file I/O.
   [TestClass]
   public sealed class TestSpectrum

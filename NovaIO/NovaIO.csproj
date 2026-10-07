@@ -80,8 +80,8 @@ https://github.com/SchweppeLab/Nova
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <!-- Exact-match brackets, not a bare version number: a bare version string is a NuGet
          *minimum* bound ([X,)), not a pin. That's exactly how CI silently drifted from 8.0.6
-         onto 8.0.37 originally (see docs/known-issues.md CI-1/BUG-7); 8.0.37 is now the
-         deliberate, tested target (bumped 2026-08-19, after fixing HYG-1: 8.0.37 dropped the
+         onto 8.0.37 originally; 8.0.37 is now the
+         deliberate, tested target (bumped 2026-08-19; 8.0.37 dropped the
          Microsoft.AspNetCore.Mvc.NewtonsoftJson dependency this package's stray unused usings
          had been quietly relying on to compile). Keep these brackets when bumping again. -->
     <PackageReference Include="ThermoFisher.CommonCore.Data" Version="[8.0.37]" />

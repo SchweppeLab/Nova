@@ -16,7 +16,7 @@ using Nova.IPC.Pipes;
 
 namespace TestNova
 {
-  // TEST-1: same-process connect/send/receive/disconnect coverage for the named-pipes IPC
+  // Same-process connect/send/receive/disconnect coverage for the named-pipes IPC
   // layer (PipesServer/PipesClient/PipesConnection). Each test uses a GUID-derived server ID
   // since MSTestSettings.cs parallelizes at method level and named pipes are a shared,
   // process-wide namespace - a fixed ID would let parallel test runs collide.
