@@ -10,8 +10,8 @@ name: Dev NuGet build
 #
 # Unlike Helios's equivalent workflow, this doesn't need a two-job OS split -- Nova and
 # NovaIO are both SDK-style projects (Nova.IO always was; Nova core moved to netstandard2.0
-# and picked up matching packaging metadata as part of this same change, see
-# docs/history.md ARCH-1), so both pack with plain `dotnet pack` on one Windows runner.
+# and picked up matching packaging metadata as part of this same change), so both pack
+# with plain `dotnet pack` on one Windows runner.
 # Windows is still required (not just convenient) because Test.csproj's suite exercises real
 # Thermo RAW file reads via ThermoFisher.CommonCore.RawFileReader.
 #
@@ -63,12 +63,12 @@ jobs:
         run: dotnet build Nova\Nova.sln --no-restore --configuration Release -p:Platform=x64
 
       # --logger "console;verbosity=detailed" surfaces each test's TestContext.WriteLine
-      # message (see TEST-3, docs/history.md) in this log, for passing tests too --
+      # message in this log, for passing tests too --
       # --verbosity alone only does that for failures.
       - name: Test
         # Make an unavailable large-file fixture a hard failure here rather than an
         # Inconclusive skip: a skip still reports green, which would silently drop the
-        # >2 GiB regression coverage (BUG-9). Locally it stays a skip. See TestLargeFiles.
+        # >2 GiB regression coverage. Locally it stays a skip. See TestLargeFiles.
         env:
           NOVA_REQUIRE_LARGE_FILE_TESTS: "1"
         run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=detailed"

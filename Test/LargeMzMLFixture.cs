@@ -21,10 +21,10 @@ namespace TestNova
 {
   /// <summary>
   /// Builds a throwaway indexed mzML whose spectra sit at byte offsets past 2^31 (and, on request,
-  /// past 2^32), for the BUG-9 regression tests.
+  /// past 2^32), for the large-file regression tests.
   ///
   /// <para>
-  /// <b>Why this isn't a checked-in file.</b> A fixture big enough to reproduce BUG-9 is 2.5 GB+,
+  /// <b>Why this isn't a checked-in file.</b> A fixture big enough to reproduce the 2 GiB offset overflow is 2.5 GB+,
   /// which has no business in a Git repository. It is generated into the OS temp directory at test
   /// time and deleted in <see cref="Dispose"/>; nothing lands in Test/Files/.
   /// </para>

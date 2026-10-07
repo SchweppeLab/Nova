@@ -17,9 +17,9 @@ using Nova.Io.Read;
 
 namespace TestNova
 {
-  // BUG-9: byte offsets into an mzML/mzXML were parsed and stored as int, so any file past
+  // Byte offsets into an mzML/mzXML were parsed and stored as int, so any file past
   // 2 GiB (int.MaxValue = 2,147,483,647) threw OverflowException while reading its own index.
-  // Because the open failure was then discarded (BUG-10), every scan came back with zero peaks
+  // Because the open failure was then discarded, every scan came back with zero peaks
   // and the caller could not tell that from "that scan isn't in this file".
   //
   // These tests generate a sparse mzML at test time rather than reading a checked-in file --
@@ -41,7 +41,7 @@ namespace TestNova
     /// <para>
     /// The skip exists so these tests degrade gracefully where sparse files aren't available --
     /// a non-NTFS temp volume, a non-Windows run. But a skip still reports green, which means CI
-    /// could quietly stop covering BUG-9 after, say, a runner image change and nobody would
+    /// could quietly stop covering the overflow after, say, a runner image change and nobody would
     /// notice. That is uncomfortably close to the defect this whole area exists to prevent. All
     /// three workflows set this, so in CI an unavailable fixture is loud; locally it stays a skip.
     /// </para>
@@ -86,7 +86,7 @@ namespace TestNova
       {
         Assert.Fail(
           $"Large-file fixture unavailable: {skip} {RequireEnvVar} is set, so this is a failure " +
-          "rather than a skip -- the >2 GiB regression coverage (BUG-9) would otherwise have been " +
+          "rather than a skip -- the >2 GiB regression coverage would otherwise have been " +
           "silently lost while the build still reported green.");
       }
 
@@ -109,21 +109,21 @@ namespace TestNova
     [TestMethod]
     public void LargeMzML_Over2GiB_EveryScanReadsCorrectly()
     {
-      testContext.WriteLine("BUG-9 regression: builds a ~2.5 GiB indexed mzML with spectra below and above the 2^31 byte boundary, and verifies every scan reads back with its exact peaks. Before the fix, opening this file threw OverflowException and every scan returned 0 peaks.");
+      testContext.WriteLine("Builds a ~2.5 GiB indexed mzML with spectra below and above the 2^31 byte boundary, and verifies every scan reads back with its exact peaks. Before the fix, opening this file threw OverflowException and every scan returned 0 peaks.");
       RunFixture(2684354560L, OffsetsAcross2GiB);
     }
 
     [TestMethod]
     public void LargeMzML_Over4GiB_EveryScanReadsCorrectly()
     {
-      testContext.WriteLine("BUG-9 regression at 2^32: builds a ~4.5 GiB indexed mzML with a spectrum past the 4 GiB boundary, which an unsigned-32-bit offset would still fail on. Verifies every scan reads back with its exact peaks.");
+      testContext.WriteLine("Builds a ~4.5 GiB indexed mzML with a spectrum past the 4 GiB boundary, which an unsigned-32-bit offset would still fail on. Verifies every scan reads back with its exact peaks.");
       RunFixture(4831838208L, OffsetsAcross4GiB);
     }
 
     [TestMethod]
     public void LargeMzML_Over2GiB_FactoryReturnsWorkingReader()
     {
-      testContext.WriteLine("BUG-9/BUG-10 regression on the exact path from the bug report: SpectrumFileReaderFactory.GetReader on a >2 GiB mzML must return a reader that yields real spectra, not one that silently returns 0 peaks for every scan.");
+      testContext.WriteLine("The path from the field report: SpectrumFileReaderFactory.GetReader on a >2 GiB mzML must return a reader that yields real spectra, not one that silently returns 0 peaks for every scan.");
 
       using (var fixture = CreateOrSkip(2684354560L, OffsetsAcross2GiB))
       {
@@ -148,9 +148,9 @@ namespace TestNova
       using (var fixture = CreateOrSkip(2684354560L, OffsetsAcross2GiB))
       {
         Assert.IsTrue(fixture!.IndexListOffset > int.MaxValue,
-          $"fixture indexListOffset {fixture.IndexListOffset} does not exceed int.MaxValue, so it would not reproduce BUG-9");
+          $"fixture indexListOffset {fixture.IndexListOffset} does not exceed int.MaxValue, so it would not reproduce the overflow");
         Assert.IsTrue(fixture.Offsets.Any(o => o > int.MaxValue),
-          "fixture has no spectrum past int.MaxValue, so it would not reproduce BUG-9");
+          "fixture has no spectrum past int.MaxValue, so it would not reproduce the overflow");
       }
     }
 

@@ -24,8 +24,8 @@ jobs:
       # pins exactly (see the [8.0.37] exact-match version there). The previous unpinned
       # checkout of this repo's default branch is what silently drifted from the then-pinned
       # 8.0.6 onto 8.0.37 with no version bump intended, breaking the build for ~2 months
-      # without anyone noticing (see docs/history.md CI-1). 8.0.37 is now the deliberate,
-      # tested target (bumped 2026-08-19, alongside fixing HYG-1 -- see NovaIO.csproj's
+      # without anyone noticing. 8.0.37 is now the deliberate,
+      # tested target (bumped 2026-08-19 -- see NovaIO.csproj's
       # comment on the PackageReferences below). Bump this SHA deliberately when NovaIO's
       # pinned Thermo package version changes, not by accident.
       - name: Checkout RawFileReader (pinned)
@@ -49,12 +49,12 @@ jobs:
         run: dotnet build Nova\Nova.sln --no-restore --configuration Release -p:Platform=x64
 
       # --logger "console;verbosity=detailed" surfaces each test's TestContext.WriteLine
-      # message (see TEST-3, docs/history.md) in this log, for passing tests too --
+      # message in this log, for passing tests too --
       # --verbosity alone only does that for failures.
       - name: Test
         # Make an unavailable large-file fixture a hard failure here rather than an
         # Inconclusive skip: a skip still reports green, which would silently drop the
-        # >2 GiB regression coverage (BUG-9). Locally it stays a skip. See TestLargeFiles.
+        # >2 GiB regression coverage. Locally it stays a skip. See TestLargeFiles.
         env:
           NOVA_REQUIRE_LARGE_FILE_TESTS: "1"
         run: dotnet test Test\Test.csproj --no-build --configuration Release --verbosity minimal --logger "console;verbosity=detailed"

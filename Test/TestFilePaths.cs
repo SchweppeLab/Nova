@@ -24,7 +24,7 @@ namespace TestNova
     /// Resolves the Test/Files directory from the running test assembly's own location
     /// (AppContext.BaseDirectory) rather than Environment.CurrentDirectory -- the working
     /// directory a test runner is invoked from is not guaranteed to match the assembly's
-    /// output directory (see HYG-2, docs/known-issues.md), while BaseDirectory always is.
+    /// output directory, while BaseDirectory always is.
     /// Still assumes the current bin/&lt;config&gt;/net8.0/ output depth (three levels below
     /// the Test project root); if that layout ever changes, update this in one place.
     /// </summary>

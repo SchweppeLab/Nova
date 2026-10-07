@@ -17,7 +17,7 @@ using Nova.Io.Read;
 
 namespace TestNova
 {
-  // BUG-1/BUG-2 (docs/known-issues.md): FileReader.OpenSpectrumFile had no working dispatch
+  // FileReader.OpenSpectrumFile originally had no working dispatch
   // path for .mgf, and MGFReader was a non-functional stub (Open() parsed only the global
   // header, GetSpectrum/GetSpectrumEx always returned an empty spectrum). Both fixed together
   // 2026-08-19, implemented against the Matrix Science MGF spec
@@ -49,7 +49,7 @@ namespace TestNova
     [TestMethod]
     public void MGF_OpenAndScanCount()
     {
-      testContext.WriteLine("Verifies OpenSpectrumFile succeeds on the MGF fixture (BUG-1) and reports the correct scan count/range/max retention time.");
+      testContext.WriteLine("Verifies OpenSpectrumFile succeeds on the MGF fixture and reports the correct scan count/range/max retention time.");
       FileReader reader = new FileReader();
       Assert.IsTrue(reader.OpenSpectrumFile(dataFilePathMgf));
       Assert.AreEqual(6, reader.ScanCount);
@@ -156,7 +156,7 @@ namespace TestNova
     [TestMethod]
     public void MGF_SpectrumFileReaderFactory_GetReader_NoLongerThrows()
     {
-      testContext.WriteLine("Regression test for BUG-1/CLEAN-3: SpectrumFileReaderFactory.GetReader used to throw ArgumentException for .mgf; it now returns a working, already-opened reader.");
+      testContext.WriteLine("SpectrumFileReaderFactory.GetReader used to throw ArgumentException for .mgf; it now returns a working, already-opened reader.");
       ISpectrumFileReader reader = SpectrumFileReaderFactory.GetReader(dataFilePathMgf, MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3);
       Assert.AreEqual(6, reader.ScanCount);
     }
@@ -171,7 +171,7 @@ namespace TestNova
       Assert.AreEqual(0, reader.ScanCount);
     }
 
-    // BUG-12: a CHARGE value may list several states ("2+ and 3+", "2+,3+"), meaning the
+    // A CHARGE value may list several states ("2+ and 3+", "2+,3+"), meaning the
     // precursor charge is undetermined and the spectrum should carry one precursor per state.
     // The fixtures below are written to a temporary file per test so that the expected values
     // sit beside the input text.
