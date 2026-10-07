@@ -22,14 +22,24 @@ using Nova.Data;
 
 namespace Nova.Io.Read
 {
+  /// <summary>
+  /// A reader for one MS data file, obtained from <see cref="SpectrumFileReaderFactory.GetReader"/>. Enumerating it yields
+  /// each spectrum in file order
+  /// </summary>
   public interface ISpectrumFileReader : IEnumerable
   {
     //TODO: decide if we want to have general access to the last spectrum loaded
     //Spectrum Spectrum;
     //SpectrumEx SpectrumEx;
 
+    /// <summary>
+    /// The MS levels to read. Spectra at other levels are skipped
+    /// </summary>
     MSFilter Filter { get; set; }
 
+    /// <summary>
+    /// The number of spectra in the open file
+    /// </summary>
     int ScanCount { get; }
 
     /// <summary>
@@ -38,8 +48,19 @@ namespace Nova.Io.Read
     /// </summary>
     int ChromatCount { get; }
 
+    /// <summary>
+    /// The scan number of the first spectrum in the file
+    /// </summary>
     int FirstScan { get; }
+
+    /// <summary>
+    /// The scan number of the last spectrum in the file
+    /// </summary>
     int LastScan { get; }
+
+    /// <summary>
+    /// The retention time at the end of the run, in minutes
+    /// </summary>
     double MaxRetentionTime { get; }
 
     /// <summary>
@@ -58,12 +79,19 @@ namespace Nova.Io.Read
     /// <returns>Spectrum object</returns>
     Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true);
 
+    /// <summary>
+    /// Reads a spectrum from the currently open MS data file, with the extended per-peak data where the format provides it
+    /// </summary>
+    /// <param name="scanNumber">Optional scan number to grab. If omitted (or negative), the next spectrum in the file is loaded</param>
+    /// <param name="centroid">Indicates the preferred peak type. Not guaranteed; check the Spectrum.Centroid property</param>
+    /// <returns>SpectrumEx object</returns>
     SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true);
 
     /// <summary>
     /// Open data file and hold new scan information.
     /// </summary>
     /// <param name="fileName">Path to the data file.</param>
+    /// <returns>true if the file opened and is ready to read</returns>
     bool Open(string fileName);
 
     //TODO: decide if this is worthwhile
