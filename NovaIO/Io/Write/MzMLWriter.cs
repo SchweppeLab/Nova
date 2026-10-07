@@ -156,7 +156,7 @@ namespace Nova.Io.Write
     /// <summary>
     /// Converts a spectrum object into a spectrum element
     /// </summary>
-    /// <param name="spec"></param>
+    /// <param name="spec">The spectrum to add</param>
     public void AddSpectrum(Spectrum spec)
     {
       //Check if a run has been established
@@ -381,7 +381,8 @@ namespace Nova.Io.Write
     /// copy of the schema file and validation is not needed to produce a usable file.</param>
     /// <param name="schemaPath">Path to a local copy of the mzML 1.1.0 XSD. Required if
     /// <paramref name="validateSchema"/> is true.</param>
-    public bool Write(string filename, bool validateSchema = false, string? schemaPath = null)
+    /// <exception cref="ArgumentException"><paramref name="validateSchema"/> is true but <paramref name="schemaPath"/> is empty</exception>
+    public void Write(string filename, bool validateSchema = false, string? schemaPath = null)
     {
       XmlWriterSettings settings = new XmlWriterSettings();
       settings.Indent = true;
@@ -463,13 +464,12 @@ namespace Nova.Io.Write
         reader.Close();
       }
 
-      return true;
     }
 
     /// <summary>
     /// Writes the elements to file, and recursively calls itself for child elements.
     /// </summary>
-    /// <param name="element"></param>
+    /// <param name="element">The element to write</param>
     private void WriteElement(NovaXmlElement element)
     {
       //Special cases that are tracked for indexing purposes

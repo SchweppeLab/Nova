@@ -30,6 +30,7 @@ BREAKING
   FileReader or SpectrumFileReaderFactory.GetReader to obtain one.
 * ISpectrumFileReader gained ChromatCount, and FileReader surfaces it. Breaking
   only for external implementers of the interface.
+* MzMLWriter.Write returns void. It only ever returned true; failures throw.
 * Requires Nova 1.1.0; the IPC wire format changed.
 
 NEW

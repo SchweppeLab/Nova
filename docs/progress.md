@@ -16,7 +16,7 @@ verification) and the complete session-by-session log, see [`history.md`](histor
 | Bugs | 12 | 11 | 0 | 1 |
 | Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
-| Hygiene / Maintainability | 7 | 7 | 0 | 0 |
+| Hygiene / Maintainability | 8 | 8 | 0 | 0 |
 | Test Coverage | 4 | 4 | 0 | 0 |
 
 _(Update this table by hand when you flip a status below — it's a quick-glance summary, not
@@ -24,8 +24,8 @@ generated.)_
 
 **Everything from the initial 2026-08-18 review pass is Done as of 2026-08-19**, as is the
 2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) and the 2026-10-05 follow-ups (HYG-6,
-BUG-11, HYG-7). **One item is open: BUG-12** (MGF multiple charge states), deliberately deferred
-until the documentation pass is complete — see [`known-issues.md`](known-issues.md). See
+BUG-11, HYG-7). **One item is open: BUG-12** (MGF multiple charge states), ready to pick up now that the
+documentation pass (HYG-8) is complete — see [`known-issues.md`](known-issues.md). See
 [`history.md`](history.md) for the full write-up
 of each resolved item and the complete session log. The tables below stay as a quick per-ID reference; new work should add new rows
 here (and a matching entry in `known-issues.md`) rather than reopening the archived ones.
@@ -80,6 +80,7 @@ here (and a matching entry in `known-issues.md`) rather than reopening the archi
 | [HYG-5](history.md#hyg-5--several-files-use-thermofishercommoncoredatas-isnullorempty-extension-as-if-it-were-project-local) | `FileReader.cs`/`MzXMLReader.cs`/`MzMLWriter.cs` use `ThermoFisher.CommonCore.Data`'s `IsNullOrEmpty` extension as if it were project-local | Low | **Done** | 2026-08-19. |
 | [HYG-6](history.md#hyg-6--framentationtypeframentationmethod-misspelled-in-public-api) | `FramentationType`/`FramentationMethod` misspelled (missing `g`) in public API | Low | **Done** | 2026-10-05. Straight rename, **breaking**; ships in 1.1.0. Wire format unaffected. |
 | [HYG-7](history.md#hyg-7--inconsistent-reader-visibility-and-an-unreachable-chromatcount) | `ThermoRawReader` public while the other three readers are internal; `ChromatCount` public on an internal class and therefore unreachable | Low | **Done** | 2026-10-05. Narrowed rather than widened, **breaking**; `ChromatCount` added to `ISpectrumFileReader`. Format-forcing overload considered and deferred (no deadline). |
+| [HYG-8](history.md#hyg-8--public-api-undocumented-no-xml-doc-file-shipped) | Most public members undocumented; no XML doc file built or packed, so no comment reached a package consumer | Low | **Done** | 2026-10-06/07. Every public member documented; `GenerateDocumentationFile` on; solution builds with zero warnings. Five code fixes fell out (see history.md). |
 
 ## Test Coverage
 
@@ -133,3 +134,12 @@ to keep this file focused on whatever's currently in progress.
   `FileReader`. **Breaking**, and 1.1.0 was the one cheap moment for it; release notes updated.
   A format-forcing overload was considered in the same discussion and deliberately deferred —
   purely additive, so no deadline, and no demonstrated need. Tests 48 → 50.
+- 2026-10-06 — **HYG-8 begun.** Documentation pass over `Nova/data/`, one file at a time with
+  review. Four code fixes fell out (see history.md): `Deserialize` clears precursors;
+  `PrecursorIon` copy/`Clear` completed and the XML readers' precursor aliasing fixed; `Baseline`
+  populated from the Thermo centroid stream; `OpenSpectrumFile` closes the previous reader.
+- 2026-10-07 — **HYG-8 done.** `NovaIO` and `Nova/IPC/Pipes/` documented; `GenerateDocumentationFile`
+  on in both csprojs; issue-tracker prose stripped from eleven library files; every enum member
+  documented; missing `<returns>` and empty tags swept; `MzXMLReader` null guard removed the last
+  compiler warning. BUG-12 filed. Solution builds with zero warnings; 50/50 passing. Conventions
+  in `CLAUDE.md`.

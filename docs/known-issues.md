@@ -10,7 +10,7 @@ Architecture items use **Priority** instead of Severity — they're initiatives,
 
 **Currently open: one — BUG-12, below.** Everything from the initial 2026-08-18 review pass was resolved by
 2026-08-19; the 2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) and the 2026-10-05
-follow-ups (HYG-6, BUG-11, HYG-7) are resolved too. The full write-up for each — background,
+follow-ups (HYG-6, BUG-11, HYG-7) and the 2026-10-06/07 documentation pass (HYG-8) are resolved too. The full write-up for each — background,
 decision, fix, and verification — lives in [`history.md`](history.md), organized by the same
 categories as below. Add new items here as they come up; the next available ID in each
 category is noted below so IDs don't collide with the archived ones.
@@ -21,7 +21,7 @@ category is noted below so IDs don't collide with the archived ones.
 | Bugs | BUG-1 – BUG-11 | BUG-13 |
 | Dead / Redundant Code | CLEAN-1 – CLEAN-3 | CLEAN-4 |
 | CI / Build Infrastructure | CI-1 | CI-2 |
-| Hygiene / Maintainability | HYG-1 – HYG-7 | HYG-8 |
+| Hygiene / Maintainability | HYG-1 – HYG-8 | HYG-9 |
 | Test Coverage | TEST-1 – TEST-4 | TEST-5 |
 
 ---
@@ -30,7 +30,7 @@ category is noted below so IDs don't collide with the archived ones.
 
 ### BUG-12 — `MGFReader` keeps only the first of multiple listed charge states
 **Severity:** Medium · **Status: Not Started** · *Found 2026-10-07 by the repo owner during the
-documentation pass; deliberately deferred until that pass is complete.*
+documentation pass. That pass (HYG-8) is complete, so this is ready to pick up.*
 **Location:** `NovaIO/Io/Read/MGFReader.cs` — the global `CHARGE=` header parse (~line 170), the
 per-spectrum `CHARGE=` parse (~line 405), and `ParseChargeToken`
 

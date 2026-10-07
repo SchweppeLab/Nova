@@ -290,7 +290,7 @@ namespace Nova.Io.Read
     /// This function convenently returns the next scan number after the requested start point, allowing for gaps in the numbering.
     /// </summary>
     /// <param name="start">A scan number preceding the one that is wanted next.</param>
-    /// <returns></returns>
+    /// <returns>The next scan number present in the file, or one past the last scan if there is none</returns>
     private int GetNextScanNumber(int start)
     {
       int index = start + 1;

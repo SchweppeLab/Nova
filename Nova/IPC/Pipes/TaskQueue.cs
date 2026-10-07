@@ -72,7 +72,7 @@ namespace Nova.IPC.Pipes
     /// <summary>
     /// Private wrapper around the method in the task. Runs the method and indicates success or failure.
     /// </summary>
-    /// <param name="obj"></param>
+    /// <param name="obj">The Action to run</param>
     private void GoTask(object obj)
     {
       if (obj == null) return;

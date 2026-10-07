@@ -52,6 +52,10 @@ dotnet build Nova/Nova.sln --configuration Release -p:Platform=x64
 
 - Only `Release|x64` is exercised in practice. Don't spend time chasing Debug-config build
   issues unless specifically asked — treat Debug as unmaintained here.
+- **The solution builds with zero warnings** (as of 2026-10-07, HYG-8). Both csprojs set
+  `GenerateDocumentationFile`, so `Nova.xml`/`NovaIO.xml` are built and packed, and the compiler
+  checks every `cref` (CS1574) and flags every undocumented public member (CS1591). A build that
+  introduces a warning has regressed something; don't suppress it, fix it.
 - `Nova` (core: `Data/` + `IPC/Pipes/`) targets **`netstandard2.0`** as of 2026-08-18 (ARCH-1,
   done — see `docs/history.md` for the full rationale). It was
   previously .NET Framework 4.8; the retarget was done so one build serves both net48
@@ -141,6 +145,22 @@ version cycle; no workflow file needs editing to match.
 - Every source file carries an Apache-2.0 license header block — copy the header from an
   existing `.cs` file when adding new source files.
 - 2-space indentation throughout the C# codebase.
+- **Doc-comment style** (settled during the HYG-8 pass, 2026-10-06/07 — see `docs/history.md`):
+  - Say what the member *is* or *does* — the contract — in one terse sentence, no trailing
+    period. `<param>`/`<returns>` on methods. A second sentence only for something a caller
+    can't see from the declaration: a precondition, a silent no-op, a field nothing populates.
+  - **No history in source.** Issue IDs, commit SHAs, and "why we fixed it this way" belong in
+    `docs/history.md` and commit messages, never in `///` or `//`. A one-line `//` guardrail is
+    fine where a maintainer might plausibly undo something; a paragraph is not.
+  - No jargon, no tool names, no comparisons to other formats, no restating the code directly
+    beneath or a sibling comment nearby. The minimum a reader needs, and nothing else.
+  - If a comment would have to describe a bug as intended behavior, fix the code or flag it to
+    the owner — don't document the bug as a feature. Five real fixes fell out of this rule.
+  - Interface implementations use `/// <inheritdoc/>` (the four readers against
+    `ISpectrumFileReader`), so the interface is the one source of truth. Every enum member gets a
+    one-line `<summary>`; CS1591 requires it even when the name says it all.
+  - Tests are the exception to "no history": a regression test's comment *should* name the bug
+    it guards.
 - Nullable reference types + implicit usings are enabled in the net8.0 projects (`NovaIO`,
   `NovaApp`, `Test`) but not in `Nova` (netstandard2.0, C# 7.3 default, no nullable
   annotations — left that way deliberately during the ARCH-1 retarget to keep it
@@ -164,7 +184,7 @@ version cycle; no workflow file needs editing to match.
 ## Before You Touch This Repo
 
 Read `docs/known-issues.md` for currently-open bugs, dead/redundant code, and hygiene
-problems (nothing is open as of 2026-10-05), and `docs/progress.md` for a per-item status table. Both are lean by design — the
+problems (one is open as of 2026-10-07: BUG-12), and `docs/progress.md` for a per-item status table. Both are lean by design — the
 full write-up of everything already resolved (background, decision, fix, verification, and
 the complete session log) lives in `docs/history.md`, not in the working docs. When you fix
 something from `known-issues.md`, update `docs/progress.md` in the same change (status + a

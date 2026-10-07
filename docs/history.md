@@ -761,6 +761,60 @@ fixture via both the facade and the factory, and 1 for `AngioNeuro4.mzML`, which
 TIC, with the counted chromatogram confirmed actually retrievable. Build clean, `dotnet test`
 50/50 passing.
 
+### HYG-8 — Public API undocumented; no XML doc file shipped
+**Severity:** Low · **Status: Done 2026-10-07**
+**Location:** every public type and member in `Nova` and `NovaIO`; both csprojs
+
+Most public members had no doc comment, and — more consequentially — neither csproj set
+`GenerateDocumentationFile`, so no `Nova.xml`/`NovaIO.xml` was built or packed. Every comment in
+the codebase, the authors' included, was invisible to a package consumer's IntelliSense. Without
+doc generation the compiler also never checks `cref`s (CS1574) or flags missing docs (CS1591),
+so neither gap showed up in a build.
+
+**Process (2026-10-06/07).** The repo owner set the style by example with two comments on
+`ISpecDataPoint.cs`, reviewed each file as it was done, and edited the first results to
+calibrate — cutting enumerations that restated the code beneath, clauses that said a thing
+twice, and anything a sibling comment already covered. Order: `Nova/data/` (six files), then
+`NovaIO` — interface, facade, factory and exception, the four readers, `Write/`, `Meta/`,
+`StringExtensions` — then `Nova/IPC/Pipes/`. Both csprojs gained `GenerateDocumentationFile`
+midway, which surfaced five pre-existing defects now fixed: `CS1573` on five `ThermoRawReader`
+`Process*` methods missing an `ext` param tag, and `CS1587` on an orphaned `///` block over the
+commented-out `GetHeader()` stub. Interface implementations in the four readers use
+`<inheritdoc/>`. Every enum member has a one-line summary. The conventions that emerged are in
+`CLAUDE.md` under Working Conventions.
+
+Also in this pass: the comments added during the BUG-9/10/11 and HYG-5/7 work — issue IDs,
+commit SHAs, bug narratives — were stripped back to contract across eleven library files; that
+material lives here and in the commit messages, not in source. And since CS1591 only fires for a
+member with no comment at all, a separate sweep looked for public non-void methods without
+`<returns>` and for empty `<param>`/`<returns>` tags: one and eleven respectively, all filled.
+
+**Code fixes that fell out of documenting**, each because a comment would otherwise have had
+to describe a bug as intended behavior (no separate IDs; commits noted):
+- `TSpectrum.Deserialize` added precursors without clearing — `Precursors.Clear()` (f057dbc).
+- `PrecursorIon`'s copy constructor and `Clear()` each covered 5 of 8 fields; both XML readers
+  `Add`ed one shared `precursorIon` instance per `<precursor>`, so a multi-precursor spectrum
+  held N references to one object. Both completed; the four `Add` sites copy (2171d6f).
+- `SpecDataPointEx.Baseline` was never populated — `ThermoRawReader` now fills it from
+  `CentroidStream.Baselines` (6dd7ef8).
+- `FileReader.OpenSpectrumFile` replaced the reader without closing the previous one — now
+  calls `fileReader?.Close()` first (eb866c6).
+- `MzXMLReader` passed a nullable `retentionTime` to `XmlConvert.ToTimeSpan` — guarded; it was
+  the solution's last compiler warning (0978d4a).
+- `MzMLWriter.Write` returned a `bool` that was always `true`, failures throwing — now `void`.
+  Its one in-repo caller discarded the return. A public signature change, noted in the 1.1.0
+  release notes.
+
+**Documented as-is, owner's call:** `SpectrumFoundation.Description` (unpopulated; what counts
+as the official scan description is unsettled in the field, so it and `ScanDescription` both
+stay); `MzMLWriter.AddFileDescription` (no effect on output); `AddInstrumentConfiguration.refID`
+(unused); `InstrumentComponents` (unreferenced); `MetaItem` (unreferenced; code commented out,
+file kept). BUG-12 was found and filed, not fixed, during the `MGFReader` work.
+
+**Verification:** the solution builds with zero warnings — CS1591 went from 51 distinct to 0
+over the pass — every `cref` resolves, no doc comment is malformed, and `Nova.xml`/`NovaIO.xml`
+are produced. 50/50 tests passing throughout.
+
 ---
 
 ## Test Coverage Gaps
@@ -1018,3 +1072,16 @@ Chronological record of every work session on this list, preserved verbatim from
   changes verified with negative controls — the old no-op `Close()` reproduces the original
   "file in use" error, and a forced-unavailable fixture skips without the variable and fails
   with it. Tests 45 → 48, all passing. **This closes every open item in the repo.**
+- 2026-10-06 — **HYG-8 begun**: documentation pass over `Nova/data/`, one file at a time with
+  the repo owner reviewing each. Style set by the owner's two comments on `ISpecDataPoint.cs`
+  and calibrated by their edits to the first results. Four code fixes fell out: `Deserialize`
+  clears precursors; `PrecursorIon` copy/`Clear` completed and the XML readers' precursor
+  aliasing fixed; `Baseline` populated from the Thermo centroid stream; `OpenSpectrumFile`
+  closes the previous reader. `Description`/`ScanDescription` both kept by owner decision.
+- 2026-10-07 — **HYG-8 done**: `NovaIO` (interface, facade, factory, exception, four readers
+  with `<inheritdoc/>`, `Write/`, `Meta/`, `StringExtensions`) and `Nova/IPC/Pipes/`.
+  `GenerateDocumentationFile` on in both csprojs; issue-tracker prose stripped from eleven
+  library files; every enum member documented; a sweep for missing `<returns>` and empty tags
+  (which CS1591 does not catch) filled 1 + 11; `MzXMLReader` null guard removed the last
+  compiler warning. BUG-12 filed. Solution builds with zero warnings; 50/50 passing.
+  Conventions recorded in `CLAUDE.md`.

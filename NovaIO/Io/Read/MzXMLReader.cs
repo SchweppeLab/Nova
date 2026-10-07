@@ -225,8 +225,8 @@ namespace Nova.Io.Read
     /// <summary>
     /// MzXML files do not have chromatograms. An empty chromatogram object is returned every time.
     /// </summary>
-    /// <param name="chromatIndex"></param>
-    /// <returns></returns>
+    /// <param name="chromatIndex">Ignored</param>
+    /// <returns>An empty chromatogram</returns>
     public Chromatogram GetChromatogram(int chromatIndex = -1)
     {
       return new Chromatogram(0);

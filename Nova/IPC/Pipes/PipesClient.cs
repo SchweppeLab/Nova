@@ -130,7 +130,7 @@ namespace Nova.IPC.Pipes
     /// Called and raised when receiving a disconnect event. Will attempt reconnect
     /// unless otherwise instructed not to do so (e.g., when explicitly closed).
     /// </summary>
-    /// <param name="pc"></param>
+    /// <param name="pc">The connection that dropped</param>
     private void OnDisconnected(PipesConnection pc)
     {
       Disconnected?.Invoke(pc);
@@ -143,7 +143,7 @@ namespace Nova.IPC.Pipes
     /// <summary>
     /// Called when receiving an error and raise that an error was received.
     /// </summary>
-    /// <param name="ex"></param>
+    /// <param name="ex">The error</param>
     private void OnError(Exception ex)
     {
       Error?.Invoke(ex);
