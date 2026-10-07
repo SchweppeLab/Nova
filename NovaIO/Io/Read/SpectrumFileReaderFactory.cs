@@ -21,9 +21,20 @@ using System.Threading.Tasks;
 
 namespace Nova.Io.Read
 {
+  /// <summary>
+  /// Creates an opened <see cref="ISpectrumFileReader"/> for an MS data file
+  /// </summary>
   public class SpectrumFileReaderFactory
   {
     //Format detection and reader construction live on FileReader so the two dispatch paths can't drift
+    /// <summary>
+    /// Creates a reader for the file, chosen by its extension, and opens it
+    /// </summary>
+    /// <param name="file">The file to open</param>
+    /// <param name="filter">The MS levels to read</param>
+    /// <returns>A reader with the file open</returns>
+    /// <exception cref="ArgumentException">The file extension is not a recognized format</exception>
+    /// <exception cref="SpectrumFileOpenException">The file could not be opened or indexed</exception>
     public static ISpectrumFileReader GetReader(string file, MSFilter filter)
     {
       FileFormat format;

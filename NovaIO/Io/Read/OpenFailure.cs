@@ -28,12 +28,23 @@ namespace Nova.Io.Read
     /// </summary>
     public string FileName { get; }
 
+    /// <summary>
+    /// Creates the exception for a file that could not be opened
+    /// </summary>
+    /// <param name="fileName">The file that could not be opened</param>
+    /// <param name="detail">Why, as reported by the reader</param>
     public SpectrumFileOpenException(string fileName, string detail)
       : base("Failed to open '" + fileName + "': " + detail)
     {
       FileName = fileName;
     }
 
+    /// <summary>
+    /// Creates the exception for a file that could not be opened, wrapping the exception that caused it
+    /// </summary>
+    /// <param name="fileName">The file that could not be opened</param>
+    /// <param name="detail">Why, as reported by the reader</param>
+    /// <param name="innerException">The exception that caused the failure</param>
     public SpectrumFileOpenException(string fileName, string detail, Exception innerException)
       : base("Failed to open '" + fileName + "': " + detail, innerException)
     {
