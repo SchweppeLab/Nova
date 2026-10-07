@@ -12,12 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Nova.Io.Write
 {
   /// <summary>
@@ -26,22 +20,51 @@ namespace Nova.Io.Write
   /// </summary>
   internal class NovaXmlElement
   {
+    /// <summary>
+    /// The element name
+    /// </summary>
     public readonly string Name;
+
+    /// <summary>
+    /// The element's text content, or null for none
+    /// </summary>
     public string? Contents;
+
+    /// <summary>
+    /// The attributes, in the order added
+    /// </summary>
     public List<Tuple<string, string>> Attributes = new List<Tuple<string, string>>();
+
+    /// <summary>
+    /// The child elements, in the order added
+    /// </summary>
     public List<NovaXmlElement> Elements = new List<NovaXmlElement>();
 
+    /// <summary>
+    /// Creates an element
+    /// </summary>
+    /// <param name="name">The element name</param>
+    /// <param name="contents">The text content, or null for none</param>
     public NovaXmlElement(string name, string? contents = null)
     {
       Name = name;
       Contents = contents;
     }
 
+    /// <summary>
+    /// Adds an attribute
+    /// </summary>
+    /// <param name="name">The attribute name</param>
+    /// <param name="value">The attribute value</param>
     public void AddAttribute(string name, string value)
     {
       Attributes.Add(new Tuple<string, string>(name, value));
     }
 
+    /// <summary>
+    /// Adds a child element
+    /// </summary>
+    /// <param name="el">The element to add</param>
     public void AddElement(NovaXmlElement el)
     {
       Elements.Add(el);

@@ -12,24 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 using Nova.Data;
-using Nova.Io;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Xml.Schema;
-using System.Collections.Specialized;
-using System.Xml.Xsl;
 using System.Reflection;
 
 namespace Nova.Io.Write
 {
 
+  /// <summary>
+  /// Builds an indexed mzML file from spectra. Describe the instrument, software and data processing with the Add methods,
+  /// start a run with <see cref="AddRun"/>, add spectra with <see cref="AddSpectrum"/>, then call <see cref="Write"/>
+  /// </summary>
   public class MzMLWriter
   {
     //I'm not sure if I've ever seen more than one run in an mzML file...
@@ -60,11 +55,18 @@ namespace Nova.Io.Write
     private bool HasSpectrum = false;
     private bool HasChromatogram = false;
 
+    /// <summary>
+    /// Creates a writer with the fixed mzML header in place
+    /// </summary>
     public MzMLWriter()
     {
       InitializeXML();
     }
 
+    /// <summary>
+    /// Starts a data processing entry; later <see cref="AddProcessingMethod"/> calls attach to it
+    /// </summary>
+    /// <param name="id">The entry's id</param>
     public void AddDataProcessing(string id)
     {
       DataProcessing = new NovaXmlElement("dataProcessing");
@@ -72,11 +74,20 @@ namespace Nova.Io.Write
       DataProcessingList.AddElement(DataProcessing);
     }
 
+    /// <summary>
+    /// Not yet implemented; has no effect on the written file
+    /// </summary>
+    /// <param name="fileName">Unused</param>
     public void AddFileDescription(string fileName)
     {
       if (SourceFileList == null) SourceFileList = new NovaXmlElement("sourceFileList");
       NovaXmlElement soucreFile = new NovaXmlElement("sourceFile");
     }
+    /// <summary>
+    /// Starts a run; spectra added afterward belong to it
+    /// </summary>
+    /// <param name="id">The run id</param>
+    /// <param name="instConf">The id of the instrument configuration the run used</param>
     public void AddRun(string id,string instConf)
     {
       NovaXmlElement element = new NovaXmlElement("run");
@@ -95,6 +106,11 @@ namespace Nova.Io.Write
       Run.Add(element);
     }
 
+    /// <summary>
+    /// Adds an instrument configuration entry
+    /// </summary>
+    /// <param name="id">The configuration id</param>
+    /// <param name="refID">Unused</param>
     public void AddInstrumentConfiguration(string id, string? refID)
     {
       InstrumentConfiguration = new NovaXmlElement("instrumentConfiguration");
@@ -102,6 +118,11 @@ namespace Nova.Io.Write
       InstrumentConfigurationList.AddElement(InstrumentConfiguration);
     }
 
+    /// <summary>
+    /// Adds a processing method to the current data processing entry. Does nothing if <see cref="AddDataProcessing"/> has not
+    /// been called
+    /// </summary>
+    /// <param name="softwareRef">The id of the software that performed it</param>
     public void AddProcessingMethod(string softwareRef)
     {
       if (DataProcessing == null) return;
@@ -111,6 +132,11 @@ namespace Nova.Io.Write
       DataProcessing.AddElement(processingMethod);
     }
 
+    /// <summary>
+    /// Adds a software entry. The ids "Xcalibur" and "pwiz" also get their standard CV terms
+    /// </summary>
+    /// <param name="id">The software id</param>
+    /// <param name="version">The software version</param>
     public void AddSoftware(string id, string version)
     {
       NovaXmlElement software = new NovaXmlElement("software");
