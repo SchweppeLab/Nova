@@ -322,6 +322,7 @@ namespace Nova.Io.Read
               spectrumEx.DataPoints[i].Intensity = centroidStream.Intensities[i];
               spectrumEx.DataPoints[i].Resolution = centroidStream.Resolutions[i];
               spectrumEx.DataPoints[i].Noise = centroidStream.Noises[i];
+              spectrumEx.DataPoints[i].Baseline = centroidStream.Baselines[i];
               spectrumEx.DataPoints[i].Charge = Convert.ToInt32(centroidStream.Charges[i]);
             }
             ProcessSpectrumInformation(scanFilter, scanStatistics, true);

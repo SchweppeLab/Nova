@@ -131,8 +131,7 @@ namespace Nova.Data
     public double Noise { get; set; }
 
     /// <summary>
-    /// The baseline at this peak. Reserved for the instrument's reported baseline, but no reader currently sets it, so
-    /// it is always zero
+    /// The baseline level the instrument reported at this peak
     /// </summary>
     public double Baseline { get; set; }
 
