@@ -39,3 +39,8 @@ Thumbs.db
 *.pdb
 *.cache
 *.log
+
+# Local-only working notes; not part of the public repo
+/CLAUDE.md
+/CLAUDE.local.md
+/docs/
