@@ -23,10 +23,15 @@ namespace Nova.Io.Read
   /// </summary>
   public enum FileFormat
   {
-    Unknown,    //Default format until otherwise determined.
+    /// <summary>Not yet determined</summary>
+    Unknown,
+    /// <summary>Mascot generic format</summary>
     MGF,
+    /// <summary>mzML</summary>
     MzML,
+    /// <summary>mzXML</summary>
     MzXML,
+    /// <summary>Thermo RAW</summary>
     ThermoRaw,
   }
 
@@ -36,9 +41,13 @@ namespace Nova.Io.Read
   [Flags]
   public enum MSFilter
   {
+    /// <summary>No MS levels</summary>
     None = 0,
+    /// <summary>MS1 spectra</summary>
     MS1 = 1,
+    /// <summary>MS2 spectra</summary>
     MS2 = 2,
+    /// <summary>MS3 spectra</summary>
     MS3 = 4
   }
 

@@ -19,6 +19,11 @@ namespace Nova.Io
   /// </summary>
   internal static class StringExtensions
   {
+    /// <summary>
+    /// True if the string is null or empty
+    /// </summary>
+    /// <param name="value">The string to test</param>
+    /// <returns>true if <paramref name="value"/> is null or has no characters</returns>
     public static bool IsNullOrEmpty(this string? value)
     {
       return string.IsNullOrEmpty(value);

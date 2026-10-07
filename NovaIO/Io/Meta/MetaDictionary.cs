@@ -14,25 +14,43 @@
 
 namespace Nova.Io.Meta
 {
+  /// <summary>
+  /// The kinds of scan metadata recognized in a Thermo trailer, by label
+  /// </summary>
   public enum MetaClass
   {
+    /// <summary>Not a recognized label</summary>
     None,
+    /// <summary>Mass analyzer</summary>
     Analyzer,
+    /// <summary>Precursor charge state</summary>
     ChargeState,
+    /// <summary>Whether FAIMS was on</summary>
     FaimsState,
+    /// <summary>FAIMS compensation voltage</summary>
     FaimsCV,
     //Header,
+    /// <summary>Ion injection time</summary>
     IIT,
+    /// <summary>The Thermo master index</summary>
     MasterIndex,
+    /// <summary>Scan number of the master (parent) scan</summary>
     MasterScanNumber,
+    /// <summary>Precursor monoisotopic m/z</summary>
     MonoisotopicMZ,
+    /// <summary>Scan description</summary>
     ScanDescription,
+    /// <summary>Scan number</summary>
     ScanNumber,
+    /// <summary>Total ion current</summary>
     TIC
     //Trailer,
     //Extra
   }
 
+  /// <summary>
+  /// Maps a Thermo trailer label to the <see cref="MetaClass"/> it represents
+  /// </summary>
   public static class MetaDictionary
   {
 
@@ -89,6 +107,11 @@ namespace Nova.Io.Meta
 
     };
 
+    /// <summary>
+    /// Looks up a trailer label
+    /// </summary>
+    /// <param name="label">The label as it appears in the file</param>
+    /// <returns>The matching <see cref="MetaClass"/>, or <see cref="MetaClass.None"/> if the label is not recognized</returns>
     public static MetaClass FindMeta(string label)
     {
       if (MetaTerms.TryGetValue(label, out var metaClass))

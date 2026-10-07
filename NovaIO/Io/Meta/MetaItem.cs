@@ -14,10 +14,25 @@
 
 namespace Nova.Io.Meta
 {
+
+  /* MH: MetaItem is currently unused. Not sure if I'm going to resurrect it yet.
+
+  /// <summary>
+  /// A metadata label and what it represents
+  /// </summary>
   public class MetaItem
   {
+    /// <summary>
+    /// The label as it appears in the file
+    /// </summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// What the label represents
+    /// </summary>
     public MetaClass Class { get; set; } = MetaClass.None;
 
   }
+
+  */
 }

@@ -19,12 +19,19 @@ namespace Nova.Io.Write
   /// </summary>
   public enum InstrumentComponents
   {
+    /// <summary>Electron multiplier detector</summary>
     ElectronMultiplier,
+    /// <summary>Electrospray ionization source</summary>
     Electrospray,
+    /// <summary>Inductive detector</summary>
     InductiveDetector,
+    /// <summary>Ion trap analyzer</summary>
     IonTrap,
+    /// <summary>Nanospray ionization source</summary>
     Nanospray,
+    /// <summary>Orbitrap analyzer</summary>
     Orbitrap,
+    /// <summary>Quadrupole analyzer</summary>
     Quadrupole
   }
 }

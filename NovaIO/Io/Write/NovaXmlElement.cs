@@ -14,9 +14,10 @@
 
 namespace Nova.Io.Write
 {
+
   /// <summary>
-  /// Similar to the XmlElement, I suppose. I didn't look closely. I just went for as
-  /// simple as possible.
+  /// A minimal in-memory XML element: a name, optional text, and ordered attributes and children. <see cref="MzMLWriter"/>
+  /// assembles the document from these before writing it
   /// </summary>
   internal class NovaXmlElement
   {
