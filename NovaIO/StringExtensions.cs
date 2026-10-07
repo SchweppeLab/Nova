@@ -1,4 +1,4 @@
-﻿// Copyright 2025 Michael Hoopmann
+// Copyright 2025 Michael Hoopmann
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,27 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Nova.Io.Meta
+namespace Nova.Io
 {
-
-  /* MH: MetaItem is currently unused. Not sure if I'm going to resurrect it yet.
-
   /// <summary>
-  /// A metadata label and what it represents
+  /// Project-local string helpers.
   /// </summary>
-  public class MetaItem
+  internal static class StringExtensions
   {
     /// <summary>
-    /// The label as it appears in the file
+    /// True if the string is null or empty
     /// </summary>
-    public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// What the label represents
-    /// </summary>
-    public MetaClass Class { get; set; } = MetaClass.None;
-
+    /// <param name="value">The string to test</param>
+    /// <returns>true if <paramref name="value"/> is null or has no characters</returns>
+    public static bool IsNullOrEmpty(this string? value)
+    {
+      return string.IsNullOrEmpty(value);
+    }
   }
-
-  */
 }

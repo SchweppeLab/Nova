@@ -1,4 +1,4 @@
-﻿// Copyright 2025 Michael Hoopmann
+// Copyright 2025 Michael Hoopmann
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,27 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Nova.Io.Meta
+using System;
+using System.Globalization;
+
+namespace Nova.Io.Read
 {
-
-  /* MH: MetaItem is currently unused. Not sure if I'm going to resurrect it yet.
-
   /// <summary>
-  /// A metadata label and what it represents
+  /// Parses byte positions read from a file's own index
   /// </summary>
-  public class MetaItem
+  internal static class ByteOffset
   {
     /// <summary>
-    /// The label as it appears in the file
+    /// Parses a byte offset into a file as a 64-bit value, culture-invariant
     /// </summary>
-    public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// What the label represents
-    /// </summary>
-    public MetaClass Class { get; set; } = MetaClass.None;
-
+    /// <param name="value">The text of an offset element</param>
+    /// <returns>The byte position</returns>
+    public static long Parse(string value)
+    {
+      return long.Parse(value.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture);
+    }
   }
-
-  */
 }

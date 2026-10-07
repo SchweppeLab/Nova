@@ -33,13 +33,28 @@ namespace Nova.IPC.Pipes
       }
     }
 
+    /// <summary>
+    /// Raised when a task completes
+    /// </summary>
     public event TaskSuccessEventHandler Succeeded;
+
+    /// <summary>
+    /// Raised with the exception when a task throws
+    /// </summary>
     public event TaskExceptionEventHandler Error;
 
+    /// <summary>
+    /// Creates a queue that reports results on the current synchronization context, or the default scheduler if there is
+    /// none
+    /// </summary>
     public TaskQueue() : this(MyTasks)
     {
     }
 
+    /// <summary>
+    /// Creates a queue that reports results on the given scheduler
+    /// </summary>
+    /// <param name="myTasks">The scheduler to raise <see cref="Succeeded"/> and <see cref="Error"/> on</param>
     public TaskQueue(TaskScheduler myTasks)
     {
       tasks = myTasks;
@@ -57,7 +72,7 @@ namespace Nova.IPC.Pipes
     /// <summary>
     /// Private wrapper around the method in the task. Runs the method and indicates success or failure.
     /// </summary>
-    /// <param name="obj"></param>
+    /// <param name="obj">The Action to run</param>
     private void GoTask(object obj)
     {
       if (obj == null) return;
@@ -89,7 +104,15 @@ namespace Nova.IPC.Pipes
     }
   }
 
+  /// <summary>
+  /// Handles a task completing
+  /// </summary>
   internal delegate void TaskSuccessEventHandler();
+
+  /// <summary>
+  /// Handles a task failing
+  /// </summary>
+  /// <param name="exception">The exception the task threw</param>
   internal delegate void TaskExceptionEventHandler(Exception exception);
 
 }

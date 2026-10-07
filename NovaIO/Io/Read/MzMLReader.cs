@@ -17,13 +17,14 @@ using System.Collections;
 using System.Xml;
 
 using Nova.Data;
-using System.Runtime.InteropServices;
-using System;
 using System.Globalization;
 
 namespace Nova.Io.Read
 {
 
+  /// <summary>
+  /// The kind of data a binary array in an mzML file holds
+  /// </summary>
   internal enum BinaryArrayType
   {
     Unknown,
@@ -33,10 +34,20 @@ namespace Nova.Io.Read
     NonStandard
   }
 
-  internal class MzMLReader : ISpectrumFileReader
+  /// <summary>
+  /// Reads indexed mzML files. A file without an index cannot be opened
+  /// </summary>
+  internal class MzMLReader : ISpectrumFileReader, IOpenFailureDetail
   {
 
     private Chromatogram chromatogram;
+
+    /// <summary>
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded.
+    /// </summary>
+    private string? openFailure;
+
+    string? IOpenFailureDetail.OpenFailure => openFailure;
 
     /// <summary>
     /// A basic spectrum type reading only mz and intensity values for each data point.
@@ -62,9 +73,9 @@ namespace Nova.Io.Read
     /// List of offsets for each spectrum in the mzML file. The position in the index equals the scan number, and a value of zero
     /// indicates the scan number is not in the mzML file.
     /// </summary>
-    private List<int> scanIndex = new List<int>();
+    private List<long> scanIndex = new List<long>();
 
-    private List<int> chrIndex = new List<int>();
+    private List<long> chrIndex = new List<long>();
 
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
@@ -104,12 +115,17 @@ namespace Nova.Io.Read
 
     private bool hasMonoMz = false;
 
+    /// <inheritdoc/>
     public int ScanCount { get; private set; } = 0;
 
+    /// <inheritdoc/>
     public int FirstScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public int LastScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public double MaxRetentionTime { get; private set; } = 0;
 
+    /// <inheritdoc/>
     public int ChromatCount { get; private set; } = 0;
 
     /// <summary>
@@ -132,26 +148,31 @@ namespace Nova.Io.Read
     /// <returns>true if file opened successfully, false otherwise.</returns>
     public bool Open(string fileName)
     {
+      openFailure = null;
+      //Release any previous file before opening another
+      Close();
       try
       {
         //Get the offset of the index.
         //TODO: Check to make sure the mzML is indeed indexed.
-        int offset = 0;
         XmlFS = new FileStream(fileName, FileMode.Open, FileAccess.Read);
         byte[] bytes = new byte[200];
         XmlFS.Seek(-200, SeekOrigin.End);
-        XmlFS.Read(bytes, offset, 200);
-        string block = System.Text.Encoding.Default.GetString(bytes);
+        //Stream.Read is allowed to return fewer bytes than asked for, so decode only what arrived
+        //rather than trailing whatever the unwritten remainder of the buffer happens to hold.
+        int read = XmlFS.Read(bytes, 0, 200);
+        string block = System.Text.Encoding.Default.GetString(bytes, 0, read);
         int indexA = block.IndexOf("<indexListOffset>");
         int indexB = block.IndexOf("</indexListOffset>");
         if (indexA < 0 || indexB < 0)
         {
           throw new Exception("No index found. Please index your mzXML file.");
         }
-        offset = int.Parse(block.Substring(indexA + 17, indexB - indexA - 17));
+        long offset = ByteOffset.Parse(block.Substring(indexA + 17, indexB - indexA - 17));
 
         //read the whole damn index
         scanIndex.Clear();
+        chrIndex.Clear();
         ScanCount = 0;
         XmlFS.Seek(offset, SeekOrigin.Begin);
         XmlFile = XmlReader.Create(XmlFS);
@@ -188,11 +209,11 @@ namespace Nova.Io.Read
                     ScanCount++;
                   }
                 }
-                scanIndex.Add(Convert.ToInt32(XmlFile.ReadElementContentAsString()));
+                scanIndex.Add(ByteOffset.Parse(XmlFile.ReadElementContentAsString()));
               }
               else if (indexSet == 2) //chromatogram offset
               {
-                chrIndex.Add(Convert.ToInt32(XmlFile.ReadElementContentAsString()));
+                chrIndex.Add(ByteOffset.Parse(XmlFile.ReadElementContentAsString()));
               }
             }
           }
@@ -225,7 +246,9 @@ namespace Nova.Io.Read
       }
       catch (Exception ex)
       {
-        Console.WriteLine($"Failed to open {ex.Message}");
+        openFailure = ex.Message;
+        //The caller never receives this reader, so release the handle here
+        Close();
         return false;
       }
       //Console.WriteLine("Last scan number: " + lastScanNumber.ToString());
@@ -233,13 +256,19 @@ namespace Nova.Io.Read
     }
 
     /// <summary>
-    /// Close the RAW file reader.
+    /// Closes the mzML file, releasing the underlying file handle. Safe to call more than once,
+    /// or before any successful <see cref="Open"/>. The reader cannot be read from again until
+    /// <see cref="Open"/> is called.
     /// </summary>
     public void Close()
     {
-      //if (RawFile != null) RawFile.Dispose();
+      XmlFile?.Dispose();
+      XmlFile = null;
+      XmlFS?.Dispose();
+      XmlFS = null;
     }
 
+    /// <inheritdoc/>
     public Chromatogram GetChromatogram(int chromatIndex = -1)
     {
 
@@ -261,7 +290,7 @@ namespace Nova.Io.Read
     /// This function convenently returns the next scan number after the requested start point, allowing for gaps in the numbering.
     /// </summary>
     /// <param name="start">A scan number preceding the one that is wanted next.</param>
-    /// <returns></returns>
+    /// <returns>The next scan number present in the file, or one past the last scan if there is none</returns>
     private int GetNextScanNumber(int start)
     {
       int index = start + 1;
@@ -273,6 +302,7 @@ namespace Nova.Io.Read
       return lastScanNumber + 1;
     }
 
+    /// <inheritdoc/>
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)
     {
       
@@ -322,6 +352,7 @@ namespace Nova.Io.Read
       return spectrum;
     }
 
+    /// <inheritdoc/>
     public SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true)
     {
       if (scanNumber < 0) CurrentScanNumber = GetNextScanNumber(CurrentScanNumber);
@@ -527,7 +558,7 @@ namespace Nova.Io.Read
           switch (XmlFile.Name)
           {
             case "precursor":
-              spectrum.Precursors.Add(precursorIon);
+              spectrum.Precursors.Add(new PrecursorIon(precursorIon));
               break;
             case "spectrum": return;
             default: break;
@@ -604,7 +635,7 @@ namespace Nova.Io.Read
           switch (XmlFile.Name)
           {
             case "precursor":
-              spectrumEx.Precursors.Add(precursorIon);
+              spectrumEx.Precursors.Add(new PrecursorIon(precursorIon));
               break;
             case "spectrum": return;
             default: break;
@@ -725,7 +756,7 @@ namespace Nova.Io.Read
           else spectrum.Polarity = true;
           break;
         case "MS:1000133":
-          precursorIon.FramentationMethod = FramentationType.CID;
+          precursorIon.FragmentationMethod = FragmentationType.CID;
           break;
         case "MS:1000285": //total ion current
           if (ext) spectrumEx.TotalIonCurrent = Convert.ToDouble(val, CultureInfo.InvariantCulture);
@@ -733,7 +764,7 @@ namespace Nova.Io.Read
           break;
         case "MS:1000421": //high energy collision (obsolete)
         case "MS:1000422": //beam-type collision-induced dissociation
-          precursorIon.FramentationMethod = FramentationType.HCD;
+          precursorIon.FragmentationMethod = FragmentationType.HCD;
           break;
         case "MS:1000500": //scan window upper limit
           if (ext) spectrumEx.EndMz = Convert.ToDouble(val, CultureInfo.InvariantCulture);
@@ -767,7 +798,7 @@ namespace Nova.Io.Read
           else if (val.Contains("ITMS"))
           {
             if (ext) spectrumEx.Analyzer = "ITMS";
-            else spectrum.Analyzer = "OTMS";
+            else spectrum.Analyzer = "ITMS";
           }
           break;
         case "MS:1000514": //m/z array
@@ -802,10 +833,10 @@ namespace Nova.Io.Read
           break;
 
         case "MS:1000598": //electron transfer dissociation
-          precursorIon.FramentationMethod = FramentationType.ETD;
+          precursorIon.FragmentationMethod = FragmentationType.ETD;
           break;
         case "MS:1000599": //pulsed q dissociation
-          precursorIon.FramentationMethod = FramentationType.PQD;
+          precursorIon.FragmentationMethod = FragmentationType.PQD;
           break;
         case "MS:1000744": //selected ion m/z
           //Note that in ProteoWizard mzML files, this value may be set with the IsolationMz if the MonoisotopicMz
@@ -831,6 +862,7 @@ namespace Nova.Io.Read
     }
 
 
+    /// <inheritdoc/>
     public void Reset()
     {
       CurrentScanNumber = 0;

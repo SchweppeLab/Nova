@@ -6,21 +6,58 @@
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64</Platforms>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>Nova.IO for mass spectrometry data input and output.</Title>
     <Authors>Michael Hoopmann, Devin Schweppe</Authors>
     <Company>University of Washington, Schweppe Lab</Company>
     <PackageId>Nova.IO</PackageId>
     <Description>Mass spectrometry data input and output.</Description>
-    <Copyright>Copyright 2025</Copyright>
+    <Copyright>Copyright 2025-2026</Copyright>
     <PackageProjectUrl>https://github.com/SchweppeLab/Nova</PackageProjectUrl>
     <RepositoryUrl>https://github.com/SchweppeLab/Nova</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>mass spectrometry;spectrum</PackageTags>
-    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <PackageReleaseNotes>
+1.1.0 - first release since 1.0.0.18.
+
+BREAKING
+* Files that cannot be opened or indexed now throw SpectrumFileOpenException
+  instead of returning a reader that yields empty spectra. Affects
+  SpectrumFileReaderFactory.GetReader, and FileReader.ReadSpectrum /
+  ReadSpectrumEx / ReadChromatogram when given a new file name.
+* FramentationType/FramentationMethod renamed to Fragmentation*.
+* ThermoRawReader is now internal, matching the other format readers. Use
+  FileReader or SpectrumFileReaderFactory.GetReader to obtain one.
+* ISpectrumFileReader gained ChromatCount, and FileReader surfaces it. Breaking
+  only for external implementers of the interface.
+* MzMLWriter.Write returns void. It only ever returned true; failures throw.
+* Requires Nova 1.1.0; the IPC wire format changed.
+
+NEW
+* MGF reading implemented; it was previously a stub returning empty spectra.
+* mzML and mzXML larger than 2 GiB are now readable; byte offsets are 64-bit.
+  Earlier versions returned zero peaks for every scan in such files, silently.
+* MzMLWriter.Write takes optional validateSchema and schemaPath; validation is
+  off by default and no longer uses a hardcoded path.
+* ThermoRawReader reads Scan Description from the trailer.
+
+FIXED
+* MzMLReader set Analyzer to "OTMS" instead of "ITMS" for ion-trap filters.
+* FileReader.OpenSpectrumFile returned true on a failed open.
+* FileReader.Format stayed Unknown.
+* The mzML and mzXML readers shared one PrecursorIon object across every
+  precursor and every spectrum read; each spectrum now owns its own.
+
+DEPENDENCIES
+* ThermoFisher.CommonCore.* pinned to 8.0.37.
+
+https://github.com/SchweppeLab/Nova
+    </PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.0.0.18</Version>
-    <AssemblyVersion>1.0.0.10</AssemblyVersion>
-    <FileVersion>1.0.0.10</FileVersion>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -41,12 +78,22 @@
 
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
-    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="8.0.6" />
-    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="8.0.6" />
+    <!-- Exact-match brackets, not a bare version number: a bare version string is a NuGet
+         *minimum* bound ([X,)), not a pin. That's exactly how CI silently drifted from 8.0.6
+         onto 8.0.37 originally (see docs/known-issues.md CI-1/BUG-7); 8.0.37 is now the
+         deliberate, tested target (bumped 2026-08-19, after fixing HYG-1: 8.0.37 dropped the
+         Microsoft.AspNetCore.Mvc.NewtonsoftJson dependency this package's stray unused usings
+         had been quietly relying on to compile). Keep these brackets when bumping again. -->
+    <PackageReference Include="ThermoFisher.CommonCore.Data" Version="[8.0.37]" />
+    <PackageReference Include="ThermoFisher.CommonCore.RawFileReader" Version="[8.0.37]" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Nova\Nova.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

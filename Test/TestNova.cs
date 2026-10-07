@@ -34,29 +34,16 @@ namespace TestNova
     {
       Reader = new FileReader();
       testContext = context;
-      string dir = string.Empty;
-      string curDir = Environment.CurrentDirectory;
-      //A lot of ridiculousness to avoid CS8602...
-      if (!curDir.IsNullOrEmpty())
-      {
-        DirectoryInfo? dirInfo = Directory.GetParent(curDir);
-        if(dirInfo != null)
-        {
-          if(dirInfo.Parent != null && dirInfo.Parent.Parent != null)
-          {
-            dir = dirInfo.Parent.Parent.FullName;
-          }
-        }
-        
-      }
-      dataFilePathMzML = Path.Combine(dir, "Files", @"AngioNeuro4.mzML");
-      dataFilePathMzXML = Path.Combine(dir, "Files", @"AngioNeuro4.mzXML");
-      dataFilePathRaw = Path.Combine(dir, "Files", @"AngioNeuro4.raw");
+      string filesDir = TestFilePaths.GetFilesDirectory();
+      dataFilePathMzML = Path.Combine(filesDir, "AngioNeuro4.mzML");
+      dataFilePathMzXML = Path.Combine(filesDir, "AngioNeuro4.mzXML");
+      dataFilePathRaw = Path.Combine(filesDir, "AngioNeuro4.raw");
     }
 
     [TestMethod]
     public void TestOpenFile()
     {
+      testContext.WriteLine("Verifies OpenSpectrumFile succeeds and reports the correct scan count for the AngioNeuro4 mzML/mzXML/raw fixtures.");
       if (Reader == null) Assert.Fail();
 
       bool bMzML = Reader.OpenSpectrumFile(dataFilePathMzML);
@@ -78,7 +65,7 @@ namespace TestNova
     [TestMethod]
     public void TestReadSpectrumEx()
     {
-      
+      testContext.WriteLine("Verifies ReadSpectrumEx returns the expected centroid count and MS level for the first scan of each AngioNeuro4 fixture.");
       if(Reader == null) Assert.Fail();
       
       Spec = Reader.ReadSpectrumEx(dataFilePathMzML);
@@ -100,6 +87,7 @@ namespace TestNova
     [TestMethod]
     public void TestSpecTally()
     {
+      testContext.WriteLine("Verifies scanning each AngioNeuro4 fixture end to end tallies the correct MS1/MS2/MS3 counts.");
       int ms1 = 0;
       int ms2 = 0;
       int ms3 = 0;

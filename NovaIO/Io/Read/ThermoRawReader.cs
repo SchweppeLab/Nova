@@ -21,19 +21,28 @@ using ThermoFisher.CommonCore.RawFileReader;
 
 using Nova.Data;
 using Nova.Io.Meta;
-using System.Formats.Tar;
 using System.Globalization;
 
 
 namespace Nova.Io.Read
 {
-  public class ThermoRawReader : ISpectrumFileReader
+  /// <summary>
+  /// Reads Thermo RAW files through Thermo's RawFileReader
+  /// </summary>
+  internal class ThermoRawReader : ISpectrumFileReader, IOpenFailureDetail
   {
 
     /// <summary>
     /// A basic spectrum type reading only mz and intensity values for each data point.
     /// </summary>
     private Spectrum spectrum;
+
+    /// <summary>
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded.
+    /// </summary>
+    private string? openFailure;
+
+    string? IOpenFailureDetail.OpenFailure => openFailure;
 
     private Chromatogram chromatogram;
 
@@ -62,10 +71,21 @@ namespace Nova.Io.Read
     /// </summary>
     private int CurrentScanNumber = 0;
 
+    /// <inheritdoc/>
     public int ScanCount { get; private set; } = 0;
 
+    /// <summary>
+    /// 1 once a file is open, 0 otherwise. <see cref="GetChromatogram"/> builds the TIC for the
+    /// whole run and ignores the index it is given, so exactly one chromatogram is retrievable.
+    /// If that method ever grows real per-index support (see its TODO), this must follow.
+    /// </summary>
+    public int ChromatCount { get; private set; } = 0;
+
+    /// <inheritdoc/>
     public int FirstScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public int LastScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public double MaxRetentionTime { get; private set; } = 0;
 
     private int MasterScanNumIndex = 0;
@@ -97,6 +117,7 @@ namespace Nova.Io.Read
       }
     }
 
+    /// <inheritdoc/>
     public Chromatogram GetChromatogram(int chromatIndex = -1)
     {
       //TODO: have repeated calls to this function get different chromatograms.
@@ -303,6 +324,7 @@ namespace Nova.Io.Read
               spectrumEx.DataPoints[i].Intensity = centroidStream.Intensities[i];
               spectrumEx.DataPoints[i].Resolution = centroidStream.Resolutions[i];
               spectrumEx.DataPoints[i].Noise = centroidStream.Noises[i];
+              spectrumEx.DataPoints[i].Baseline = centroidStream.Baselines[i];
               spectrumEx.DataPoints[i].Charge = Convert.ToInt32(centroidStream.Charges[i]);
             }
             ProcessSpectrumInformation(scanFilter, scanStatistics, true);
@@ -331,14 +353,23 @@ namespace Nova.Io.Read
     /// <returns>true if file opened successfully, false otherwise.</returns>
     public bool Open(string fileName)
     {
+      openFailure = null;
       RawFile = RawFileReaderAdapter.FileFactory(fileName);
-      if (!RawFile.IsOpen) return false;
+      if (!RawFile.IsOpen)
+      {
+        //No try/catch on purpose: Thermo API exceptions propagate, unlike the XML readers which swallow theirs
+        openFailure = RawFile.FileError?.ErrorMessage.IsNullOrEmpty() == false
+          ? RawFile.FileError.ErrorMessage
+          : "RawFileReader could not open the file.";
+        return false;
+      }
       RawFile.SelectInstrument(Device.MS, 1);
       CurrentScanNumber = 0;
       LastScan = lastScanNumber = RawFile.RunHeaderEx.LastSpectrum;
       FirstScan = RawFile.RunHeaderEx.FirstSpectrum;
       MaxRetentionTime = RawFile.RunHeaderEx.ExpectedRunTime; //not sure if this is the best value here.
       ScanCount = RawFile.RunHeaderEx.SpectraCount;
+      ChromatCount = 1; //the TIC; see the property's remarks.
 
       //This little indexer is so that we can quickly grab the Master Scan Number from any spectrum
       //trailer without having to parse the whole trailer. If it doesn't exist, then the value is -1;
@@ -369,6 +400,7 @@ namespace Nova.Io.Read
     /// </summary>
     /// <param name="scanFilter">Optionally provide an IScanFilter object if it was previously obtained.</param>
     /// <param name="scanStatistics">Optionally provide a ScanStatistics object if it was previously obtained.</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessSpectrumInformation(IScanFilter? scanFilter = null, ScanStatistics? scanStatistics = null, bool ext = false)
     {
       //If scanFilter or scanStatistics was not provided, grab them now.
@@ -386,8 +418,6 @@ namespace Nova.Io.Read
         spectrum.RetentionTime = RawFile.RetentionTimeFromScanNumber(CurrentScanNumber);
         spectrum.ScanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber).ToString();  //TODO: consider processing the ScanFilter
       }
-      spectrum.RetentionTime = RawFile.RetentionTimeFromScanNumber(CurrentScanNumber);
-      spectrum.ScanFilter = RawFile.GetFilterForScanNumber(CurrentScanNumber).ToString();  //TODO: consider processing the ScanFilter
       ProcessSpectrumStatistics(scanStatistics, ext);
       ProcessSpectrumFilter(scanFilter, ext);
 
@@ -427,6 +457,7 @@ namespace Nova.Io.Read
     /// Used to process precursor ion information
     /// </summary>
     /// <param name="scanEvent">IScanEvent object</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessScanEvent(IScanEvent scanEvent, bool ext = false)
     {
       //Get all the precursor information
@@ -442,6 +473,7 @@ namespace Nova.Io.Read
     /// Process the scan filter for a spectrum. Provides useful header information.
     /// </summary>
     /// <param name="filter">IScanFilter object</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessSpectrumFilter(IScanFilter filter, bool ext = false)
     {
       if (ext)
@@ -499,6 +531,7 @@ namespace Nova.Io.Read
     /// Process the scan statistics for a spectrum. Provides useful header information.
     /// </summary>
     /// <param name="scanStatistics">ScanStatistics object</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessSpectrumStatistics(ScanStatistics scanStatistics, bool ext = false)
     {
       if (ext)
@@ -543,6 +576,7 @@ namespace Nova.Io.Read
     /// Processes the Trailer Extra Information attached to the Scan Header.
     /// </summary>
     /// <param name="trailerData">ILogEntryAccess object</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessTrailerExtraInformation(ILogEntryAccess trailerData, bool ext = false)
     {
       for (int i = 0; i < trailerData.Length; i++)
@@ -617,6 +651,7 @@ namespace Nova.Io.Read
         }
       }
     }
+    /// <inheritdoc/>
     public void Reset()
     {
       CurrentScanNumber = 0;

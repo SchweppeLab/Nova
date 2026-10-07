@@ -143,7 +143,7 @@ namespace Nova.IPC.Pipes
     /// <summary>
     /// Called when receiving an error and raise that an error was received.
     /// </summary>
-    /// <param name="ex"></param>
+    /// <param name="ex">The error</param>
     private void OnError(Exception ex)
     {
       Error?.Invoke(ex);

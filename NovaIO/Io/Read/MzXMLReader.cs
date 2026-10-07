@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Buffers.Binary;
 using System.Xml;
-using Microsoft.AspNetCore.Mvc;
 using Nova.Data;
-using ThermoFisher.CommonCore.Data;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Collections;
-using System.Collections.Specialized;
 using System.Globalization;
 
 namespace Nova.Io.Read
 {
-  internal class MzXMLReader : ISpectrumFileReader
+  /// <summary>
+  /// Reads indexed mzXML files. A file without an index cannot be opened
+  /// </summary>
+  internal class MzXMLReader : ISpectrumFileReader, IOpenFailureDetail
   {
+
+    /// <summary>
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded.
+    /// </summary>
+    private string? openFailure;
+
+    string? IOpenFailureDetail.OpenFailure => openFailure;
     /// <summary>
     /// A basic spectrum type reading only mz and intensity values for each data point.
     /// </summary>
@@ -55,7 +57,7 @@ namespace Nova.Io.Read
     /// List of offsets for each spectrum in the mzML file. The position in the index equals the scan number, and a value of zero
     /// indicates the scan number is not in the mzML file.
     /// </summary>
-    private List<int> scanIndex = new List<int>();
+    private List<long> scanIndex = new List<long>();
 
     /// <summary>
     /// An enum bitwise operator indicating the desired spectrum levels to read. By default MS1, MS2, and MS3 are read.
@@ -86,10 +88,20 @@ namespace Nova.Io.Read
     /// </summary>
     private PrecursorIon precursorIon;
 
+    /// <inheritdoc/>
     public int ScanCount { get; private set; } = 0;
 
+    /// <summary>
+    /// Always 0: the mzXML format carries no chromatograms, and <see cref="GetChromatogram"/>
+    /// returns an empty one for any index.
+    /// </summary>
+    public int ChromatCount => 0;
+
+    /// <inheritdoc/>
     public int FirstScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public int LastScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public double MaxRetentionTime { get; private set; } = 0;
 
     /// <summary>
@@ -111,23 +123,27 @@ namespace Nova.Io.Read
     /// <returns>true if file opened successfully, false otherwise.</returns>
     public bool Open(string fileName)
     {
+      openFailure = null;
+      //Release any previous file before opening another
+      Close();
       try
       {
         //Get the offset of the index.
         //TODO: Check to make sure the mzXML is indeed indexed.
-        int offset = 0;
         XmlFS = new FileStream(fileName, FileMode.Open, FileAccess.Read);
         byte[] bytes = new byte[200];
         XmlFS.Seek(-200, SeekOrigin.End);
-        XmlFS.Read(bytes, offset, 200);
-        string block = System.Text.Encoding.Default.GetString(bytes);
+        //Stream.Read is allowed to return fewer bytes than asked for, so decode only what arrived
+        //rather than trailing whatever the unwritten remainder of the buffer happens to hold.
+        int read = XmlFS.Read(bytes, 0, 200);
+        string block = System.Text.Encoding.Default.GetString(bytes, 0, read);
         int indexA = block.IndexOf("<indexOffset>");
         int indexB = block.IndexOf("</indexOffset>");
         if(indexA < 0 || indexB < 0)
         {
           throw new Exception("No index found. Please index your mzXML file.");
         }
-        offset = int.Parse(block.Substring(indexA + 13, indexB - indexA - 13));
+        long offset = ByteOffset.Parse(block.Substring(indexA + 13, indexB - indexA - 13));
 
         //read the whole damn index
         scanIndex.Clear();
@@ -156,7 +172,7 @@ namespace Nova.Io.Read
                   scanIndex.Add(0);
                 }
               }
-              scanIndex.Add(Convert.ToInt32(XmlFile.ReadElementContentAsString()));
+              scanIndex.Add(ByteOffset.Parse(XmlFile.ReadElementContentAsString()));
             }
           }
           else if (XmlFile.NodeType == XmlNodeType.EndElement)
@@ -184,28 +200,39 @@ namespace Nova.Io.Read
       }
       catch (Exception ex)
       {
-        Console.WriteLine($"Failed to open: {ex.Message}");
+        openFailure = ex.Message;
+        //The caller never receives this reader, so release the handle here
+        Close();
         return false;
       }
       //Console.WriteLine("Last scan number: " + lastScanNumber.ToString());
       return true;
     }
 
+    /// <summary>
+    /// Closes the mzXML file, releasing the underlying file handle. Safe to call more than once,
+    /// or before any successful <see cref="Open"/>. The reader cannot be read from again until
+    /// <see cref="Open"/> is called.
+    /// </summary>
     public void Close()
     {
-      //if (RawFile != null) RawFile.Dispose();
+      XmlFile?.Dispose();
+      XmlFile = null;
+      XmlFS?.Dispose();
+      XmlFS = null;
     }
 
     /// <summary>
     /// MzXML files do not have chromatograms. An empty chromatogram object is returned every time.
     /// </summary>
-    /// <param name="chromatIndex"></param>
-    /// <returns></returns>
+    /// <param name="chromatIndex">Ignored</param>
+    /// <returns>An empty chromatogram</returns>
     public Chromatogram GetChromatogram(int chromatIndex = -1)
     {
       return new Chromatogram(0);
     }
 
+    /// <inheritdoc/>
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)
     {
       if (scanNumber < 0) CurrentScanNumber++;
@@ -254,6 +281,7 @@ namespace Nova.Io.Read
       return spectrum;
     }
 
+    /// <inheritdoc/>
     public SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true)
     {
       if (scanNumber < 0) CurrentScanNumber++;
@@ -385,9 +413,9 @@ namespace Nova.Io.Read
             string activationMethod = XmlFile.GetAttribute("activationMethod");
             string windowWideness = XmlFile.GetAttribute("windowWideness");
             double mz = XmlFile.ReadElementContentAsDouble();
-            if (activationMethod == "HCD") precursorIon.FramentationMethod = FramentationType.HCD;
-            else if (activationMethod == "CID") precursorIon.FramentationMethod = FramentationType.CID;
-            else if (activationMethod == "ETD") precursorIon.FramentationMethod = FramentationType.ETD;
+            if (activationMethod == "HCD") precursorIon.FragmentationMethod = FragmentationType.HCD;
+            else if (activationMethod == "CID") precursorIon.FragmentationMethod = FragmentationType.CID;
+            else if (activationMethod == "ETD") precursorIon.FragmentationMethod = FragmentationType.ETD;
             if (!precursorCharge.IsNullOrEmpty())
             {
               precursorIon.Charge = Convert.ToInt32(precursorCharge);
@@ -399,12 +427,12 @@ namespace Nova.Io.Read
             if (extended)
             {
               spectrumEx.PrecursorMasterScanNumber=Convert.ToInt32(precursorScanNum);
-              spectrumEx.Precursors.Add(precursorIon);
+              spectrumEx.Precursors.Add(new PrecursorIon(precursorIon));
             }
             else
             {
               spectrum.PrecursorMasterScanNumber = Convert.ToInt32(precursorScanNum);
-              spectrum.Precursors.Add(precursorIon);
+              spectrum.Precursors.Add(new PrecursorIon(precursorIon));
             }
           }
           else if (XmlFile.Name == "scan")
@@ -422,7 +450,7 @@ namespace Nova.Io.Read
             string basePeakMz = XmlFile.GetAttribute("basePeakMz");
             string basePeakIntensity = XmlFile.GetAttribute("basePeakIntensity");
             string totIonCurrent = XmlFile.GetAttribute("totIonCurrent");
-            TimeSpan rt=XmlConvert.ToTimeSpan(retentionTime);
+            TimeSpan rt = retentionTime != null ? XmlConvert.ToTimeSpan(retentionTime) : TimeSpan.Zero;
             defArrLen = Convert.ToInt32(peaksCount);
             if (extended)
             {
@@ -604,6 +632,7 @@ namespace Nova.Io.Read
       }
     }
 
+    /// <inheritdoc/>
     public void Reset()
     {
       CurrentScanNumber = 0;
