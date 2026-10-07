@@ -12,29 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Nova.Data
 {
+  /// <summary>
+  /// How a precursor was fragmented to produce a dependent scan
+  /// </summary>
   public enum FragmentationType
   {
+    /// <summary>Not fragmented, or not recorded</summary>
     None,
+    /// <summary>Collision-induced dissociation</summary>
     CID,
+    /// <summary>Electron capture dissociation</summary>
     ECD,
+    /// <summary>Electron transfer dissociation</summary>
     ETD,
+    /// <summary>Electron transfer dissociation with supplemental higher-energy collisional dissociation</summary>
     EThcD,
+    /// <summary>Electron transfer dissociation with supplemental activation</summary>
     ETDSA,
-    HCD,   
+    /// <summary>Higher-energy collisional dissociation</summary>
+    HCD,
+    /// <summary>Infrared multiphoton dissociation</summary>
     IRMPD,
+    /// <summary>Pulsed Q dissociation</summary>
     PQD,
+    /// <summary>Surface-induced dissociation</summary>
     SID
   }
 
 
+  /// <summary>
+  /// The scan-level fields of a mass spectrum, independent of its data point type. The base of <see cref="TSpectrum{T}"/>
+  /// </summary>
   public abstract class SpectrumFoundation
   {
 
@@ -183,7 +195,7 @@ namespace Nova.Data
     public string DetectorType { get; set; } = string.Empty;
 
     /// <summary>
-    /// "Scan Description" field from the scan header.
+    /// "Scan Description" field from the scan header. May be an unused redundancy.
     /// </summary>
     public string Description { get; set; } = string.Empty;
 
