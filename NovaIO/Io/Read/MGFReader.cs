@@ -85,11 +85,10 @@ namespace Nova.Io.Read
     private int CurrentScanNumber = 0;
 
     /// <summary>
-    /// Charge parsed from the file's global (pre-"BEGIN IONS") CHARGE= header line, used as a
-    /// fallback when a spectrum block has no CHARGE of its own and PEPMASS didn't include one.
-    /// Per the spec, the header value can list multiple charge states ("2+ and 3+"); only the first is kept.
+    /// Charge states from the file's global CHARGE= header line, used when a spectrum block has
+    /// no CHARGE of its own and PEPMASS didn't include one
     /// </summary>
-    private int globalCharge = 0;
+    private List<int> globalCharges = new List<int>();
 
     /// <inheritdoc/>
     public int ScanCount { get; private set; } = 0;
@@ -140,7 +139,7 @@ namespace Nova.Io.Read
         scanOrder.Clear();
         blockStartLine.Clear();
         scanNumberToOrderIndex.Clear();
-        globalCharge = 0;
+        globalCharges.Clear();
 
         bool inBlock = false;
         int blockStart = -1;
@@ -160,7 +159,7 @@ namespace Nova.Io.Read
 
             if (line.StartsWith("CHARGE=", StringComparison.OrdinalIgnoreCase))
             {
-              globalCharge = ParseChargeToken(line.Substring(7).Split(' ')[0]);
+              globalCharges = ParseChargeList(line.Substring(7));
             }
             else if (string.Equals(line, "BEGIN IONS", StringComparison.OrdinalIgnoreCase))
             {
@@ -364,8 +363,7 @@ namespace Nova.Io.Read
       List<PrecursorIon> precursors = new List<PrecursorIon>();
       List<SpecDataPoint> points = new List<SpecDataPoint>();
       List<SpecDataPointEx> pointsEx = new List<SpecDataPointEx>();
-      int localCharge = 0;
-      bool haveLocalCharge = false;
+      List<int>? localCharges = null;
       double retentionTimeSeconds = -1;
 
       for (int i = beginIonsLine + 1; i < lines.Length; i++)
@@ -397,8 +395,7 @@ namespace Nova.Io.Read
         }
         else if (line.StartsWith("CHARGE=", StringComparison.OrdinalIgnoreCase))
         {
-          localCharge = ParseChargeToken(line.Substring(7).Split(' ')[0]);
-          haveLocalCharge = true;
+          localCharges = ParseChargeList(line.Substring(7));
         }
         else if (line.StartsWith("RTINSECONDS=", StringComparison.OrdinalIgnoreCase))
         {
@@ -434,12 +431,25 @@ namespace Nova.Io.Read
       }
 
       //PEPMASS's own charge token (if any) wins; otherwise the spectrum-local CHARGE; otherwise
-      //the file's global header CHARGE.
-      int effectiveCharge = haveLocalCharge ? localCharge : globalCharge;
+      //the file's global header CHARGE. A precursor without a charge of its own is emitted once
+      //per listed state.
+      List<int> effectiveCharges = localCharges ?? globalCharges;
+      List<PrecursorIon> expanded = new List<PrecursorIon>();
       foreach (PrecursorIon pre in precursors)
       {
-        if (pre.Charge == 0) pre.Charge = effectiveCharge;
+        if (pre.Charge != 0 || effectiveCharges.Count == 0)
+        {
+          expanded.Add(pre);
+          continue;
+        }
+        foreach (int charge in effectiveCharges)
+        {
+          PrecursorIon copy = new PrecursorIon(pre);
+          copy.Charge = charge;
+          expanded.Add(copy);
+        }
       }
+      precursors = expanded;
 
       double retentionMinutes = retentionTimeSeconds >= 0 ? retentionTimeSeconds / 60.0 : 0;
 
@@ -500,6 +510,24 @@ namespace Nova.Io.Read
       string digits = token.TrimEnd('+', '-');
       if (int.TryParse(digits, out int value)) return negative ? -value : value;
       return 0;
+    }
+
+    /// <summary>
+    /// Parses a CHARGE value that may list several states, such as "2+ and 3+" or "2+,3+"
+    /// </summary>
+    /// <param name="value">The text after "CHARGE="</param>
+    /// <returns>The charge states in listed order, without zeros or repeats; empty if none parse</returns>
+    private static List<int> ParseChargeList(string value)
+    {
+      List<int> charges = new List<int>();
+      string[] tokens = value.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
+      foreach (string token in tokens)
+      {
+        if (string.Equals(token, "and", StringComparison.OrdinalIgnoreCase)) continue;
+        int charge = ParseChargeToken(token);
+        if (charge != 0 && !charges.Contains(charge)) charges.Add(charge);
+      }
+      return charges;
     }
 
     /// <summary>

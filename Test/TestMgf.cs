@@ -170,5 +170,107 @@ namespace TestNova
       Assert.IsFalse(opened);
       Assert.AreEqual(0, reader.ScanCount);
     }
+
+    // BUG-12: a CHARGE value may list several states ("2+ and 3+", "2+,3+"), meaning the
+    // precursor charge is undetermined and the spectrum should carry one precursor per state.
+    // The fixtures below are written to a temporary file per test so that the expected values
+    // sit beside the input text.
+
+    private static string WriteMgf(string contents)
+    {
+      string path = Path.Combine(Path.GetTempPath(), "NovaTestMgf_" + Guid.NewGuid().ToString("N") + ".mgf");
+      File.WriteAllText(path, contents);
+      return path;
+    }
+
+    private static void AssertPrecursorCharges(Spectrum spec, double mz, double intensity, params int[] charges)
+    {
+      Assert.AreEqual(charges.Length, spec.Precursors.Count);
+      for (int i = 0; i < charges.Length; i++)
+      {
+        Assert.AreEqual(charges[i], spec.Precursors[i].Charge, $"precursor {i}");
+        Assert.AreEqual(mz, spec.Precursors[i].MonoisotopicMz, 1e-9, $"precursor {i}");
+        Assert.AreEqual(mz, spec.Precursors[i].IsolationMz, 1e-9, $"precursor {i}");
+        Assert.AreEqual(intensity, spec.Precursors[i].Intensity, 1e-9, $"precursor {i}");
+      }
+    }
+
+    [DataTestMethod]
+    [DataRow("2+ and 3+", new[] { 2, 3 })]
+    [DataRow("2+,3+", new[] { 2, 3 })]
+    [DataRow("1+, 2+ and 3+", new[] { 1, 2, 3 })]
+    public void MGF_LocalChargeList_OnePrecursorPerState(string chargeValue, int[] expected)
+    {
+      testContext.WriteLine($"Verifies a block-local CHARGE={chargeValue} yields one precursor per listed state, in order, each with the PEPMASS m/z and intensity.");
+      string path = WriteMgf(
+        "BEGIN IONS\r\n" +
+        "SCANS=1\r\n" +
+        "PEPMASS=500.25 1234.5\r\n" +
+        $"CHARGE={chargeValue}\r\n" +
+        "100.0 10.0\r\n" +
+        "200.0 20.0\r\n" +
+        "END IONS\r\n");
+      try
+      {
+        FileReader reader = new FileReader();
+        Spectrum spec = reader.ReadSpectrum(path, 1);
+        AssertPrecursorCharges(spec, 500.25, 1234.5, expected);
+      }
+      finally
+      {
+        File.Delete(path);
+      }
+    }
+
+    [TestMethod]
+    public void MGF_GlobalChargeList_AppliesUnlessBlockHasItsOwn()
+    {
+      testContext.WriteLine("Verifies a header CHARGE=2+ and 3+ gives two precursors to a block without CHARGE, while a block with CHARGE=4+ gets only that one.");
+      string path = WriteMgf(
+        "CHARGE=2+ and 3+\r\n" +
+        "BEGIN IONS\r\n" +
+        "SCANS=1\r\n" +
+        "PEPMASS=500.25 1234.5\r\n" +
+        "100.0 10.0\r\n" +
+        "END IONS\r\n" +
+        "BEGIN IONS\r\n" +
+        "SCANS=2\r\n" +
+        "PEPMASS=600.5 42.0\r\n" +
+        "CHARGE=4+\r\n" +
+        "100.0 10.0\r\n" +
+        "END IONS\r\n");
+      try
+      {
+        FileReader reader = new FileReader();
+        AssertPrecursorCharges(reader.ReadSpectrum(path, 1), 500.25, 1234.5, 2, 3);
+        AssertPrecursorCharges(reader.ReadSpectrum(path, 2), 600.5, 42.0, 4);
+      }
+      finally
+      {
+        File.Delete(path);
+      }
+    }
+
+    [TestMethod]
+    public void MGF_PepmassCharge_WinsOverChargeList()
+    {
+      testContext.WriteLine("Verifies a charge given on the PEPMASS line is kept as the single precursor even when CHARGE lists several states.");
+      string path = WriteMgf(
+        "BEGIN IONS\r\n" +
+        "SCANS=1\r\n" +
+        "PEPMASS=500.25 1234.5 2+\r\n" +
+        "CHARGE=2+ and 3+\r\n" +
+        "100.0 10.0\r\n" +
+        "END IONS\r\n");
+      try
+      {
+        FileReader reader = new FileReader();
+        AssertPrecursorCharges(reader.ReadSpectrum(path, 1), 500.25, 1234.5, 2);
+      }
+      finally
+      {
+        File.Delete(path);
+      }
+    }
   }
 }

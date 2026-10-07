@@ -23,9 +23,9 @@ _(Update this table by hand when you flip a status below — it's a quick-glance
 generated.)_
 
 **Everything from the initial 2026-08-18 review pass is Done as of 2026-08-19**, as is the
-2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) and the 2026-10-05 follow-ups (HYG-6,
-BUG-11, HYG-7). **One item is open: BUG-12** (MGF multiple charge states), ready to pick up now that the
-documentation pass (HYG-8) is complete — see [`known-issues.md`](known-issues.md). See
+2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4), the 2026-10-05 follow-ups (HYG-6,
+BUG-11, HYG-7), the 2026-10-06/07 documentation pass (HYG-8), and BUG-12 (2026-10-07).
+**Nothing is open** — see [`known-issues.md`](known-issues.md). See
 [`history.md`](history.md) for the full write-up
 of each resolved item and the complete session log. The tables below stay as a quick per-ID reference; new work should add new rows
 here (and a matching entry in `known-issues.md`) rather than reopening the archived ones.
@@ -53,7 +53,7 @@ here (and a matching entry in `known-issues.md`) rather than reopening the archi
 | [BUG-9](history.md#bug-9--mzmlmzxml-byte-offsets-parsed-and-stored-as-int-so-no-file-over-2-gib-could-be-read) | mzML/mzXML byte offsets parsed/stored as `int`, so no file over 2 GiB could be read | High | **Done** | 2026-10-02. Field report. All byte positions now `long` via `ByteOffset.Parse`. |
 | [BUG-10](history.md#bug-10--a-failed-open-was-swallowed-so-an-unreadable-file-was-indistinguishable-from-a-missing-scan) | `GetReader` and `FileReader`'s `Read*` overloads discard the open result, yielding a reader that returns 0 peaks for every scan | High | **Done** | 2026-10-02. New `SpectrumFileOpenException`; no change to `ISpectrumFileReader`. |
 | [BUG-11](history.md#bug-11--mzmlreaderclosemzxmlreaderclose-were-no-ops-and-leaked-a-file-handle) | `Close()` is a no-op in both XML readers; `XmlFS` is never disposed, leaking a handle per file switch | Medium | **Done** | 2026-10-05. Unblocked by the owner confirming nothing downstream has ever called `Close()`. |
-| [BUG-12](known-issues.md#bug-12--mgfreader-keeps-only-the-first-of-multiple-listed-charge-states) | `MGFReader` keeps only the first of multiple listed `CHARGE=` states; `2+ and 3+` becomes one 2+ precursor, `2+,3+` becomes charge 0 | Medium | **Not Started** | Found 2026-10-07. Should be one `PrecursorIon` per state. Deferred until the documentation pass is done. |
+| [BUG-12](history.md#bug-12--mgfreader-kept-only-the-first-of-multiple-listed-charge-states) | `MGFReader` keeps only the first of multiple listed `CHARGE=` states; `2+ and 3+` becomes one 2+ precursor, `2+,3+` becomes charge 0 | Medium | **Done** | 2026-10-07. One `PrecursorIon` per listed state. |
 
 ## Dead / Redundant Code
 
@@ -143,3 +143,6 @@ to keep this file focused on whatever's currently in progress.
   documented; missing `<returns>` and empty tags swept; `MzXMLReader` null guard removed the last
   compiler warning. BUG-12 filed. Solution builds with zero warnings; 50/50 passing. Conventions
   in `CLAUDE.md`.
+- 2026-10-07 — **BUG-12 done.** `MGFReader` emits one precursor per listed `CHARGE=` state, for
+  the header default and a block's own value alike. Verified with a negative control.
+  Tests 50 → 55. **This closes every open item in the repo.**

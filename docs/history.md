@@ -431,6 +431,41 @@ re-opening rebuilds the index rather than doubling it. **Negative control:** res
 process` — the original symptom — while the mzXML test still passes, confirming the tests are
 per-reader and not incidentally coupled. Build clean, `dotnet test` 48/48 passing.
 
+### BUG-12 — `MGFReader` kept only the first of multiple listed charge states
+**Severity:** Medium · **Status: Done 2026-10-07** · *Found 2026-10-07 by the repo owner during
+the documentation pass (HYG-8).*
+**Location:** `NovaIO/Io/Read/MGFReader.cs` — the global `CHARGE=` header parse in `Open`, the
+per-spectrum `CHARGE=` parse in `ParseSpectrum`, and the new `ParseChargeList`
+
+The MGF spec lets a `CHARGE=` value list several states, meaning the precursor charge is
+undetermined and the spectrum should be considered at each. Matrix Science's own wording is
+`2+ and 3+` or `1+, 2+ and 3+`; other tools write `2+,3+`. Both parse sites took only the first
+space-delimited token, so `2+ and 3+` became a single precursor at charge 2 and `2+,3+` became
+charge 0, because `2+,3+` does not parse as one token. A space after the equals sign also
+produced charge 0, since the first token was empty.
+
+**Fix:** `ParseChargeList` splits the value on commas and whitespace, skips the word "and",
+parses each token with the existing `ParseChargeToken`, and drops zeros and repeats, returning
+the states in listed order. The global header value and the block-local value are both lists
+now. Precedence is unchanged: a charge on the `PEPMASS` line wins, then the block's `CHARGE`,
+then the header's. In `ParseSpectrum`, each `PEPMASS` precursor without a charge of its own is
+emitted once per listed state, as a copy differing only in `Charge`; an empty list still yields
+one precursor at charge 0, so files without charge information behave as before. A block with
+several `PEPMASS` lines and several states yields every combination. The per-peak charge token
+on fragment lines and the inline `PEPMASS` charge stay single-valued. `Mr` still parses as 0;
+treating `PEPMASS` as a neutral mass was left out of scope.
+
+No release-notes line: MGF reading is itself new in 1.1.0, so this never shipped.
+
+**Verification:** 5 new cases in `Test/TestMgf.cs`, each writing its fixture text to a
+temporary file so the expected values sit beside the input. Three data rows cover the local
+forms `2+ and 3+`, `2+,3+`, and `1+, 2+ and 3+` (two, two, and three precursors, in order, each
+carrying the `PEPMASS` m/z and intensity); one covers a header `CHARGE=2+ and 3+` applying to a
+block without `CHARGE` while a sibling block with `CHARGE=4+` gets only that; one covers a
+`PEPMASS` charge winning over a listed `CHARGE`. **Negative control:** restoring the first-token
+parse fails the four list cases and leaves the `PEPMASS` case passing, as expected. Build clean
+with zero warnings, `dotnet test` 55/55 passing.
+
 ---
 
 ## Dead / Redundant Code
@@ -1085,3 +1120,8 @@ Chronological record of every work session on this list, preserved verbatim from
   (which CS1591 does not catch) filled 1 + 11; `MzXMLReader` null guard removed the last
   compiler warning. BUG-12 filed. Solution builds with zero warnings; 50/50 passing.
   Conventions recorded in `CLAUDE.md`.
+- 2026-10-07 — **BUG-12 done**: `MGFReader` emits one precursor per listed `CHARGE=` state
+  (`2+ and 3+`, `2+,3+`, `1+, 2+ and 3+`), for both the header default and a block's own value;
+  precedence unchanged. Verified with a negative control. Tests 50 → 55, all passing. No
+  release-notes line, since MGF reading is itself new in 1.1.0. **This closes every open item
+  in the repo.**

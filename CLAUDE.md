@@ -184,7 +184,7 @@ version cycle; no workflow file needs editing to match.
 ## Before You Touch This Repo
 
 Read `docs/known-issues.md` for currently-open bugs, dead/redundant code, and hygiene
-problems (one is open as of 2026-10-07: BUG-12), and `docs/progress.md` for a per-item status table. Both are lean by design — the
+problems (none open as of 2026-10-07), and `docs/progress.md` for a per-item status table. Both are lean by design — the
 full write-up of everything already resolved (background, decision, fix, verification, and
 the complete session log) lives in `docs/history.md`, not in the working docs. When you fix
 something from `known-issues.md`, update `docs/progress.md` in the same change (status + a
@@ -232,7 +232,8 @@ one-line note), then move the full write-up into `docs/history.md` once it's don
   (https://www.matrixscience.com/help/data_file_help.html), not a stub. `MGFReader` reads the
   whole file into memory once (no built-in index the way mzML/mzXML have) and resolves each
   spectrum's scan number from `SCANS=` if present, else the common msconvert-style TITLE
-  convention, else sequential numbering.
+  convention, else sequential numbering. A `CHARGE=` value listing several states (`2+ and 3+`,
+  `2+,3+`) yields one precursor per state (BUG-12, fixed 2026-10-07).
 - `MzMLWriter.Write`'s schema validation is **fixed** (2026-08-19, BUG-4) — off by default via
   `validateSchema`/`schemaPath` params, no longer hardcodes a path.
 - HYG-1 (stray unused `using`s riding on the Thermo package's transitive dependencies) is
