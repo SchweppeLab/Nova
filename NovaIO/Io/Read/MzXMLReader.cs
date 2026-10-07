@@ -450,7 +450,7 @@ namespace Nova.Io.Read
             string basePeakMz = XmlFile.GetAttribute("basePeakMz");
             string basePeakIntensity = XmlFile.GetAttribute("basePeakIntensity");
             string totIonCurrent = XmlFile.GetAttribute("totIonCurrent");
-            TimeSpan rt=XmlConvert.ToTimeSpan(retentionTime);
+            TimeSpan rt = retentionTime != null ? XmlConvert.ToTimeSpan(retentionTime) : TimeSpan.Zero;
             defArrLen = Convert.ToInt32(peaksCount);
             if (extended)
             {

@@ -188,16 +188,28 @@ namespace Nova.IPC.Pipes
       Connection?.Close();
     }
 
+    /// <summary>
+    /// Blocks until the client has connected to the server, or the timeout elapses
+    /// </summary>
+    /// <param name="ms">Milliseconds to wait</param>
     public void WaitForConnection(int ms)
     {
       connected.WaitOne(ms);
     }
 
+    /// <summary>
+    /// Blocks until the client has disconnected from the server, or the timeout elapses
+    /// </summary>
+    /// <param name="ms">Milliseconds to wait</param>
     public void WaitForDisconnection(int ms)
     {
       disconnected.WaitOne(ms);
     }
   }
 
+  /// <summary>
+  /// Handles an error raised by a pipes client or server
+  /// </summary>
+  /// <param name="exception">The error</param>
   public delegate void PipeExceptionEventHandler(Exception exception);
 }

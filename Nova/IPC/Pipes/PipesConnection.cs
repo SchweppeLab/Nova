@@ -39,7 +39,14 @@ namespace Nova.IPC.Pipes
   /// </summary>
   public struct PipeMessage
   {
+    /// <summary>
+    /// Identifies the content of <see cref="MsgData"/>; '0' is reserved for strings
+    /// </summary>
     public char MsgCode;
+
+    /// <summary>
+    /// The message payload
+    /// </summary>
     public byte[] MsgData;
 
     /// <summary>
@@ -246,8 +253,24 @@ namespace Nova.IPC.Pipes
 
   }
 
+  /// <summary>
+  /// Handles a connection state event, such as disconnection
+  /// </summary>
+  /// <param name="pc">The connection</param>
   public delegate void PipeConnectionEvent(PipesConnection pc);
+
+  /// <summary>
+  /// Handles a message received on a connection
+  /// </summary>
+  /// <param name="pc">The connection the message arrived on</param>
+  /// <param name="message">The message</param>
   public delegate void PipeConnectionMessageEvent(PipesConnection pc, PipeMessage message);
+
+  /// <summary>
+  /// Handles an error on a connection
+  /// </summary>
+  /// <param name="pc">The connection</param>
+  /// <param name="ex">The error</param>
   public delegate void PipeConnectionExceptionEvent(PipesConnection pc, Exception ex);
 
 
