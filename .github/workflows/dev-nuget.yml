@@ -124,7 +124,7 @@ jobs:
           Pre-release, unsupported development build from the Dev branch. The API may change
           without notice. Full documentation and stable releases: https://schweppelab.github.io/Nova
 
-          Nova is Copyright 2025, Michael Hoopmann, Devin Schweppe.
+          Nova is Copyright 2025-2026, Michael Hoopmann, Devin Schweppe.
           Nova is Licensed under Apache Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
 
           Nova.IO requires Thermo RawFileReader for Thermo RAW file support. This library is

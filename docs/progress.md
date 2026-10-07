@@ -146,3 +146,8 @@ to keep this file focused on whatever's currently in progress.
 - 2026-10-07 — **BUG-12 done.** `MGFReader` emits one precursor per listed `CHARGE=` state, for
   the header default and a block's own value alike. Verified with a negative control.
   Tests 50 → 55. **This closes every open item in the repo.**
+- 2026-10-07 — **1.1.0 release prep.** Both packages now carry `README.md` as their package
+  readme; copyright updated to 2025-2026 in the csprojs and bundle readmes; Examples pinned
+  to 1.1.0; three shipped-bug fixes from HYG-8 added to the release notes; `CLAUDE.md`
+  Versioning section brought current. Local pack verified readme, XML docs, and notes land
+  in both nupkgs.

@@ -13,12 +13,13 @@
     <Company>University of Washington, Schweppe Lab</Company>
     <PackageId>Nova</PackageId>
     <Description>Mass spectrometry spectral data model and interprocess communication (named pipes).</Description>
-    <Copyright>Copyright 2025</Copyright>
+    <Copyright>Copyright 2025-2026</Copyright>
     <PackageProjectUrl>https://github.com/SchweppeLab/Nova</PackageProjectUrl>
     <RepositoryUrl>https://github.com/SchweppeLab/Nova</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>mass spectrometry;spectrum</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>
 1.1.0 - first release since 1.0.0.18.
 
@@ -36,6 +37,10 @@ NEW
 
 FIXED
 * PipeIO.Read handles partial stream reads; larger messages could be truncated.
+* Deserialize appended precursors to those already on the spectrum instead of
+  replacing them.
+* PrecursorIon's copy constructor and Clear skipped CollisionEnergy,
+  FragmentationMethod, and IsolationSpecificity.
 
 https://github.com/SchweppeLab/Nova
     </PackageReleaseNotes>
@@ -43,5 +48,9 @@ https://github.com/SchweppeLab/Nova
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <FileVersion>1.1.0.0</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>

@@ -122,7 +122,7 @@ jobs:
         shell: pwsh
         run: |
           $readme = @"
-          Nova is Copyright 2025, Michael Hoopmann, Devin Schweppe.
+          Nova is Copyright 2025-2026, Michael Hoopmann, Devin Schweppe.
           Nova is Licensed under Apache Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
 
           Support and latest releases of Nova are found at https://schweppelab.github.io/Nova

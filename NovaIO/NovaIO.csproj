@@ -12,7 +12,7 @@
     <Company>University of Washington, Schweppe Lab</Company>
     <PackageId>Nova.IO</PackageId>
     <Description>Mass spectrometry data input and output.</Description>
-    <Copyright>Copyright 2025</Copyright>
+    <Copyright>Copyright 2025-2026</Copyright>
     <PackageProjectUrl>https://github.com/SchweppeLab/Nova</PackageProjectUrl>
     <RepositoryUrl>https://github.com/SchweppeLab/Nova</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -45,6 +45,8 @@ FIXED
 * MzMLReader set Analyzer to "OTMS" instead of "ITMS" for ion-trap filters.
 * FileReader.OpenSpectrumFile returned true on a failed open.
 * FileReader.Format stayed Unknown.
+* The mzML and mzXML readers shared one PrecursorIon object across every
+  precursor and every spectrum read; each spectrum now owns its own.
 
 DEPENDENCIES
 * ThermoFisher.CommonCore.* pinned to 8.0.37.
@@ -52,6 +54,7 @@ DEPENDENCIES
 https://github.com/SchweppeLab/Nova
     </PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>1.1.0</Version>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <FileVersion>1.1.0.0</FileVersion>
@@ -87,6 +90,10 @@ https://github.com/SchweppeLab/Nova
 
   <ItemGroup>
     <ProjectReference Include="..\Nova\Nova.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

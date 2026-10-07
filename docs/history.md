@@ -1125,3 +1125,15 @@ Chronological record of every work session on this list, preserved verbatim from
   precedence unchanged. Verified with a negative control. Tests 50 → 55, all passing. No
   release-notes line, since MGF reading is itself new in 1.1.0. **This closes every open item
   in the repo.**
+- 2026-10-07 — **1.1.0 release prep**: a pre-release review of the package surfaces. Both
+  csprojs now set `PackageReadmeFile` to the repo `README.md`, packed from `..\README.md`;
+  copyright is 2025-2026 in the csprojs and in both workflows' bundle `Readme.txt`; the four
+  Examples pin Nova/Nova.IO 1.1.0 (they use none of the changed API; Nova has never been on
+  nuget.org, so they resolve from the release bundle as before); three fixes that fell out of
+  HYG-8 and were present in shipped 1.0.0.18 are now in the release notes (`Deserialize`
+  precursor clearing and `PrecursorIon` copy/`Clear` in Nova; the XML readers' shared
+  `PrecursorIon` in Nova.IO); `CLAUDE.md`'s Versioning section no longer says 1.1.0 has one
+  breaking change or that NovaIO's notes read "Initial release". Verified by a local
+  `dotnet pack` of both projects: `README.md`, `Nova.xml`/`NovaIO.xml`, the new notes, and
+  the copyright all present in the nupkgs. Zero warnings; 55/55. Website updates (release post,
+  API pages for the 1.1.0 changes) are a separate pass in the website clone once v1.1.0 is tagged.

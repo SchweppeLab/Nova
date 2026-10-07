@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nova" Version="1.0.0.8" />
-    <PackageReference Include="Nova.IO" Version="1.0.0.8" />
+    <PackageReference Include="Nova" Version="1.1.0" />
+    <PackageReference Include="Nova.IO" Version="1.1.0" />
   </ItemGroup>
 
 </Project>
