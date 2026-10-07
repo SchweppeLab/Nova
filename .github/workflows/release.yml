@@ -79,23 +79,31 @@ jobs:
           "underscored=$($version -replace '\.', '_')" >> $env:GITHUB_OUTPUT
 
       # Refuses to silently clobber a release you've already promoted out of pre-release.
-      # Re-running against a tag that's still sitting in pre-release (e.g. you found a problem
-      # and want another pass before promoting it) is fine and expected -- only a tag that's
-      # already been made official is protected.
+      # Re-running against a tag that's still sitting in pre-release or draft (e.g. you found a
+      # problem and want another pass before promoting it) is fine and expected -- only a tag
+      # that's already been made official is protected.
+      #
+      # Every path ends in an explicit exit. Actions appends
+      # `if ((Test-Path variable:\LASTEXITCODE)) { exit $LASTEXITCODE }` to pwsh steps, so
+      # without that, gh's exit code 1 for "release not found" would fail the step.
       - name: Guard against overwriting an already-published official release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ steps.version.outputs.tag }}"
-          $existingJson = gh release view $tag --json isPrerelease 2>$null
-          if ($LASTEXITCODE -eq 0) {
-            $existing = $existingJson | ConvertFrom-Json
-            if (-not $existing.isPrerelease) {
-              Write-Error "$tag already exists as a published (non-prerelease) release. Bump <Version> in Nova.csproj/NovaIO.csproj before re-running Release."
-              exit 1
-            }
+          $existingJson = gh release view $tag --json isPrerelease,isDraft 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "No existing release for $tag; proceeding."
+            exit 0
           }
+          $existing = $existingJson | ConvertFrom-Json
+          if (-not $existing.isDraft -and -not $existing.isPrerelease) {
+            Write-Error "$tag already exists as a published (non-prerelease) release. Bump <Version> in Nova.csproj/NovaIO.csproj before re-running Release."
+            exit 1
+          }
+          Write-Host "$tag exists as a draft or pre-release; it will be updated."
+          exit 0
 
       # Nova first: NovaIO's ProjectReference to it means packing NovaIO also builds Nova with
       # the same PackageVersion, so NovaIO's generated dependency on Nova automatically
