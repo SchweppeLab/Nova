@@ -18,20 +18,8 @@ using System.IO;
 namespace Nova.Io.Read
 {
   /// <summary>
-  /// Thrown when an MS data file cannot be opened or indexed.
-  /// <para>
-  /// This exists so a caller can tell "this file could not be read" from "that scan isn't in this
-  /// file" -- both of which used to look identical: an empty <c>Spectrum</c>. Before BUG-10 the
-  /// readers wrote the reason to the console and reported failure, and the two paths that build a
-  /// reader for you (<see cref="SpectrumFileReaderFactory.GetReader"/>, and
-  /// <see cref="FileReader"/>'s Read* overloads taking a new file name) then discarded that
-  /// failure and handed back a reader that silently yielded zero peaks for every scan.
-  /// </para>
-  /// <para>
-  /// Derives from <see cref="IOException"/> so existing broad file-error handling still catches
-  /// it, but is its own type so Nova can re-throw precisely what it means without also changing
-  /// how unrelated <see cref="IOException"/>s are handled.
-  /// </para>
+  /// Thrown when an MS data file cannot be opened or indexed. Derives from <see cref="IOException"/> so existing
+  /// broad file-error handling still catches it.
   /// </summary>
   public class SpectrumFileOpenException : IOException
   {
@@ -56,12 +44,6 @@ namespace Nova.Io.Read
   /// <summary>
   /// Implemented by the format readers to carry the reason a failed <c>Open</c> failed, so the
   /// caller gets the real detail instead of a bare "false".
-  /// <para>
-  /// Deliberately internal, and implemented explicitly by the readers, so it adds no public API
-  /// surface of its own. When this was written <c>ThermoRawReader</c> was still public, which
-  /// made the explicit implementation load-bearing; all four readers are internal as of HYG-7,
-  /// so it is now consistency rather than necessity.
-  /// </para>
   /// </summary>
   internal interface IOpenFailureDetail
   {

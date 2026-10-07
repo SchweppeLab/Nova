@@ -13,7 +13,7 @@ verification) and the complete session-by-session log, see [`history.md`](histor
 | Category | Total | Done | In Progress | Not Started |
 |---|---|---|---|---|
 | Architecture / Framework Targeting | 1 | 1 | 0 | 0 |
-| Bugs | 11 | 11 | 0 | 0 |
+| Bugs | 12 | 11 | 0 | 1 |
 | Dead / Redundant Code | 3 | 3 | 0 | 0 |
 | CI / Build Infrastructure | 1 | 1 | 0 | 0 |
 | Hygiene / Maintainability | 7 | 7 | 0 | 0 |
@@ -24,7 +24,9 @@ generated.)_
 
 **Everything from the initial 2026-08-18 review pass is Done as of 2026-08-19**, as is the
 2026-10-02 large-file pass (BUG-9, BUG-10, TEST-4) and the 2026-10-05 follow-ups (HYG-6,
-BUG-11, HYG-7). **Nothing is currently open.** See [`history.md`](history.md) for the full write-up
+BUG-11, HYG-7). **One item is open: BUG-12** (MGF multiple charge states), deliberately deferred
+until the documentation pass is complete — see [`known-issues.md`](known-issues.md). See
+[`history.md`](history.md) for the full write-up
 of each resolved item and the complete session log. The tables below stay as a quick per-ID reference; new work should add new rows
 here (and a matching entry in `known-issues.md`) rather than reopening the archived ones.
 
@@ -51,6 +53,7 @@ here (and a matching entry in `known-issues.md`) rather than reopening the archi
 | [BUG-9](history.md#bug-9--mzmlmzxml-byte-offsets-parsed-and-stored-as-int-so-no-file-over-2-gib-could-be-read) | mzML/mzXML byte offsets parsed/stored as `int`, so no file over 2 GiB could be read | High | **Done** | 2026-10-02. Field report. All byte positions now `long` via `ByteOffset.Parse`. |
 | [BUG-10](history.md#bug-10--a-failed-open-was-swallowed-so-an-unreadable-file-was-indistinguishable-from-a-missing-scan) | `GetReader` and `FileReader`'s `Read*` overloads discard the open result, yielding a reader that returns 0 peaks for every scan | High | **Done** | 2026-10-02. New `SpectrumFileOpenException`; no change to `ISpectrumFileReader`. |
 | [BUG-11](history.md#bug-11--mzmlreaderclosemzxmlreaderclose-were-no-ops-and-leaked-a-file-handle) | `Close()` is a no-op in both XML readers; `XmlFS` is never disposed, leaking a handle per file switch | Medium | **Done** | 2026-10-05. Unblocked by the owner confirming nothing downstream has ever called `Close()`. |
+| [BUG-12](known-issues.md#bug-12--mgfreader-keeps-only-the-first-of-multiple-listed-charge-states) | `MGFReader` keeps only the first of multiple listed `CHARGE=` states; `2+ and 3+` becomes one 2+ precursor, `2+,3+` becomes charge 0 | Medium | **Not Started** | Found 2026-10-07. Should be one `PrecursorIon` per state. Deferred until the documentation pass is done. |
 
 ## Dead / Redundant Code
 

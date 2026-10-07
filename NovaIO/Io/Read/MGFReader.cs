@@ -38,8 +38,7 @@ namespace Nova.Io.Read
     private Spectrum spectrum;
 
     /// <summary>
-    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded. Surfaced to the
-    /// caller through <see cref="SpectrumFileOpenException"/> rather than written to the console (BUG-10).
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded.
     /// </summary>
     private string? openFailure;
 
@@ -51,11 +50,8 @@ namespace Nova.Io.Read
     private SpectrumEx spectrumEx;
 
     /// <summary>
-    /// All lines of the file, read once by Open(). MGF has no built-in index the way mzML/mzXML
-    /// do, and hand-rolling exact byte-offset seeking on top of System.IO.StreamReader is a
-    /// well-known footgun (its internal buffering makes the underlying Stream.Position useless
-    /// for precise re-seeking). Reading the whole file into memory once and indexing by line
-    /// number sidesteps that entirely, at the cost of holding the full file in memory.
+    /// All lines of the file, read once by Open(). MGF has no built-in index, and StreamReader's buffering makes
+    /// byte-offset seeking unreliable, so the whole file is held in memory and indexed by line number.
     /// </summary>
     private string[] lines = Array.Empty<string>();
 
@@ -96,8 +92,7 @@ namespace Nova.Io.Read
     /// <summary>
     /// Charge parsed from the file's global (pre-"BEGIN IONS") CHARGE= header line, used as a
     /// fallback when a spectrum block has no CHARGE of its own and PEPMASS didn't include one.
-    /// Per the spec, the header value can list multiple charge states ("2+ and 3+"); Nova's
-    /// PrecursorIon.Charge holds only one, so only the first listed charge is kept.
+    /// Per the spec, the header value can list multiple charge states ("2+ and 3+"); only the first is kept.
     /// </summary>
     private int globalCharge = 0;
 
@@ -114,10 +109,8 @@ namespace Nova.Io.Read
     public double MaxRetentionTime { get; private set; } = 0;
 
     /// <summary>
-    /// Matches the common (though not Mascot-spec-mandated) msconvert-style TITLE convention
-    /// "&lt;base&gt;.&lt;firstScan&gt;.&lt;lastScan&gt;." -- used as a fallback scan-number
-    /// source when a spectrum has no explicit SCANS= tag, since real-world MGF files (including
-    /// Test/Files/AngioNeuro4.mgf) commonly omit SCANS but carry the scan number in TITLE.
+    /// Matches the scan number in a TITLE of the form "&lt;base&gt;.&lt;firstScan&gt;.&lt;lastScan&gt;.", used when a
+    /// spectrum has no SCANS= line
     /// </summary>
     private static readonly Regex TitleScanRegex = new Regex(@"\.(\d+)\.\d+\.\s*$", RegexOptions.Compiled);
 
@@ -133,14 +126,11 @@ namespace Nova.Io.Read
     }
 
     /// <summary>
-    /// Opens an MGF file for reading. Reads the whole file into memory and builds an in-memory
-    /// index of every "BEGIN IONS"/"END IONS" spectrum block, resolving each spectrum's scan
-    /// number along the way (from SCANS=, falling back to the TITLE convention, falling back to
-    /// sequential numbering). Does not parse peak data at this point -- that happens lazily in
-    /// ParseSpectrum, only for spectra actually requested.
+    /// Opens an MGF file: reads it into memory and indexes its spectra. Scan numbers come from SCANS=, else the TITLE,
+    /// else sequential numbering. Peak data is parsed when a spectrum is requested
     /// </summary>
-    /// <param name="fileName">A valid path to an MGF file.</param>
-    /// <returns>true if file opened successfully and at least one spectrum was found, false otherwise.</returns>
+    /// <param name="fileName">The MGF file path</param>
+    /// <returns>true if the file opened and contained at least one spectrum</returns>
     public bool Open(string fileName)
     {
       openFailure = null;
@@ -227,8 +217,6 @@ namespace Nova.Io.Read
       }
       catch (Exception ex)
       {
-        //Record, don't print: the caller gets this back as a SpectrumFileOpenException so it can
-        //tell a file it couldn't read from a scan that isn't in the file (BUG-10).
         openFailure = ex.Message;
         return false;
       }
@@ -241,10 +229,6 @@ namespace Nova.Io.Read
     /// </summary>
     public void Close()
     {
-      //No file handle to release -- Open() reads the whole file up front and closes it. The line
-      //buffer is dropped though: for a large MGF it is by far the biggest thing this reader
-      //holds, and Close() is the caller's signal that they are done with it. Not BUG-11 itself
-      //(that was about leaked file handles in the XML readers), but the same principle.
       lines = Array.Empty<string>();
     }
 
@@ -518,9 +502,7 @@ namespace Nova.Io.Read
     }
 
     /// <summary>
-    /// Computes TotalIonCurrent, BasePeakMz/Intensity, and the observed m/z range from the
-    /// already-parsed peak data -- MGF has no header fields for any of these, unlike
-    /// mzML/mzXML/RAW.
+    /// Computes the total ion current, base peak, and m/z range from the parsed peaks
     /// </summary>
     private void ProcessScanStats(bool extended)
     {

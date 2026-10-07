@@ -23,10 +23,7 @@ namespace Nova.Io.Read
 {
   public class SpectrumFileReaderFactory
   {
-    // Extension-to-format detection and format-to-reader construction both live on
-    // FileReader (CheckFileFormat / CreateReader) -- delegated to here rather than
-    // duplicated, so the two dispatch paths can't drift out of sync (see CLEAN-3 in
-    // docs/known-issues.md).
+    //Format detection and reader construction live on FileReader so the two dispatch paths can't drift
     public static ISpectrumFileReader GetReader(string file, MSFilter filter)
     {
       FileFormat format;
@@ -45,11 +42,6 @@ namespace Nova.Io.Read
         throw new ArgumentException("Unsupported file extension: " + Path.GetExtension(file));
       }
 
-      //Do NOT discard Open's result. Returning a reader whose Open failed hands the caller
-      //something that looks fine but yields an empty Spectrum for every scan, indistinguishable
-      //from "that scan isn't in this file" -- which is exactly how a 2 GiB mzML ceiling (BUG-9)
-      //went unnoticed downstream. GetReader returns the reader itself, so an exception is the
-      //only way it can report this (BUG-10).
       if (!reader.Open(file))
       {
         string detail = (reader as IOpenFailureDetail)?.OpenFailure ?? "the reader reported failure without detail.";

@@ -69,9 +69,7 @@ namespace Nova.Io.Read
     public int ScanCount { get; private set; } = 0;
 
     /// <summary>
-    /// Number of chromatograms in the open file, or 0 for formats that carry none. Surfaced here
-    /// as well as on <see cref="ISpectrumFileReader"/> so the facade is not the one entry point
-    /// that cannot see it (HYG-7).
+    /// Number of chromatograms in the open file, or 0 for formats that carry none.
     /// </summary>
     public int ChromatCount { get; private set; } = 0;
 
@@ -149,7 +147,7 @@ namespace Nova.Io.Read
     /// Constructs an unopened reader for the given format, or null if no reader is available
     /// for it (e.g. FileFormat.Unknown). Shared by OpenSpectrumFile and
     /// SpectrumFileReaderFactory.GetReader so extension-to-reader mapping has one source of
-    /// truth (see CLEAN-3 in docs/known-issues.md).
+    /// truth.
     /// </summary>
     internal static ISpectrumFileReader? CreateReader(FileFormat format, MSFilter filter)
     {
@@ -221,10 +219,7 @@ namespace Nova.Io.Read
             fileReader.Close();
           }
 
-          //Open the new file and set the FileName. Don't discard the result: a failed open here
-          //used to fall straight through to a read against a reader that had never opened,
-          //returning an empty result indistinguishable from "that scan isn't in this file"
-          //(BUG-10, the same defect SpectrumFileReaderFactory.GetReader had).
+          //Open the new file and set the FileName
           if (!OpenSpectrumFile(fileName))
           {
             string detail = (fileReader as IOpenFailureDetail)?.OpenFailure ?? "the reader reported failure without detail.";
@@ -246,10 +241,7 @@ namespace Nova.Io.Read
       }
       catch (SpectrumFileOpenException)
       {
-        //Deliberately ahead of the catch-all below, and deliberately narrow: "this file could not
-        //be read" is the one failure the caller must not have turned into an empty result (BUG-10).
-        //Everything else keeps its existing behavior, including the FileNotFoundException that
-        //CheckFile can raise -- widening this to IOException would silently change that too.
+        //Narrow on purpose: catching IOException would also propagate the FileNotFoundException CheckFile can raise
         throw;
       }
       catch (Exception ex)
@@ -276,10 +268,7 @@ namespace Nova.Io.Read
             fileReader.Close();
           }
 
-          //Open the new file and set the FileName. Don't discard the result: a failed open here
-          //used to fall straight through to a read against a reader that had never opened,
-          //returning an empty result indistinguishable from "that scan isn't in this file"
-          //(BUG-10, the same defect SpectrumFileReaderFactory.GetReader had).
+          //Open the new file and set the FileName
           if (!OpenSpectrumFile(fileName))
           {
             string detail = (fileReader as IOpenFailureDetail)?.OpenFailure ?? "the reader reported failure without detail.";
@@ -301,10 +290,7 @@ namespace Nova.Io.Read
       }
       catch (SpectrumFileOpenException)
       {
-        //Deliberately ahead of the catch-all below, and deliberately narrow: "this file could not
-        //be read" is the one failure the caller must not have turned into an empty result (BUG-10).
-        //Everything else keeps its existing behavior, including the FileNotFoundException that
-        //CheckFile can raise -- widening this to IOException would silently change that too.
+        //Narrow on purpose: catching IOException would also propagate the FileNotFoundException CheckFile can raise
         throw;
       }
       catch (Exception ex)
@@ -331,10 +317,7 @@ namespace Nova.Io.Read
             fileReader.Close();
           }
 
-          //Open the new file and set the FileName. Don't discard the result: a failed open here
-          //used to fall straight through to a read against a reader that had never opened,
-          //returning an empty result indistinguishable from "that scan isn't in this file"
-          //(BUG-10, the same defect SpectrumFileReaderFactory.GetReader had).
+          //Open the new file and set the FileName
           if (!OpenSpectrumFile(fileName))
           {
             string detail = (fileReader as IOpenFailureDetail)?.OpenFailure ?? "the reader reported failure without detail.";
@@ -356,10 +339,7 @@ namespace Nova.Io.Read
       }
       catch (SpectrumFileOpenException)
       {
-        //Deliberately ahead of the catch-all below, and deliberately narrow: "this file could not
-        //be read" is the one failure the caller must not have turned into an empty result (BUG-10).
-        //Everything else keeps its existing behavior, including the FileNotFoundException that
-        //CheckFile can raise -- widening this to IOException would silently change that too.
+        //Narrow on purpose: catching IOException would also propagate the FileNotFoundException CheckFile can raise
         throw;
       }
       catch (Exception ex)

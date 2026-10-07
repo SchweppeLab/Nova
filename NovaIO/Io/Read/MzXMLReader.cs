@@ -32,8 +32,7 @@ namespace Nova.Io.Read
   {
 
     /// <summary>
-    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded. Surfaced to the
-    /// caller through <see cref="SpectrumFileOpenException"/> rather than written to the console (BUG-10).
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded.
     /// </summary>
     private string? openFailure;
 
@@ -61,10 +60,6 @@ namespace Nova.Io.Read
     /// <summary>
     /// List of offsets for each spectrum in the mzML file. The position in the index equals the scan number, and a value of zero
     /// indicates the scan number is not in the mzML file.
-    /// <para>
-    /// These are byte positions into the file and must be <see cref="long"/>, not <see cref="int"/> -- mzXML shares mzML's
-    /// index design and so shared its 2 GiB ceiling. See <see cref="ByteOffset.Parse"/> and BUG-9 in docs/history.md.
-    /// </para>
     /// </summary>
     private List<long> scanIndex = new List<long>();
 
@@ -129,8 +124,7 @@ namespace Nova.Io.Read
     public bool Open(string fileName)
     {
       openFailure = null;
-      //Release anything a previous Open on this instance left behind before replacing it,
-      //rather than silently orphaning its handle (BUG-11).
+      //Release any previous file before opening another
       Close();
       try
       {
@@ -206,11 +200,8 @@ namespace Nova.Io.Read
       }
       catch (Exception ex)
       {
-        //Record, don't print: the caller gets this back as a SpectrumFileOpenException so it can
-        //tell a file it couldn't read from a scan that isn't in the file (BUG-10).
         openFailure = ex.Message;
-        //Release the handle on the way out. A failed open surfaces as an exception, so the
-        //caller never receives this reader and can never Close() it themselves.
+        //The caller never receives this reader, so release the handle here
         Close();
         return false;
       }
@@ -225,8 +216,6 @@ namespace Nova.Io.Read
     /// </summary>
     public void Close()
     {
-      //BUG-11: see the MzMLReader counterpart. This was an empty method holding a commented-out
-      //line copied from ThermoRawReader, so XmlFS leaked a handle per file switch.
       XmlFile?.Dispose();
       XmlFile = null;
       XmlFS?.Dispose();

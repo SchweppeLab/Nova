@@ -35,12 +35,6 @@ namespace Nova.Io.Read
     /// <summary>
     /// Number of chromatograms retrievable from the open file via <see cref="GetChromatogram"/>,
     /// or 0 for formats that carry none.
-    /// <para>
-    /// Added to this interface in 1.1.0 (HYG-7). It previously existed only as a property on the
-    /// concrete <c>MzMLReader</c>, which is internal -- so nothing outside the assembly could
-    /// reach it, and a caller had no way to know how many chromatograms were available or
-    /// whether asking was worthwhile.
-    /// </para>
     /// </summary>
     int ChromatCount { get; }
 

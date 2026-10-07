@@ -352,8 +352,7 @@ namespace Nova.Io.Write
     /// <param name="filename">Output file path.</param>
     /// <param name="validateSchema">If true, re-opens the written file and validates it against
     /// the mzML XSD at <paramref name="schemaPath"/>. Off by default, since it requires a local
-    /// copy of the schema file (see BUG-4 in docs/known-issues.md) and validation is not needed
-    /// to produce a usable file.</param>
+    /// copy of the schema file and validation is not needed to produce a usable file.</param>
     /// <param name="schemaPath">Path to a local copy of the mzML 1.1.0 XSD. Required if
     /// <paramref name="validateSchema"/> is true.</param>
     public bool Write(string filename, bool validateSchema = false, string? schemaPath = null)

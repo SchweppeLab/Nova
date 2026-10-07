@@ -15,11 +15,7 @@
 namespace Nova.Io
 {
   /// <summary>
-  /// Project-local string helpers. Added 2026-08-19 (HYG-5, docs/known-issues.md) to replace
-  /// call sites that were unknowingly depending on ThermoFisher.CommonCore.Data's own
-  /// IsNullOrEmpty extension method for this -- a fragile, implicit dependency on a
-  /// third-party package's incidental API surface for something that has nothing to do with
-  /// Thermo.
+  /// Project-local string helpers.
   /// </summary>
   internal static class StringExtensions
   {

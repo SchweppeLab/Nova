@@ -26,10 +26,6 @@ using System.Globalization;
 
 namespace Nova.Io.Read
 {
-  // Internal, like every other format reader (HYG-7). This was the odd one out: public while
-  // MzMLReader/MzXMLReader/MGFReader were not, for no reason anyone could point at. It exposes
-  // nothing beyond ISpectrumFileReader, so being public bought callers only direct construction;
-  // the supported entry points are FileReader and SpectrumFileReaderFactory.GetReader.
   internal class ThermoRawReader : ISpectrumFileReader, IOpenFailureDetail
   {
 
@@ -39,9 +35,7 @@ namespace Nova.Io.Read
     private Spectrum spectrum;
 
     /// <summary>
-    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded. Implemented
-    /// explicitly against the internal <see cref="IOpenFailureDetail"/> so this public class gains no
-    /// new public member (BUG-10).
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded.
     /// </summary>
     private string? openFailure;
 
@@ -355,9 +349,7 @@ namespace Nova.Io.Read
       RawFile = RawFileReaderAdapter.FileFactory(fileName);
       if (!RawFile.IsOpen)
       {
-        //Carried out to the caller as a SpectrumFileOpenException rather than being discarded (BUG-10).
-        //No try/catch here deliberately: unlike the XML readers, this one has never swallowed
-        //exceptions from the Thermo API, and they should keep propagating as they always have.
+        //No try/catch on purpose: Thermo API exceptions propagate, unlike the XML readers which swallow theirs
         openFailure = RawFile.FileError?.ErrorMessage.IsNullOrEmpty() == false
           ? RawFile.FileError.ErrorMessage
           : "RawFileReader could not open the file.";

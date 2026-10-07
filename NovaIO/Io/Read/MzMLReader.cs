@@ -39,8 +39,7 @@ namespace Nova.Io.Read
     private Chromatogram chromatogram;
 
     /// <summary>
-    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded. Surfaced to the
-    /// caller through <see cref="SpectrumFileOpenException"/> rather than written to the console (BUG-10).
+    /// Why the most recent <see cref="Open"/> returned false, or null if it succeeded.
     /// </summary>
     private string? openFailure;
 
@@ -69,12 +68,6 @@ namespace Nova.Io.Read
     /// <summary>
     /// List of offsets for each spectrum in the mzML file. The position in the index equals the scan number, and a value of zero
     /// indicates the scan number is not in the mzML file.
-    /// <para>
-    /// These are byte positions into the file and must be <see cref="long"/>, not <see cref="int"/>: modern Orbitrap runs
-    /// routinely produce mzML files well past 2 GiB, and anything narrower overflows at int.MaxValue (2,147,483,647).
-    /// Every offset parsed out of the index is read with <c>long.Parse</c> under the invariant culture for the same reason.
-    /// Scan numbers stay <see cref="int"/> -- only byte positions need the wider type. See BUG-9 in docs/history.md.
-    /// </para>
     /// </summary>
     private List<long> scanIndex = new List<long>();
 
@@ -147,8 +140,7 @@ namespace Nova.Io.Read
     public bool Open(string fileName)
     {
       openFailure = null;
-      //Release anything a previous Open on this instance left behind before replacing it,
-      //rather than silently orphaning its handle (BUG-11).
+      //Release any previous file before opening another
       Close();
       try
       {
@@ -171,9 +163,6 @@ namespace Nova.Io.Read
 
         //read the whole damn index
         scanIndex.Clear();
-        //chrIndex was not being cleared here, so re-opening on the same instance appended a
-        //second copy of the chromatogram index to the first. Harmless while Open was effectively
-        //single-use; a real bug now that Close/Open on one instance is supported (BUG-11).
         chrIndex.Clear();
         ScanCount = 0;
         XmlFS.Seek(offset, SeekOrigin.Begin);
@@ -248,11 +237,8 @@ namespace Nova.Io.Read
       }
       catch (Exception ex)
       {
-        //Record, don't print: the caller gets this back as a SpectrumFileOpenException so it can
-        //tell a file it couldn't read from a scan that isn't in the file (BUG-10).
         openFailure = ex.Message;
-        //Release the handle on the way out. A failed open surfaces as an exception, so the
-        //caller never receives this reader and can never Close() it themselves.
+        //The caller never receives this reader, so release the handle here
         Close();
         return false;
       }
@@ -267,11 +253,6 @@ namespace Nova.Io.Read
     /// </summary>
     public void Close()
     {
-      //BUG-11: this used to be an empty method whose only content was a commented-out line
-      //copied from ThermoRawReader (where it is real, and does dispose its handle). XmlFS was
-      //therefore never released, so the file stayed locked and a handle leaked until the
-      //finalizer ran. FileReader calls Close() every time the caller switches files, so that
-      //was one leaked handle per switch.
       XmlFile?.Dispose();
       XmlFile = null;
       XmlFS?.Dispose();
