@@ -436,12 +436,12 @@ namespace Nova.Io.Read
             if (extended)
             {
               spectrumEx.PrecursorMasterScanNumber=Convert.ToInt32(precursorScanNum);
-              spectrumEx.Precursors.Add(precursorIon);
+              spectrumEx.Precursors.Add(new PrecursorIon(precursorIon));
             }
             else
             {
               spectrum.PrecursorMasterScanNumber = Convert.ToInt32(precursorScanNum);
-              spectrum.Precursors.Add(precursorIon);
+              spectrum.Precursors.Add(new PrecursorIon(precursorIon));
             }
           }
           else if (XmlFile.Name == "scan")

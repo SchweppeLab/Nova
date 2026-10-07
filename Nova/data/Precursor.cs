@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Nova.Data
 {
+  /// <summary>
+  /// The precursor ion of a dependent scan and how it was isolated and fragmented
+  /// </summary>
   public class PrecursorIon
   {
     /// <summary>
@@ -32,7 +29,7 @@ namespace Nova.Data
     /// <summary>
     /// PrecursorIon object copy constructor
     /// </summary>
-    /// <param name="pi"></param>
+    /// <param name="pi">The precursor to copy</param>
     public PrecursorIon(PrecursorIon pi)
     {
       MonoisotopicMz=pi.MonoisotopicMz;
@@ -40,13 +37,26 @@ namespace Nova.Data
       Charge=pi.Charge;
       IsolationMz=pi.IsolationMz;
       IsolationWidth=pi.IsolationWidth;
+      CollisionEnergy = pi.CollisionEnergy;
+      FragmentationMethod = pi.FragmentationMethod;
+      IsolationSpecificity = pi.IsolationSpecificity;
     }
 
-    public PrecursorIon(double mz, double intensity = 0, int charge = 0)
+    /// <summary>
+    /// Creates a precursor from its monoisotopic m/z, with optional intensity, charge, isolation m/z, and isolation width
+    /// </summary>
+    /// <param name="mz">The monoisotopic m/z</param>
+    /// <param name="intensity">The intensity of the precursor peak</param>
+    /// <param name="charge">The charge state</param>
+    /// <param name="isoMz">The isolation m/z of the precursor selection window</param>
+    /// <param name="isoWidth">The isolation width of the precursor selection window</param>
+    public PrecursorIon(double mz, double intensity = 0, int charge = 0, double isoMz=0, double isoWidth=0)
     {
       MonoisotopicMz = mz;
       Intensity = intensity;
       Charge = charge;
+      IsolationMz = isoMz;
+      IsolationWidth = isoWidth;
     }
 
     /// <summary>
@@ -59,6 +69,9 @@ namespace Nova.Data
       Charge = 0;
       IsolationMz = 0;
       IsolationWidth = 0;
+      CollisionEnergy = 0;
+      FragmentationMethod = FragmentationType.None;
+      IsolationSpecificity = 0;
     }
 
     /// <summary>
@@ -81,6 +94,9 @@ namespace Nova.Data
     /// </summary>
     public double CollisionEnergy { get; set; } = 0;
 
+    /// <summary>
+    /// The fragmentation method used, or <see cref="FragmentationType.None"/> if not known
+    /// </summary>
     public FragmentationType FragmentationMethod { get; set; } = FragmentationType.None;
 
     /// <summary>

@@ -565,7 +565,7 @@ namespace Nova.Io.Read
           switch (XmlFile.Name)
           {
             case "precursor":
-              spectrum.Precursors.Add(precursorIon);
+              spectrum.Precursors.Add(new PrecursorIon(precursorIon));
               break;
             case "spectrum": return;
             default: break;
@@ -642,7 +642,7 @@ namespace Nova.Io.Read
           switch (XmlFile.Name)
           {
             case "precursor":
-              spectrumEx.Precursors.Add(precursorIon);
+              spectrumEx.Precursors.Add(new PrecursorIon(precursorIon));
               break;
             case "spectrum": return;
             default: break;
