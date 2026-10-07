@@ -12,14 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Nova.Data;
 
 namespace Nova.Io.Read
@@ -96,6 +91,7 @@ namespace Nova.Io.Read
     /// </summary>
     private int globalCharge = 0;
 
+    /// <inheritdoc/>
     public int ScanCount { get; private set; } = 0;
 
     /// <summary>
@@ -104,8 +100,11 @@ namespace Nova.Io.Read
     /// </summary>
     public int ChromatCount => 0;
 
+    /// <inheritdoc/>
     public int FirstScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public int LastScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public double MaxRetentionTime { get; private set; } = 0;
 
     /// <summary>
@@ -242,6 +241,7 @@ namespace Nova.Io.Read
       return new Chromatogram(0);
     }
 
+    /// <inheritdoc/>
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)
     {
       int orderIndex;
@@ -288,6 +288,7 @@ namespace Nova.Io.Read
       }
     }
 
+    /// <inheritdoc/>
     public SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true)
     {
       int orderIndex;
@@ -557,6 +558,7 @@ namespace Nova.Io.Read
       }
     }
 
+    /// <inheritdoc/>
     public void Reset()
     {
       currentOrderIndex = -1;

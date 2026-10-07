@@ -17,13 +17,14 @@ using System.Collections;
 using System.Xml;
 
 using Nova.Data;
-using System.Runtime.InteropServices;
-using System;
 using System.Globalization;
 
 namespace Nova.Io.Read
 {
 
+  /// <summary>
+  /// The kind of data a binary array in an mzML file holds
+  /// </summary>
   internal enum BinaryArrayType
   {
     Unknown,
@@ -33,6 +34,9 @@ namespace Nova.Io.Read
     NonStandard
   }
 
+  /// <summary>
+  /// Reads indexed mzML files. A file without an index cannot be opened
+  /// </summary>
   internal class MzMLReader : ISpectrumFileReader, IOpenFailureDetail
   {
 
@@ -111,12 +115,17 @@ namespace Nova.Io.Read
 
     private bool hasMonoMz = false;
 
+    /// <inheritdoc/>
     public int ScanCount { get; private set; } = 0;
 
+    /// <inheritdoc/>
     public int FirstScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public int LastScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public double MaxRetentionTime { get; private set; } = 0;
 
+    /// <inheritdoc/>
     public int ChromatCount { get; private set; } = 0;
 
     /// <summary>
@@ -259,6 +268,7 @@ namespace Nova.Io.Read
       XmlFS = null;
     }
 
+    /// <inheritdoc/>
     public Chromatogram GetChromatogram(int chromatIndex = -1)
     {
 
@@ -292,6 +302,7 @@ namespace Nova.Io.Read
       return lastScanNumber + 1;
     }
 
+    /// <inheritdoc/>
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)
     {
       
@@ -341,6 +352,7 @@ namespace Nova.Io.Read
       return spectrum;
     }
 
+    /// <inheritdoc/>
     public SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true)
     {
       if (scanNumber < 0) CurrentScanNumber = GetNextScanNumber(CurrentScanNumber);
@@ -850,6 +862,7 @@ namespace Nova.Io.Read
     }
 
 
+    /// <inheritdoc/>
     public void Reset()
     {
       CurrentScanNumber = 0;

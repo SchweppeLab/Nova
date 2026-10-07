@@ -26,6 +26,9 @@ using System.Globalization;
 
 namespace Nova.Io.Read
 {
+  /// <summary>
+  /// Reads Thermo RAW files through Thermo's RawFileReader
+  /// </summary>
   internal class ThermoRawReader : ISpectrumFileReader, IOpenFailureDetail
   {
 
@@ -68,6 +71,7 @@ namespace Nova.Io.Read
     /// </summary>
     private int CurrentScanNumber = 0;
 
+    /// <inheritdoc/>
     public int ScanCount { get; private set; } = 0;
 
     /// <summary>
@@ -77,8 +81,11 @@ namespace Nova.Io.Read
     /// </summary>
     public int ChromatCount { get; private set; } = 0;
 
+    /// <inheritdoc/>
     public int FirstScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public int LastScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public double MaxRetentionTime { get; private set; } = 0;
 
     private int MasterScanNumIndex = 0;
@@ -110,6 +117,7 @@ namespace Nova.Io.Read
       }
     }
 
+    /// <inheritdoc/>
     public Chromatogram GetChromatogram(int chromatIndex = -1)
     {
       //TODO: have repeated calls to this function get different chromatograms.
@@ -392,6 +400,7 @@ namespace Nova.Io.Read
     /// </summary>
     /// <param name="scanFilter">Optionally provide an IScanFilter object if it was previously obtained.</param>
     /// <param name="scanStatistics">Optionally provide a ScanStatistics object if it was previously obtained.</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessSpectrumInformation(IScanFilter? scanFilter = null, ScanStatistics? scanStatistics = null, bool ext = false)
     {
       //If scanFilter or scanStatistics was not provided, grab them now.
@@ -448,6 +457,7 @@ namespace Nova.Io.Read
     /// Used to process precursor ion information
     /// </summary>
     /// <param name="scanEvent">IScanEvent object</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessScanEvent(IScanEvent scanEvent, bool ext = false)
     {
       //Get all the precursor information
@@ -463,6 +473,7 @@ namespace Nova.Io.Read
     /// Process the scan filter for a spectrum. Provides useful header information.
     /// </summary>
     /// <param name="filter">IScanFilter object</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessSpectrumFilter(IScanFilter filter, bool ext = false)
     {
       if (ext)
@@ -520,6 +531,7 @@ namespace Nova.Io.Read
     /// Process the scan statistics for a spectrum. Provides useful header information.
     /// </summary>
     /// <param name="scanStatistics">ScanStatistics object</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessSpectrumStatistics(ScanStatistics scanStatistics, bool ext = false)
     {
       if (ext)
@@ -564,6 +576,7 @@ namespace Nova.Io.Read
     /// Processes the Trailer Extra Information attached to the Scan Header.
     /// </summary>
     /// <param name="trailerData">ILogEntryAccess object</param>
+    /// <param name="ext">True to fill spectrumEx rather than spectrum</param>
     private void ProcessTrailerExtraInformation(ILogEntryAccess trailerData, bool ext = false)
     {
       for (int i = 0; i < trailerData.Length; i++)
@@ -638,6 +651,7 @@ namespace Nova.Io.Read
         }
       }
     }
+    /// <inheritdoc/>
     public void Reset()
     {
       CurrentScanNumber = 0;

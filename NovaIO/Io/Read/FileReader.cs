@@ -15,7 +15,6 @@
 using System.Collections;
 using Nova.Data;
 
-
 namespace Nova.Io.Read
 {
 

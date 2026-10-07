@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64</Platforms>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>Nova.IO for mass spectrometry data input and output.</Title>
     <Authors>Michael Hoopmann, Devin Schweppe</Authors>
     <Company>University of Washington, Schweppe Lab</Company>

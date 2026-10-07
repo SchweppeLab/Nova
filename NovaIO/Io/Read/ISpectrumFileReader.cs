@@ -12,12 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Nova.Data;
 
 namespace Nova.Io.Read
@@ -95,10 +90,10 @@ namespace Nova.Io.Read
     bool Open(string fileName);
 
     //TODO: decide if this is worthwhile
-    /// <summary>
-    /// Return some metadata about the file.
-    /// </summary>
-    /// <returns>Returns an instance of ScanFileHeader</returns>
+    // <summary>
+    // Return some metadata about the file.
+    // </summary>
+    // <returns>Returns an instance of ScanFileHeader</returns>
     //ScanFileHeader GetHeader();
 
     /// <summary>

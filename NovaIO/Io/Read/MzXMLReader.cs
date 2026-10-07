@@ -12,22 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Buffers.Binary;
 using System.Xml;
 using Nova.Data;
-using Nova.Io;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Collections;
-using System.Collections.Specialized;
 using System.Globalization;
 
 namespace Nova.Io.Read
 {
+  /// <summary>
+  /// Reads indexed mzXML files. A file without an index cannot be opened
+  /// </summary>
   internal class MzXMLReader : ISpectrumFileReader, IOpenFailureDetail
   {
 
@@ -92,6 +88,7 @@ namespace Nova.Io.Read
     /// </summary>
     private PrecursorIon precursorIon;
 
+    /// <inheritdoc/>
     public int ScanCount { get; private set; } = 0;
 
     /// <summary>
@@ -100,8 +97,11 @@ namespace Nova.Io.Read
     /// </summary>
     public int ChromatCount => 0;
 
+    /// <inheritdoc/>
     public int FirstScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public int LastScan { get; private set; } = 0;
+    /// <inheritdoc/>
     public double MaxRetentionTime { get; private set; } = 0;
 
     /// <summary>
@@ -232,6 +232,7 @@ namespace Nova.Io.Read
       return new Chromatogram(0);
     }
 
+    /// <inheritdoc/>
     public Spectrum GetSpectrum(int scanNumber = -1, bool centroid = true)
     {
       if (scanNumber < 0) CurrentScanNumber++;
@@ -280,6 +281,7 @@ namespace Nova.Io.Read
       return spectrum;
     }
 
+    /// <inheritdoc/>
     public SpectrumEx GetSpectrumEx(int scanNumber = -1, bool centroid = true)
     {
       if (scanNumber < 0) CurrentScanNumber++;
@@ -630,6 +632,7 @@ namespace Nova.Io.Read
       }
     }
 
+    /// <inheritdoc/>
     public void Reset()
     {
       CurrentScanNumber = 0;
