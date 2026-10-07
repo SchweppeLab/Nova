@@ -21,32 +21,13 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>
-1.1.0 - first release since 1.0.0.18.
-
-BREAKING
-* Retargeted from .NET Framework 4.8 to netstandard2.0; one build now serves
-  net48 and net8.0+ consumers.
-* IPC wire format changed: Spectrum serialization now includes ScanDescription.
-  1.1.0 cannot talk to 1.0.0.18 over a pipe - upgrade both ends together.
-* FramentationType and PrecursorIon.FramentationMethod renamed to
-  FragmentationType and FragmentationMethod. Recompile.
-
-NEW
-* ISpectrum carries ScanDescription.
-* IChromatogram and IChromatDataPoint are now public.
-
-FIXED
-* PipeIO.Read handles partial stream reads; larger messages could be truncated.
-* Deserialize appended precursors to those already on the spectrum instead of
-  replacing them.
-* PrecursorIon's copy constructor and Clear skipped CollisionEnergy,
-  FragmentationMethod, and IsolationSpecificity.
+1.1.1 - in development; no changes yet.
 
 https://github.com/SchweppeLab/Nova
     </PackageReleaseNotes>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.1</Version>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
