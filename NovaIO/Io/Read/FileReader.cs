@@ -12,19 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Nova.Data;
-using Nova.Io;
+
 
 namespace Nova.Io.Read
 {
 
+  /// <summary>
+  /// The file formats <see cref="FileReader"/> can open
+  /// </summary>
   public enum FileFormat
   {
     Unknown,    //Default format until otherwise determined.
@@ -46,6 +43,10 @@ namespace Nova.Io.Read
     MS3 = 4
   }
 
+  /// <summary>
+  /// Reads spectra and chromatograms from an MS data file, choosing the reader by file extension. Enumerating it yields each
+  /// spectrum in file order
+  /// </summary>
   public class FileReader : IEnumerable
   {
 
@@ -66,6 +67,9 @@ namespace Nova.Io.Read
     /// </summary>
     public string FileName { get; set; } = "";
 
+    /// <summary>
+    /// The number of spectra in the open file
+    /// </summary>
     public int ScanCount { get; private set; } = 0;
 
     /// <summary>
@@ -73,15 +77,37 @@ namespace Nova.Io.Read
     /// </summary>
     public int ChromatCount { get; private set; } = 0;
 
+    /// <summary>
+    /// The scan number of the first spectrum in the file
+    /// </summary>
     public int FirstScan { get; private set; } = 0;
+
+    /// <summary>
+    /// The scan number of the last spectrum in the file
+    /// </summary>
     public int LastScan { get; private set; } = 0;
+
+    /// <summary>
+    /// The retention time at the end of the run, in minutes
+    /// </summary>
     public double MaxRetentionTime { get; private set; } = 0;
 
+    /// <summary>
+    /// Creates a reader with no file open
+    /// </summary>
+    /// <param name="filter">The MS levels to read</param>
     public FileReader (MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3)
     {
       Filter = filter;
     }
 
+    /// <summary>
+    /// Creates a reader and opens the file
+    /// </summary>
+    /// <param name="filename">The file to open</param>
+    /// <param name="filter">The MS levels to read</param>
+    /// <exception cref="FormatException">The file extension is not a recognized format</exception>
+    /// <exception cref="FileNotFoundException">The file could not be opened</exception>
     public FileReader(string filename,MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3)
     {
       Filter = filter;
@@ -95,7 +121,7 @@ namespace Nova.Io.Read
     /// Checks to see if we requested, or already have, a valid file from which to read a spectrum. Use null to specify reading
     /// another spectrum from the same file.
     /// </summary>
-    /// <param name="fileName"></param>
+    /// <param name="fileName">The file to read from, or empty to keep reading the current file</param>
     /// <returns>true if the file is already open, false if not open</returns>
     /// <exception cref="ArgumentNullException">No file name was given and no file is open.</exception>
     /// <exception cref="FileNotFoundException">File not found.</exception>
@@ -124,10 +150,10 @@ namespace Nova.Io.Read
 
     /// <summary>
     /// Reads a file name string and returns the FileFormat value based on the file extension characters. FormatException thrown
-    /// if file doesn't have an exception or the extension isn't recognized.
+    /// if file doesn't have an extension or the extension isn't recognized.
     /// </summary>
-    /// <param name="fileName"></param>
-    /// <returns></returns>
+    /// <param name="fileName">The file name; only its extension is examined</param>
+    /// <returns>The format matching the extension</returns>
     public static FileFormat CheckFileFormat(string fileName)
     {
       string ext = Path.GetExtension(fileName);
@@ -161,6 +187,10 @@ namespace Nova.Io.Read
       }
     }
 
+    /// <summary>
+    /// Yields each spectrum in the open file in file order, subject to the current filter, then resets the reader
+    /// </summary>
+    /// <returns>An enumerator over <see cref="Spectrum"/> objects</returns>
     public IEnumerator GetEnumerator()
     {
       fileReader.Reset();
@@ -180,8 +210,15 @@ namespace Nova.Io.Read
       //}
     }
 
+    /// <summary>
+    /// Opens a file for reading, closing any file already open. The reader is chosen by file extension
+    /// </summary>
+    /// <param name="fileName">The file to open</param>
+    /// <returns>true if the file opened and is ready to read</returns>
+    /// <exception cref="FormatException">The file extension is not a recognized format</exception>
     public bool OpenSpectrumFile(string fileName)
     {
+      fileReader?.Close();
       //Check file extension to determine file type.
       FileFormat ff = CheckFileFormat(fileName);
       if (ff == FileFormat.Unknown) return false;
@@ -204,6 +241,13 @@ namespace Nova.Io.Read
       return opened;
     }
 
+    /// <summary>
+    /// Reads a chromatogram, opening the file first if it is not the current one
+    /// </summary>
+    /// <param name="fileName">The file to read from, or empty for the current file</param>
+    /// <param name="chromatIndex">The chromatogram index (zero based), or -1 for the next one</param>
+    /// <returns>The chromatogram, or an empty one if it could not be read</returns>
+    /// <exception cref="SpectrumFileOpenException">A new file could not be opened</exception>
     public Chromatogram ReadChromatogram(string fileName = "", int chromatIndex = -1)
     {
       try
@@ -253,6 +297,14 @@ namespace Nova.Io.Read
       return new Chromatogram(0);
     }
 
+    /// <summary>
+    /// Reads a spectrum, opening the file first if it is not the current one
+    /// </summary>
+    /// <param name="fileName">The file to read from, or empty for the current file</param>
+    /// <param name="scanNumber">The scan number, or -1 for the next spectrum</param>
+    /// <param name="centroid">The preferred peak type. Not guaranteed; check the Spectrum.Centroid property</param>
+    /// <returns>The spectrum, or an empty one if it could not be read</returns>
+    /// <exception cref="SpectrumFileOpenException">A new file could not be opened</exception>
     public Spectrum ReadSpectrum(string fileName = "", int scanNumber = -1, bool centroid = true)
     {
       try
@@ -302,6 +354,15 @@ namespace Nova.Io.Read
       return new Spectrum(0);
     }
 
+    /// <summary>
+    /// Reads a spectrum with the extended per-peak data where the format provides it, opening the file first if it is not the
+    /// current one
+    /// </summary>
+    /// <param name="fileName">The file to read from, or empty for the current file</param>
+    /// <param name="scanNumber">The scan number, or -1 for the next spectrum</param>
+    /// <param name="centroid">The preferred peak type. Not guaranteed; check the Spectrum.Centroid property</param>
+    /// <returns>The spectrum, or an empty one if it could not be read</returns>
+    /// <exception cref="SpectrumFileOpenException">A new file could not be opened</exception>
     public SpectrumEx ReadSpectrumEx(string fileName = "", int scanNumber = -1, bool centroid = true)
     {
       try
@@ -351,6 +412,9 @@ namespace Nova.Io.Read
       return new SpectrumEx(0);
     }
 
+    /// <summary>
+    /// Returns to the start of the open file for sequential reading
+    /// </summary>
     public void Reset()
     {
       fileReader?.Reset();
@@ -358,6 +422,10 @@ namespace Nova.Io.Read
       //fileReader.Close();
     }
 
+    /// <summary>
+    /// Sets the MS levels to read, for this reader and any file it has open
+    /// </summary>
+    /// <param name="filter">The MS levels to read</param>
     public void SetFilter(MSFilter filter)
     {
       Filter = filter;
