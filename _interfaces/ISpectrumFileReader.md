@@ -35,9 +35,9 @@ IEnumerable
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Close()     | void   | Performs any cleanup.   |
-| GetChromatogram(int chromatIndex = -1)     | Chromatogram   | Reads a chromatogram from the currently open MS data file.   |
-| GetSpectrum(int scanNumber = -1, bool centroid = true)      | Spectrum   | Reads a spectrum from the currently open MS data file.   |
-| GetSpectrumEx(int scanNumber = -1, bool centroid = true)     | SpectrumEx   | Reads a spectrum from the currently open MS data file, with the extended per-peak data where the format provides it.   |
-| Open(string fileName)     | bool   | Open data file and hold new scan information.   |
-| Reset()     | void   | Resets the file reader to the beginning of the file when iteratively reading.   |
+| [Close()]({{ '/methods/ISpectrumFileReader.Close.html' | relative_url }})     | void   | Performs any cleanup.   |
+| [GetChromatogram(int chromatIndex = -1)]({{ '/methods/ISpectrumFileReader.GetChromatogram.html' | relative_url }})     | Chromatogram   | Reads a chromatogram from the currently open MS data file.   |
+| [GetSpectrum(int scanNumber = -1, bool centroid = true)]({{ '/methods/ISpectrumFileReader.GetSpectrum.html' | relative_url }})      | Spectrum   | Reads a spectrum from the currently open MS data file.   |
+| [GetSpectrumEx(int scanNumber = -1, bool centroid = true)]({{ '/methods/ISpectrumFileReader.GetSpectrumEx.html' | relative_url }})     | SpectrumEx   | Reads a spectrum from the currently open MS data file, with the extended per-peak data where the format provides it.   |
+| [Open(string fileName)]({{ '/methods/ISpectrumFileReader.Open.html' | relative_url }})     | bool   | Open data file and hold new scan information.   |
+| [Reset()]({{ '/methods/ISpectrumFileReader.Reset.html' | relative_url }})     | void   | Resets the file reader to the beginning of the file when iteratively reading.   |
