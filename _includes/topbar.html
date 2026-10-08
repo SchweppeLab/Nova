@@ -36,7 +36,7 @@
         </span>
 
         {% if page.namespaces %}
-          <!-- API documentation: Home / Namespaces / <namespace> / <page> -->
+          <!-- API documentation: Home, then Namespaces, then the namespace, then the page -->
           {% assign ns_tab = site.tabs | where: 'url', '/namespaces/' | first %}
           <span>
             <a href="{{ '/namespaces/' | relative_url }}">
