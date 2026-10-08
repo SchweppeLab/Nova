@@ -32,8 +32,8 @@ IChromatDataPoint
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Read(BinaryReader reader)      | void   | Reads the retention time then the intensity from the stream, each as a double.   |
-| Write(BinaryWriter writer)     | void   | Writes the retention time then the intensity to the stream, each as a double.   |
+| [Read(BinaryReader reader)]({{ '/methods/ChromatDataPoint.Read.html' | relative_url }})      | void   | Reads the retention time then the intensity from the stream, each as a double.   |
+| [Write(BinaryWriter writer)]({{ '/methods/ChromatDataPoint.Write.html' | relative_url }})     | void   | Writes the retention time then the intensity to the stream, each as a double.   |
 
 * * *
 ## Example

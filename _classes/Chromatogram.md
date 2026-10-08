@@ -28,7 +28,7 @@ IChromatogram
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| Chromatogram(int count = 0) | Creates a chromatogram sized for the given number of data points.  |
+| [Chromatogram(int count = 0)]({{ '/methods/Chromatogram.Constructor.html' | relative_url }}) | Creates a chromatogram sized for the given number of data points.  |
 
 * * *
 ## Properties
@@ -44,10 +44,10 @@ IChromatogram
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Deserialize(byte[] data)      | void   | Reads the count as a 32-bit integer, then each data point via ChromatDataPoint.Read.   |
-| Dispose()      | void   | A no-op beyond marking the instance disposed. Present so a chromatogram can be used the same way as the spectrum types.   |
-| Resize(int sz)      | void   | Replaces the data points with a new, empty array of the given size. Existing points are discarded.   |
-| Serialize()      | byte[]   | Writes the count as a 32-bit integer, then each data point via ChromatDataPoint.Write.   |
+| [Deserialize(byte[] data)]({{ '/methods/Chromatogram.Deserialize.html' | relative_url }})      | void   | Reads the count as a 32-bit integer, then each data point via ChromatDataPoint.Read.   |
+| [Dispose()]({{ '/methods/Chromatogram.Dispose.html' | relative_url }})      | void   | A no-op beyond marking the instance disposed. Present so a chromatogram can be used the same way as the spectrum types.   |
+| [Resize(int sz)]({{ '/methods/Chromatogram.Resize.html' | relative_url }})      | void   | Replaces the data points with a new, empty array of the given size. Existing points are discarded.   |
+| [Serialize()]({{ '/methods/Chromatogram.Serialize.html' | relative_url }})      | byte[]   | Writes the count as a 32-bit integer, then each data point via ChromatDataPoint.Write.   |
 
 * * *
 ## Example

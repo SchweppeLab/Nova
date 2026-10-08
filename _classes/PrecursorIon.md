@@ -22,9 +22,9 @@ holds zero or more in its Precursors list.
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| PrecursorIon() | Creates an empty precursor.  |
-| PrecursorIon(PrecursorIon pi) | Copy constructor.  |
-| PrecursorIon(double mz, double intensity = 0, int charge = 0, double isoMz = 0, double isoWidth = 0) | Creates a precursor from its monoisotopic m/z, with optional intensity, charge, isolation m/z and isolation width.  |
+| [PrecursorIon()]({{ '/methods/PrecursorIon.Constructor.html' | relative_url }}) | Creates an empty precursor.  |
+| [PrecursorIon(PrecursorIon pi)]({{ '/methods/PrecursorIon.Constructor.html' | relative_url }}) | Copy constructor.  |
+| [PrecursorIon(double mz, double intensity = 0, int charge = 0, double isoMz = 0, double isoWidth = 0)]({{ '/methods/PrecursorIon.Constructor.html' | relative_url }}) | Creates a precursor from its monoisotopic m/z, with optional intensity, charge, isolation m/z and isolation width.  |
 
 * * *
 ## Properties
@@ -45,7 +45,7 @@ holds zero or more in its Precursors list.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Clear()      | void   | Resets all values to 0.   |
+| [Clear()]({{ '/methods/PrecursorIon.Clear.html' | relative_url }})      | void   | Resets all values to 0.   |
 
 * * *
 ## Example

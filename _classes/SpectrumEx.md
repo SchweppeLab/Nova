@@ -25,7 +25,7 @@ ISpectrum&lt;SpecDataPointEx&gt;, IDisposable
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| SpectrumEx(int count = 0) | Creates a spectrum sized for the given number of data points.  |
+| [SpectrumEx(int count = 0)]({{ '/methods/SpectrumEx.Constructor.html' | relative_url }}) | Creates a spectrum sized for the given number of data points.  |
 
 * * *
 ## Properties

@@ -23,7 +23,7 @@ leave the rest at zero.
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| SpecDataPointEx(double mz = 0, double intensity = 0, double noise = 0, double baseline = 0, int charge = 0, double resolution = 0) | Creates a data point, with every value defaulting to zero.  |
+| [SpecDataPointEx(double mz = 0, double intensity = 0, double noise = 0, double baseline = 0, int charge = 0, double resolution = 0)]({{ '/methods/SpecDataPointEx.Constructor.html' | relative_url }}) | Creates a data point, with every value defaulting to zero.  |
 
 * * *
 ## Properties
@@ -42,9 +42,9 @@ leave the rest at zero.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| CompareTo(SpecDataPointEx x) | int    | Orders data points by m/z alone. Two points at the same m/z compare as equal.   |
-| Read(BinaryReader reader)      | void   | Reads an extended mass spectrum data point.   |
-| Write(BinaryWriter writer)     | void   | Writes an extended mass spectrum data point.   |
+| [CompareTo(SpecDataPointEx x)]({{ '/methods/SpecDataPointEx.CompareTo.html' | relative_url }}) | int    | Orders data points by m/z alone. Two points at the same m/z compare as equal.   |
+| [Read(BinaryReader reader)]({{ '/methods/SpecDataPointEx.Read.html' | relative_url }})      | void   | Reads an extended mass spectrum data point.   |
+| [Write(BinaryWriter writer)]({{ '/methods/SpecDataPointEx.Write.html' | relative_url }})     | void   | Writes an extended mass spectrum data point.   |
 
 * * *
 ## Example

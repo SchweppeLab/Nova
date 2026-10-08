@@ -31,6 +31,6 @@ IDisposable
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Deserialize(byte[] data)      | void   | Replaces the contents with the data points from a Serialize payload.   |
-| Resize(int sz)      | void   | Replaces the data points with a new, empty array of the given size. Existing points are discarded.   |
-| Serialize()      | byte[]   | Serializes the chromatogram to a byte array, suitable as a pipe message payload. Read back by Deserialize.   |
+| [Deserialize(byte[] data)]({{ '/methods/Chromatogram.Deserialize.html' | relative_url }})      | void   | Replaces the contents with the data points from a Serialize payload.   |
+| [Resize(int sz)]({{ '/methods/Chromatogram.Resize.html' | relative_url }})      | void   | Replaces the data points with a new, empty array of the given size. Existing points are discarded.   |
+| [Serialize()]({{ '/methods/Chromatogram.Serialize.html' | relative_url }})      | byte[]   | Serializes the chromatogram to a byte array, suitable as a pipe message payload. Read back by Deserialize.   |

@@ -24,7 +24,7 @@ ISpectrum&lt;SpecDataPoint&gt;, IDisposable
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| Spectrum(int count = 0) | Creates a spectrum sized for the given number of data points.  |
+| [Spectrum(int count = 0)]({{ '/methods/Spectrum.Constructor.html' | relative_url }}) | Creates a spectrum sized for the given number of data points.  |
 
 * * *
 ## Properties

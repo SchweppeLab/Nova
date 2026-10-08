@@ -32,10 +32,10 @@ IDisposable
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Deserialize(byte[] data)      | void   | Loads the spectrum from a Serialize payload.   |
-| GetMz(double mz, double ppm = 0)      | int   | Finds the data point at an m/z, or the nearest one within a tolerance in parts per million. A ppm of 0 means an exact match only. Returns the index into DataPoints, or -1 if no point is within tolerance.   |
-| Resize(int sz)      | void   | Replaces the data points with a new, empty array of the given size. Existing points are discarded.   |
-| Serialize()      | byte[]   | Serializes the spectrum to a byte array, suitable as a pipe message payload. Read back by Deserialize.   |
+| [Deserialize(byte[] data)]({{ '/methods/TSpectrum.Deserialize.html' | relative_url }})      | void   | Loads the spectrum from a Serialize payload.   |
+| [GetMz(double mz, double ppm = 0)]({{ '/methods/TSpectrum.GetMz.html' | relative_url }})      | int   | Finds the data point at an m/z, or the nearest one within a tolerance in parts per million. A ppm of 0 means an exact match only. Returns the index into DataPoints, or -1 if no point is within tolerance.   |
+| [Resize(int sz)]({{ '/methods/TSpectrum.Resize.html' | relative_url }})      | void   | Replaces the data points with a new, empty array of the given size. Existing points are discarded.   |
+| [Serialize()]({{ '/methods/TSpectrum.Serialize.html' | relative_url }})      | byte[]   | Serializes the spectrum to a byte array, suitable as a pipe message payload. Read back by Deserialize.   |
 
 * * *
 ## Example
