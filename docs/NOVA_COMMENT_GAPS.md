@@ -34,3 +34,13 @@ The scan checks that the tags are present. It does not judge whether a comment i
 
 Rerun against the new tag. Any member listed has a page that must be written from the
 implementation until Nova documents it, and those pages carry a one-line note saying so.
+
+The scan is `tools/gapscan2.pl`. It takes one C# file and prints one line per public
+member, ending in its missing tags or "ok". Run it on every `.cs` file at the tag, leaving out
+`NovaApp`, `Examples` and `Test`:
+
+```
+git -C <Nova clone> archive v1.1.0 | tar -x -C <empty folder>
+find <empty folder> -name '*.cs' ! -path '*NovaApp*' ! -path '*Examples*' ! -path '*Test*' \
+  -exec perl tools/gapscan2.pl {} \;
+```
