@@ -14,9 +14,7 @@ siblings: [SpectrumEx,TSpectrum]
 
 <br/>
 ## Remarks
-A spectrum of basic m/z and intensity data points. It is TSpectrum&lt;SpecDataPoint&gt;, so
-its members are those of [TSpectrum&lt;T&gt;]({{ '/classes/TSpectrum.html' | relative_url }})
-and its scan-level fields those of [SpectrumFoundation]({{ '/classes/SpectrumFoundation.html' | relative_url }}).
+A spectrum of basic m/z and intensity data points. It is TSpectrum&lt;SpecDataPoint&gt;.
 
 #### Implements
 ISpectrum&lt;SpecDataPoint&gt;, IDisposable
@@ -27,6 +25,24 @@ ISpectrum&lt;SpecDataPoint&gt;, IDisposable
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
 | Spectrum(int count = 0) | Creates a spectrum sized for the given number of data points.  |
+
+* * *
+## Properties
+
+#### Inherited from [TSpectrum&lt;T&gt;]({{ '/classes/TSpectrum.html' | relative_url }})
+
+{% include members.html of="TSpectrum" section="properties" t="SpecDataPoint" %}
+
+#### Inherited from [SpectrumFoundation]({{ '/classes/SpectrumFoundation.html' | relative_url }})
+
+{% include members.html of="SpectrumFoundation" section="properties" %}
+
+* * *
+## Methods
+
+#### Inherited from [TSpectrum&lt;T&gt;]({{ '/classes/TSpectrum.html' | relative_url }})
+
+{% include members.html of="TSpectrum" section="methods" t="SpecDataPoint" %}
 
 * * *
 ## Example

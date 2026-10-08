@@ -1,0 +1,23 @@
+{%- comment -%}
+  Renders a member table from _data/members/<of>.yml as Markdown, so a type's
+  members are written once and shown on every page that has them.
+    of:      the data file (the declaring type)
+    section: properties | methods
+    t:       replaces @T in types and return types (default "T")
+  Leave a blank line before and after the include tag so the table is parsed.
+{%- endcomment -%}
+{%- assign t = include.t | default: 'T' -%}
+{%- assign rows = site.data.members[include.of][include.section] -%}
+{%- if include.section == 'methods' %}
+| Method   | Returns     | Description                                               |
+|:-------------|:---------|:----------------------------------------------------------|
+{% for r in rows -%}
+| {% if r.page %}[{{ r.syntax }}]({{ '/methods/' | append: r.page | append: '.html' | relative_url }}){% else %}{{ r.syntax }}{% endif %} | {{ r.returns | replace: '@T', t }} | {{ r.desc }} |
+{% endfor -%}
+{%- else %}
+| Identifier   | Type     | Description                                               |
+|:-------------|:---------|:----------------------------------------------------------|
+{% for r in rows -%}
+| {{ r.name }} | {{ r.type | replace: '@T', t }} | {{ r.desc }} |
+{% endfor -%}
+{%- endif -%}

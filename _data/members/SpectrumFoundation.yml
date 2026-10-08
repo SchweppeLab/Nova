@@ -1,0 +1,90 @@
+# Properties of SpectrumFoundation, rendered by _includes/members.html on
+# SpectrumFoundation and on every type that inherits it.
+properties:
+  - name: Analyzer
+    type: 'string'
+    desc: 'Mass analyzer used.'
+  - name: BasePeakIntensity
+    type: 'double'
+    desc: 'The abundance of the most intense peak in the scan.'
+  - name: BasePeakMz
+    type: 'double'
+    desc: 'The m/z of the most intense peak in the scan.'
+  - name: Centroid
+    type: 'bool'
+    desc: 'Identifies the peak data type as centroid (true) or profile (false).'
+  - name: CollisionEnergy
+    type: 'double'
+    desc: 'The activation energy for a fragmentation event.'
+  - name: Description
+    type: 'string'
+    desc: 'The "Scan Description" field from the scan header.'
+  - name: DetectorType
+    type: 'string'
+    desc: 'Detector or mass analyzer used for the scan, such as ITMS or FTMS.'
+  - name: ElapsedScanTime
+    type: 'double'
+    desc: 'Total time, including injection time, to acquire the scan, in milliseconds.'
+  - name: EndMz
+    type: 'double'
+    desc: 'm/z that the scan ends at.'
+  - name: FaimsCV
+    type: 'double'
+    desc: 'FAIMS compensation voltage, if used, in volts.'
+  - name: FaimsState
+    type: 'bool'
+    desc: 'FAIMS state, true when on. FaimsState can be on while FaimsCV is 0.'
+  - name: HighestMz
+    type: 'double'
+    desc: 'Highest m/z observed in the scan.'
+  - name: IonInjectionTime
+    type: 'double'
+    desc: 'Injection time used to acquire the scan ions, in milliseconds, maximum 5000.'
+  - name: LowestMz
+    type: 'double'
+    desc: 'Lowest m/z observed in the scan.'
+  - name: MasterIndex
+    type: 'int'
+    desc: 'Thermo variable for master scan number.'
+  - name: MetaData
+    type: 'Dictionary&lt;string, string&gt;'
+    desc: 'Key/value dictionary for information without a dedicated field.'
+  - name: MsLevel
+    type: 'int'
+    desc: 'The MS level: 0 unknown, 1 MS1, 2 MS2, 3 MS3, and so on.'
+  - name: Polarity
+    type: 'bool'
+    desc: 'Polarity, true when positive.'
+  - name: PrecursorActivationMethod
+    type: 'string'
+    desc: 'If a dependent scan, the activation method used to generate the scan fragments.'
+  - name: PrecursorMasterScanNumber
+    type: 'int'
+    desc: 'If a dependent scan, the parent scan number.'
+  - name: Precursors
+    type: 'List&lt;PrecursorIon&gt;'
+    desc: 'Zero or more precursor ions associated with this spectrum.'
+  - name: RetentionTime
+    type: 'double'
+    desc: 'Scan retention time, in minutes.'
+  - name: ScanDescription
+    type: 'string'
+    desc: 'The scan description.'
+  - name: ScanEvent
+    type: 'int'
+    desc: 'Scan event order.'
+  - name: ScanFilter
+    type: 'string'
+    desc: 'Scan filter line from the raw file.'
+  - name: ScanNumber
+    type: 'int'
+    desc: 'Scan number.'
+  - name: ScanType
+    type: 'string'
+    desc: 'String description of the scan type.'
+  - name: StartMz
+    type: 'double'
+    desc: 'm/z that the scan starts at.'
+  - name: TotalIonCurrent
+    type: 'double'
+    desc: 'Total ion current for the scan.'

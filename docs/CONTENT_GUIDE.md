@@ -67,6 +67,18 @@ It is guarded by `{% if latest_release.version %}`, so a download entry missing 
 `version` field makes the line disappear silently rather than print something wrong.
 That is the safer failure, but it does mean the field is not optional in practice.
 
+**Inherited members are shown on the inheriting page.** A type's page lists every
+member a reader can use on it, grouped under "Inherited from ..." headings. Only
+members inherited from Nova types are listed, never those of .NET base classes.
+
+Those tables are written once, in `_data/members/<DeclaringType>.yml`, and rendered by
+`_includes/members.html` on every page that has them, so the copies cannot drift. `@T`
+in a type is replaced by the include's `t` parameter (e.g. `SpecDataPointEx`).
+
+A method page belongs to the declaring type: `TSpectrum.GetMz`, not `SpectrumEx.GetMz`.
+Its breadcrumb therefore shows the declaring type, and its Remarks carry one line
+naming the types that inherit it ("Inherited by Spectrum and SpectrumEx.").
+
 ## Release news
 
 Each official release gets a news post and a download entry.
