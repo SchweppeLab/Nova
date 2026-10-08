@@ -33,8 +33,8 @@ characters for their own purposes.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| DecodeString()     | string   | Decoder method to convert the byte[] MsgData array to a string. Should only be called if the array originated from a string.  |
-| EncodeString(string str)      | void   | Encoder method to convert any string into the byte[] MsgData. Note that the MsgCode is automatically set to '0', which is reserved for string data.   |
+| [DecodeString()]({{ '/methods/PipeMessage.DecodeString.html' | relative_url }})     | string   | Decoder method to convert the byte[] MsgData array to a string. Should only be called if the array originated from a string.  |
+| [EncodeString(string str)]({{ '/methods/PipeMessage.EncodeString.html' | relative_url }})      | void   | Encoder method to convert any string into the byte[] MsgData. Note that the MsgCode is automatically set to '0', which is reserved for string data.   |
 
 * * *
 ## Example

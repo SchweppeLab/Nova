@@ -175,5 +175,18 @@ namespace NovaSnippets.IoRead
         Console.WriteLine(ex.Message);
       }
     }
+
+    internal static void SpectrumFileOpenException_Constructor()
+    {
+      try
+      {
+        FileReader reader = new FileReader();
+        reader.ReadSpectrum("Damaged.mzML");
+      }
+      catch (SpectrumFileOpenException ex)
+      {
+        Console.WriteLine(ex.FileName + ": " + ex.Message);
+      }
+    }
   }
 }

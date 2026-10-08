@@ -28,8 +28,8 @@ IOException
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| SpectrumFileOpenException(string fileName, string detail) | Creates the exception for a file that could not be opened. detail is why, as reported by the reader.  |
-| SpectrumFileOpenException(string fileName, string detail, Exception innerException) | Creates the exception for a file that could not be opened, wrapping the exception that caused it.  |
+| [SpectrumFileOpenException(string fileName, string detail)]({{ '/methods/SpectrumFileOpenException.Constructor.html' | relative_url }}) | Creates the exception for a file that could not be opened. detail is why, as reported by the reader.  |
+| [SpectrumFileOpenException(string fileName, string detail, Exception innerException)]({{ '/methods/SpectrumFileOpenException.Constructor.html' | relative_url }}) | Creates the exception for a file that could not be opened, wrapping the exception that caused it.  |
 
 * * *
 ## Properties

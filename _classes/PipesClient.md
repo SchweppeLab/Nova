@@ -24,7 +24,7 @@ listening state, and reconnects when the server comes back online.
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| PipesClient(string pID, string sID = ".") | PipesClient constructor. pID should match the ID of the server. sID defaults to ".", indicating a local server; otherwise provide the network ID.  |
+| [PipesClient(string pID, string sID = ".")]({{ '/methods/PipesClient.Constructor.html' | relative_url }}) | PipesClient constructor. pID should match the ID of the server. sID defaults to ".", indicating a local server; otherwise provide the network ID.  |
 
 * * *
 ## Properties
@@ -47,11 +47,11 @@ listening state, and reconnects when the server comes back online.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Send(PipeMessage message)     | void   | Sends a message to the server.   |
-| Start() | void    | Starts the client.   |
-| Stop()  | void    | Stop the client, and do not attempt to reconnect.   |
-| WaitForConnection(int ms)  | void    | Blocks until the client has connected to the server, or the timeout elapses.   |
-| WaitForDisconnection(int ms)  | void    | Blocks until the client has disconnected from the server, or the timeout elapses.   |
+| [Send(PipeMessage message)]({{ '/methods/PipesClient.Send.html' | relative_url }})     | void   | Sends a message to the server.   |
+| [Start()]({{ '/methods/PipesClient.Start.html' | relative_url }}) | void    | Starts the client.   |
+| [Stop()]({{ '/methods/PipesClient.Stop.html' | relative_url }})  | void    | Stop the client, and do not attempt to reconnect.   |
+| [WaitForConnection(int ms)]({{ '/methods/PipesClient.WaitForConnection.html' | relative_url }})  | void    | Blocks until the client has connected to the server, or the timeout elapses.   |
+| [WaitForDisconnection(int ms)]({{ '/methods/PipesClient.WaitForDisconnection.html' | relative_url }})  | void    | Blocks until the client has disconnected from the server, or the timeout elapses.   |
 
 * * *
 ## Delegates

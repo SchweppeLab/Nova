@@ -22,7 +22,7 @@ client and passes it to its ClientConnected, ClientDisconnected and ClientMessag
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| PipesConnection(int id, string name, PipeStream serverStream) | Creates a connection from the server's stream. id is an iterative connection ID and name is the client's name.  |
+| [PipesConnection(int id, string name, PipeStream serverStream)]({{ '/methods/PipesConnection.Constructor.html' | relative_url }}) | Constructor that passes the stream from the server, plus any identifiers.  |
 
 * * *
 ## Properties
@@ -30,8 +30,8 @@ client and passes it to its ClientConnected, ClientDisconnected and ClientMessag
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
 | ID  | int   | Numeric identifier. A read-only field.      |
-| IsConnected  | bool   | Indicates if the stream is connected.      |
-| Name  | string   | String identifier for the client on this stream.      |
+| IsConnected  | bool   | Indicates if stream is connected.   |
+| Name  | string   | String identifier for the client in this connected stream.   |
 | TheStream  | PipeStream   | The stream between server and client.      |
 
 * * *
@@ -39,18 +39,18 @@ client and passes it to its ClientConnected, ClientDisconnected and ClientMessag
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Disconnected  | PipeConnectionEvent   | Raised when the stream has been disconnected.        |
-| Error  | PipeConnectionExceptionEvent   | Raised on an error.        |
-| ReceiveMessage  | PipeConnectionMessageEvent   | Raised when the stream receives a message.        |
+| Disconnected  | PipeConnectionEvent   | Indicates the stream has been disconnected.   |
+| Error  | PipeConnectionExceptionEvent   | Indicates an error.   |
+| ReceiveMessage  | PipeConnectionMessageEvent   | Indicates that the stream received a message.   |
 
 * * *
 ## Methods
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Close()      | void   | Closes the stream.    |
-| Open()      | void   | Opens the connection for reading and writing.    |
-| Send(PipeMessage message)      | void   | Puts a PipeMessage in the queue to be sent.    |
+| [Close()]({{ '/methods/PipesConnection.Close.html' | relative_url }})      | void   | Closes the stream.    |
+| [Open()]({{ '/methods/PipesConnection.Open.html' | relative_url }})      | void   | Opens the connection for reading and writing.    |
+| [Send(PipeMessage message)]({{ '/methods/PipesConnection.Send.html' | relative_url }})      | void   | Puts a PipeMessage in the queue to be sent.    |
 
 * * *
 ## Delegates

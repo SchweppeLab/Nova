@@ -163,5 +163,12 @@ namespace NovaSnippets.Data
       SpectrumEx spectrum = new SpectrumEx(1);
       spectrum.DataPoints[0] = new SpecDataPointEx(445.12, 10523.0, 150.0, 0, 2, 120000);
     }
+
+    internal static void TSpectrum_Constructor()
+    {
+      // Through Spectrum, which is TSpectrum<SpecDataPoint>.
+      Spectrum spectrum = new Spectrum(100);
+      Console.WriteLine(spectrum.Count);   // 100
+    }
   }
 }

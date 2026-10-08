@@ -26,7 +26,7 @@ ISpectrum&lt;T&gt;, IDisposable
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| TSpectrum(int count = 0) | Creates a spectrum sized for the given number of data points.  |
+| [TSpectrum(int count = 0)]({{ '/methods/TSpectrum.Constructor.html' | relative_url }}) | Creates a spectrum sized for the given number of data points.  |
 
 * * *
 ## Properties
