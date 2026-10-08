@@ -26,21 +26,21 @@ AddProcessingMethod does nothing unless AddDataProcessing has been called first.
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| MzMLWriter() | Creates a writer with the fixed mzML header in place.  |
+| [MzMLWriter()]({{ '/methods/MzMLWriter.Constructor.html' | relative_url }}) | Creates a writer with the fixed mzML header in place.  |
 
 * * *
 ## Methods
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| AddDataProcessing(string id)     | void   | Starts a data processing entry. Later AddProcessingMethod calls attach to it.  |
-| AddFileDescription(string fileName)     | void   | Not yet implemented. Has no effect on the written file.  |
-| AddInstrumentConfiguration(string id, string? refID)     | void   | Adds an instrument configuration entry. The refID parameter is unused.  |
-| AddProcessingMethod(string softwareRef)     | void   | Adds a processing method to the current data processing entry. Does nothing if AddDataProcessing has not been called.  |
-| AddRun(string id, string instConf)     | void   | Starts a run. Spectra added afterward belong to it.  |
-| AddSoftware(string id, string version)     | void   | Adds a software entry. The ids "Xcalibur" and "pwiz" also get their standard CV terms.  |
-| AddSpectrum(Spectrum spec)     | void   | Converts a spectrum object into a spectrum element.  |
-| Write(string filename, bool validateSchema = false, string? schemaPath = null)     | void   | Writes the accumulated mzML content to the given path. With validateSchema true, re-opens the written file and validates it against the mzML XSD at schemaPath. Throws ArgumentException if validateSchema is true and schemaPath is empty.  |
+| [AddDataProcessing(string id)]({{ '/methods/MzMLWriter.AddDataProcessing.html' | relative_url }})     | void   | Starts a data processing entry. Later AddProcessingMethod calls attach to it.  |
+| [AddFileDescription(string fileName)]({{ '/methods/MzMLWriter.AddFileDescription.html' | relative_url }})     | void   | Not yet implemented. Has no effect on the written file.  |
+| [AddInstrumentConfiguration(string id, string? refID)]({{ '/methods/MzMLWriter.AddInstrumentConfiguration.html' | relative_url }})     | void   | Adds an instrument configuration entry. The refID parameter is unused.  |
+| [AddProcessingMethod(string softwareRef)]({{ '/methods/MzMLWriter.AddProcessingMethod.html' | relative_url }})     | void   | Adds a processing method to the current data processing entry. Does nothing if AddDataProcessing has not been called.  |
+| [AddRun(string id, string instConf)]({{ '/methods/MzMLWriter.AddRun.html' | relative_url }})     | void   | Starts a run. Spectra added afterward belong to it.  |
+| [AddSoftware(string id, string version)]({{ '/methods/MzMLWriter.AddSoftware.html' | relative_url }})     | void   | Adds a software entry. The ids "Xcalibur" and "pwiz" also get their standard CV terms.  |
+| [AddSpectrum(Spectrum spec)]({{ '/methods/MzMLWriter.AddSpectrum.html' | relative_url }})     | void   | Converts a spectrum object into a spectrum element.  |
+| [Write(string filename, bool validateSchema = false, string? schemaPath = null)]({{ '/methods/MzMLWriter.Write.html' | relative_url }})     | void   | Writes the accumulated mzML content to the given path. With validateSchema true, re-opens the written file and validates it against the mzML XSD at schemaPath. Throws ArgumentException if validateSchema is true and schemaPath is empty.  |
 
 * * *
 ## Example

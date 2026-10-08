@@ -27,7 +27,7 @@ This is a static class. There is nothing to construct.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| static FindMeta(string label)     | MetaClass   | Looks up a trailer label. Returns the matching MetaClass, or MetaClass.None if the label is not recognized.  |
+| static [FindMeta(string label)]({{ '/methods/MetaDictionary.FindMeta.html' | relative_url }})     | MetaClass   | Looks up a trailer label. Returns the matching MetaClass, or MetaClass.None if the label is not recognized.  |
 
 * * *
 ## Example
