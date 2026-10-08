@@ -1,7 +1,7 @@
 // Published verbatim as the Example on PipesServer. Regenerate from the page, don't hand-edit.
 using System;
-using NovaSnippets.IpcPipes;
 using Nova.IPC.Pipes;
+using System.IO;
 
 namespace NovaSnippets.IpcPipes.ServerExample
 {
@@ -87,5 +87,35 @@ public class PipeServer
     new PipeServer("TestServer");
   }
 
+}
+
+// Stands in for your own message payload type.
+public class SomeObject
+{
+  public int intData = 1;
+  public double doubleData = 2.5;
+  public string strData = "three";
+
+  public byte[] Serialize()
+  {
+    using (MemoryStream stream = new MemoryStream())
+    using (BinaryWriter writer = new BinaryWriter(stream))
+    {
+      writer.Write(intData);
+      writer.Write(doubleData);
+      writer.Write(strData);
+      return stream.ToArray();
+    }
+  }
+
+  public void Deserialize(byte[] data)
+  {
+    using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
+    {
+      intData = reader.ReadInt32();
+      doubleData = reader.ReadDouble();
+      strData = reader.ReadString();
+    }
+  }
 }
 }
