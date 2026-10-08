@@ -22,6 +22,7 @@ IEnumerable
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
+| ChromatCount  | int   | Number of chromatograms retrievable from the open file, or 0 for formats that carry none.      |
 | FirstScan  | int   | Number of the first scan event in the file.      |
 | LastScan   | int   | Number of the last scan event in the file.   |
 | MaxRetentionTime    | double   | Retention time (in minutes) of the last scan event in the file.   |

@@ -22,7 +22,7 @@ Factory class for dynamic file support when reading different mass spectrometry 
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| GetReader(string file, MSFilter filter)     | ISpectrumFileReader   | Opens a file and returns a file reader object based on the extension provided in the file name. A filter is provided to restrict the types of scans that are read.  |
+| GetReader(string file, MSFilter filter)     | ISpectrumFileReader   | Opens a file and returns a file reader object based on the extension provided in the file name. A filter is provided to restrict the types of scans that are read. Throws SpectrumFileOpenException if the file cannot be opened or indexed.  |
 
 
 * * *
