@@ -43,7 +43,7 @@ This class implements a lightweight inter process communication client based on 
 ## Methods
 
 | Method   | Returns     | Description                                               |
-|:-------------|:---------|:----------------------------------------------------------|  |
+|:-------------|:---------|:----------------------------------------------------------|
 | Send(PipeMessage message)     | void   |Sends a message to the server.         |
 | Start() | void    | Starts the client.   |
 | Stop()  | void    | Stops the client, and does not attempt to reconnect.   |
@@ -54,7 +54,7 @@ This class implements a lightweight inter process communication client based on 
 ## Delegates
 
 | Delegate   | Returns     | Description                                               |
-|:-------------|:---------|:----------------------------------------------------------|  |
+|:-------------|:---------|:----------------------------------------------------------|
 | PipeExceptionEventHandler  | void   | Represents the method that will handle the Error event         |
 
 

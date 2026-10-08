@@ -19,6 +19,9 @@ interface members and enum values.
 A member is complete when it has a `<summary>`, a `<param>` for each parameter, and a
 `<returns>` if it returns a value. `<inheritdoc/>` counts as complete.
 
+The four public delegates in `IPC.Pipes` are declared outside any type, so the scan does
+not count them. They were checked by hand and are documented.
+
 Excluded:
 
 - Internal types, which the website does not document
