@@ -106,7 +106,7 @@ namespace Nova.IPC.Pipes
     public PipeStream TheStream { get; private set; }
 
     /// <summary>
-    /// A queue for messages to be sent to the server.
+    /// Messages waiting to be sent on this connection.
     /// </summary>
     private readonly BlockingCollection<PipeMessage> MsgQueue = new BlockingCollection<PipeMessage>();
 
@@ -123,7 +123,7 @@ namespace Nova.IPC.Pipes
     public event PipeConnectionEvent Disconnected;
 
     /// <summary>
-    /// Indicates that the stream received a message from the server.
+    /// Indicates that the stream received a message.
     /// </summary>
     public event PipeConnectionMessageEvent ReceiveMessage;
 
