@@ -21,7 +21,7 @@ This class implements a lightweight server based on the named pipes from System.
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| [PipesServer(string sID)](/methods/PipesServer.Constructor.html) | Creates a PipesServer with the sID identifier.  |
+| [PipesServer(string sID)]({{ '/methods/PipesServer.Constructor.html' | relative_url }}) | Creates a PipesServer with the sID identifier.  |
 
 * * *
 ## Events
@@ -38,11 +38,11 @@ This class implements a lightweight server based on the named pipes from System.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| [IsRunning()](/methods/PipesServer.IsRunning.html)      | bool   |Returns true if the server has been started and is actively listening.         |
-| [Send(PipeMessage message)](/methods/PipesServer.Send.html)     | void   |Sends a message to all clients connected to the server.         |
-| [Send(PipeMessage message, string clientID)](/methods/PipesServer.Send.html)    | void   | Sends a message to a specific client from the list of connections.  |
-| [Start()](/methods/PipesServer.Start.html) | void    | Starts the server.   |
-| [Stop()](/methods/PipesServer.Stop.html)  | void    | Stops the server, sending disconnect events to each client, and shuts down the current active listener.   |
+| [IsRunning()]({{ '/methods/PipesServer.IsRunning.html' | relative_url }})      | bool   |Returns true if the server has been started and is actively listening.         |
+| [Send(PipeMessage message)]({{ '/methods/PipesServer.Send.html' | relative_url }})     | void   |Sends a message to all clients connected to the server.         |
+| [Send(PipeMessage message, string clientID)]({{ '/methods/PipesServer.Send.html' | relative_url }})    | void   | Sends a message to a specific client from the list of connections.  |
+| [Start()]({{ '/methods/PipesServer.Start.html' | relative_url }}) | void    | Starts the server.   |
+| [Stop()]({{ '/methods/PipesServer.Stop.html' | relative_url }})  | void    | Stops the server, sending disconnect events to each client, and shuts down the current active listener.   |
 
 * * *
 ## Example

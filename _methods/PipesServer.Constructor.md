@@ -15,7 +15,7 @@ siblings: [PipesServer, PipesClient]
 <br/>
 ## Remarks
 Creates the server but does not start it. Nothing listens until
-[PipesServer.Start](/methods/PipesServer.Start.html) is called, so event handlers can
+[PipesServer.Start]({{ '/methods/PipesServer.Start.html' | relative_url }}) is called, so event handlers can
 be attached in between.
 
 The identifier is the rendezvous point. A PipesClient constructed with the same string

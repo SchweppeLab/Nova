@@ -15,13 +15,13 @@ siblings: [PipesServer, PipesClient]
 <br/>
 ## Remarks
 Starts listening on a background task and returns immediately. The server accepts
-connections until [PipesServer.Stop](/methods/PipesServer.Stop.html) is called.
+connections until [PipesServer.Stop]({{ '/methods/PipesServer.Stop.html' | relative_url }}) is called.
 
 Attach event handlers before calling this. A client that connects before
 ClientConnected has a subscriber raises the event into nothing.
 
 Because listening is handed to a background task, the server may not be up the instant
-this returns. [PipesServer.IsRunning](/methods/PipesServer.IsRunning.html) reports the
+this returns. [PipesServer.IsRunning]({{ '/methods/PipesServer.IsRunning.html' | relative_url }}) reports the
 actual state.
 
 * * *

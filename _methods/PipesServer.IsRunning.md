@@ -17,7 +17,7 @@ siblings: [PipesServer]
 Start hands listening to a background task, so the server is not necessarily running
 the moment Start returns. Poll this if the next step depends on the server being up.
 
-The value becomes false once [PipesServer.Stop](/methods/PipesServer.Stop.html) has
+The value becomes false once [PipesServer.Stop]({{ '/methods/PipesServer.Stop.html' | relative_url }}) has
 finished unwinding the listener.
 
 * * *

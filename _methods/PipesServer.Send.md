@@ -22,7 +22,7 @@ Sending to no clients is not an error. If nothing is connected, the call returns
 having done nothing.
 
 The server must be started before a message can reach anyone. See
-[PipesServer.Start](/methods/PipesServer.Start.html).
+[PipesServer.Start]({{ '/methods/PipesServer.Start.html' | relative_url }}).
 
 * * *
 ## Overloads

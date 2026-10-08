@@ -17,7 +17,7 @@ siblings: [SpecDataPoint, SpecDataPointEx, ISpecDataPoint]
 Writes 16 bytes at the writer's current position: Mz first, then Intensity, each as a
 double. No length prefix, no type tag, no terminator.
 
-This is the layout [SpecDataPoint.Read](/methods/SpecDataPoint.Read.html) expects.
+This is the layout [SpecDataPoint.Read]({{ '/methods/SpecDataPoint.Read.html' | relative_url }}) expects.
 SpecDataPointEx uses a different one, with six fields.
 
 *Written from the implementation. Nova carries no comments for this member.*

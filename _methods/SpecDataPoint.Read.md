@@ -17,7 +17,7 @@ siblings: [SpecDataPoint, SpecDataPointEx, ISpecDataPoint]
 Reads 16 bytes from the reader's current position into Mz and then Intensity,
 overwriting both.
 
-This is the layout [SpecDataPoint.Write](/methods/SpecDataPoint.Write.html) produces.
+This is the layout [SpecDataPoint.Write]({{ '/methods/SpecDataPoint.Write.html' | relative_url }}) produces.
 SpecDataPointEx uses a different one, with six fields.
 
 *Written from the implementation. Nova carries no comments for this member.*

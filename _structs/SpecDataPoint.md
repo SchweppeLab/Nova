@@ -20,7 +20,7 @@ Some remarks beyond the short description.
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| [SpecDataPoint(double mz=0, double intensity = 0)](/methods/SpecDataPoint.Constructor.html) | Initializes the Mz and Intensity properties to the values provided.  |
+| [SpecDataPoint(double mz=0, double intensity = 0)]({{ '/methods/SpecDataPoint.Constructor.html' | relative_url }}) | Initializes the Mz and Intensity properties to the values provided.  |
 
 * * *
 ## Properties
@@ -35,9 +35,9 @@ Some remarks beyond the short description.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| [Read(BinaryReader)](/methods/SpecDataPoint.Read.html)      | void   | Reads the Mz and Intensity value from a BinaryReader.         |
-| [Write(BinaryWriter)](/methods/SpecDataPoint.Write.html)     | void   | Writes the Mz and Intensity value to a BinaryWriter.  |
-| [CompareTo(SpecDataPoint)](/methods/SpecDataPoint.CompareTo.html)| int    | Performs the CompareTo function on the Mz of two SpecDataPoints to identify the lower value.   |
+| [Read(BinaryReader)]({{ '/methods/SpecDataPoint.Read.html' | relative_url }})      | void   | Reads the Mz and Intensity value from a BinaryReader.         |
+| [Write(BinaryWriter)]({{ '/methods/SpecDataPoint.Write.html' | relative_url }})     | void   | Writes the Mz and Intensity value to a BinaryWriter.  |
+| [CompareTo(SpecDataPoint)]({{ '/methods/SpecDataPoint.CompareTo.html' | relative_url }})| int    | Performs the CompareTo function on the Mz of two SpecDataPoints to identify the lower value.   |
 
 * * *
 ## Example
