@@ -29,5 +29,5 @@ implementation serves both SpecDataPoint and SpecDataPointEx.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Read(BinaryReader reader)      | void   | Populates the data point from its binary representation, as written by Write.   |
-| Write(BinaryWriter writer)     | void   | Serializes the data point to its binary representation, as read back by Read.   |
+| [Read(BinaryReader reader)]({{ '/methods/ISpecDataPoint.Read.html' | relative_url }})      | void   | Populates the data point from its binary representation, as written by Write.   |
+| [Write(BinaryWriter writer)]({{ '/methods/ISpecDataPoint.Write.html' | relative_url }})     | void   | Serializes the data point to its binary representation, as read back by Read.   |
