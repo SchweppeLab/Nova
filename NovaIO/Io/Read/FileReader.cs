@@ -126,7 +126,7 @@ namespace Nova.Io.Read
     }
 
     /// <summary>
-    /// Checks to see if we requested, or already have, a valid file from which to read a spectrum. Use null to specify reading
+    /// Checks to see if we requested, or already have, a valid file from which to read a spectrum. Use an empty string to specify reading
     /// another spectrum from the same file.
     /// </summary>
     /// <param name="fileName">The file to read from, or empty to keep reading the current file</param>

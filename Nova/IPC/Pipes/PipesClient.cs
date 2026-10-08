@@ -28,8 +28,8 @@ namespace Nova.IPC.Pipes
 {
 
   /// <summary>
-  /// The PipesClient class wraps around the NamedPipesClientStream class. Each PipesClient
-  /// establishes a single pipe between itself and a PipesSever, allowing messages to be both
+  /// The PipesClient class wraps around the NamedPipeClientStream class. Each PipesClient
+  /// establishes a single pipe between itself and a PipesServer, allowing messages to be both
   /// received and sent. If the server goes down or is not available, the client reverts to a
   /// listening state, and reconnects when the server comes back online.
   /// </summary>
