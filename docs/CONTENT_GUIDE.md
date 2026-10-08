@@ -105,6 +105,10 @@ Style rules:
 
 Every news item is approved before it goes on the site.
 
+Date a post earlier than the time it will be built, with the Pacific offset in effect
+on that date (`-0700` in summer, `-0800` in winter). A post dated in the future is
+silently left out of the build until a later one. News5 uses 09:00 on release day.
+
 ## Download entries
 
 Each official release gets one file in `_downloads`. The front matter carries four
