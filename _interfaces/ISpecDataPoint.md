@@ -1,33 +1,33 @@
 ---
 name: ISpecDataPoint
 title: ISpecDataPoint
-description: Abstract design for the data points stored in a spectrum.
+description: The common contract for a single data point in a mass spectrum.
 date: 2025-04-15 11:18:14 -0700
 layout: post
 tags: []
 namespaces: Data
 type: Interface
+siblings: [SpecDataPoint, SpecDataPointEx]
 ---
 
 <br/>
 ## Remarks
-Defines the minimum contents that must exist for any spectrum data point.
+The common contract for a single data point in a mass spectrum, minimally an m/z and
+intensity pair. TSpectrum&lt;T&gt; is written against this interface so one spectrum
+implementation serves both SpecDataPoint and SpecDataPointEx.
 
 * * *
 ## Properties
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Mz           | double   | Gets/sets the m/z value of a spectral data point.         |
-| Intensity    | double   | Gets/sets the intensity value of a spectral data point.   |
+| Mz           | double   | The mass to charge ratio (m/z) value for a mass spectrum data point.   |
+| Intensity    | double   | The intensity value for a mass spectrum data point.   |
 
 * * *
 ## Methods
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Read (BinaryReader)      | void   | Reads the Mz and Intensity value from a BinaryReader.         |
-| Write (BinaryWriter)     | void   | Writes the Mz and Intensity value to a BinaryWriter.  |
-
-* * *
-## Example
+| Read(BinaryReader reader)      | void   | Populates the data point from its binary representation, as written by Write.   |
+| Write(BinaryWriter writer)     | void   | Serializes the data point to its binary representation, as read back by Read.   |

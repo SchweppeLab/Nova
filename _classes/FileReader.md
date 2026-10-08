@@ -1,7 +1,7 @@
 ---
 name: FileReader
 title: FileReader
-description: Class capable of reading spectra from multiple formats.
+description: Reads spectra and chromatograms from an MS data file, choosing the reader by file extension.
 date: 2025-04-23 14:00:00 -0700
 layout: post
 tags: []
@@ -9,14 +9,13 @@ namespaces: Io.Read
 type: Class
 interfaces: []
 classes: []
-siblings: [SpectrumFileReaderFactory,FileFormat]
+siblings: [SpectrumFileReaderFactory,FileFormat,MSFilter]
 ---
 
 <br/>
 ## Remarks
-A versatile class for reading multiple formats of mass spectrometry data. Internally, FileReader implements
-the SpectrumFileReaderFactory to support all Nova compatible spectra files. Additional functionality has been
-added beyond the individual file reader classes in Nova.
+Reads spectra and chromatograms from an MS data file, choosing the reader by file extension.
+Enumerating it yields each spectrum in file order.
 
 #### Implements
 IEnumerable
@@ -26,36 +25,36 @@ IEnumerable
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| FileReader(MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3) | Initializes the FileReader class and defaults to parsing all MS, MS/MS, and MS3 scans.  |
-| FileReader(string filename,MSFilter filter = MSFilter.MS1 | MSFilter.MS2 | MSFilter.MS3) | Initializes the FileReader class and opens the requested file, defaults to parsing all MS, MS/MS, and MS3 scans.  |
+| FileReader(MSFilter filter = MSFilter.MS1 \| MSFilter.MS2 \| MSFilter.MS3) | Creates a reader with no file open.  |
+| FileReader(string filename, MSFilter filter = MSFilter.MS1 \| MSFilter.MS2 \| MSFilter.MS3) | Creates a reader and opens the file. Throws FormatException if the file extension is not a recognized format, and FileNotFoundException if the file could not be opened.  |
 
 * * *
 ## Properties
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| ChromatCount  | int   | Number of chromatograms in the open file, or 0 for formats that carry none.      |
-| FileName  | string   | The names of the file currently being read, or empty if no file has been opened.      |
-| FirstScan  | int   | Number of the first scan event in the file.      |
+| ChromatCount  | int   | Number of chromatograms in the open file, or 0 for formats that carry none.   |
+| FileName  | string   | The name of the file currently being read.   |
+| FirstScan  | int   | The scan number of the first spectrum in the file.   |
 | Format   | FileFormat   | Identifies the format of the most recently opened file.   |
-| LastScan   | int   | Number of the last scan event in the file.   |
-| MaxRetentionTime    | double   | Retention time (in minutes) of the last scan event in the file.   |
-| ScanCount   | int   | Total number of scan events in the file.   |
+| LastScan   | int   | The scan number of the last spectrum in the file.   |
+| MaxRetentionTime    | double   | The retention time at the end of the run, in minutes.   |
+| ScanCount   | int   | The number of spectra in the open file.   |
 
 * * *
 ## Methods
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| CheckFile(string fileName)     | bool   | Checks whether a valid file is available to read from. Returns true if the file is already open. Pass an empty string to keep reading from the file already open. Throws ArgumentNullException if no file name is given and none is open, and FileNotFoundException if the file does not exist.  |
-| static CheckFileFormat(string fileName)     | FileFormat   | Reads a file name string and returns the FileFormat value based on the file extension characters. FormatException thrown if file doesn't have an exception or the extension isn't recognized.  |
-| OpenSpectrumFile(string fileName)      | bool   |Opens an mzML file and parses the index and meta information.         |
-| ReadChromatogram(string fileName = "", int chromatIndex = -1)      | Chromatogram   |Reads the requested chromatogram, or the next one if a valid chromatIndex is not given. Providing an empty string for the file name reads from the previously opened data file.   Throws SpectrumFileOpenException if the file cannot be opened or indexed.   |
-| ReadSpectrum(string filename="", int scanNumber = -1, bool centroid = true)      | Spectrum   |Opens and/or reads the requested spectrum or the next spectrum if a valid scanNumber is not given. Data are returned in centroid, if possible, unless otherwise requested. Providing an empty string for the file name reads from the previously opened data file, or throws an exception if a file has not been previously opened.   Throws SpectrumFileOpenException if a new file cannot be opened or indexed.   |
-| ReadSpectrumEx(string filename="", int scanNumber = -1, bool centroid = true)      | SpectrumEx   |Opens and/or reads the requested spectrum or the next spectrum if a valid scanNumber is not given, and returns the data in the extended spectrum format. Data are returned in centroid, if possible, unless otherwise requested. Providing an empty string for the file name reads from the previously opened data file, or throws an exception if a file has not been previously opened.     Throws SpectrumFileOpenException if a new file cannot be opened or indexed.   |
-| Reset()      | void   |Resets the reader to the beginning of the file if sequentially reading the spectra.    |
-| SetFilter(MSFilter filter)      | void   |Sets the spectrum type filter to the values requested.    |
-
+| CheckFile(string fileName)     | bool   | Checks to see if we requested, or already have, a valid file from which to read a spectrum. Returns true if the file is already open. Throws ArgumentNullException if no file name was given and no file is open, and FileNotFoundException if the file is not found.  |
+| static CheckFileFormat(string fileName)     | FileFormat   | Reads a file name string and returns the FileFormat value based on the file extension characters. FormatException thrown if file doesn't have an extension or the extension isn't recognized.  |
+| GetEnumerator()     | IEnumerator   | Yields each spectrum in the open file in file order, subject to the current filter, then resets the reader.   |
+| OpenSpectrumFile(string fileName)      | bool   | Opens a file for reading, closing any file already open. The reader is chosen by file extension. Throws FormatException if the file extension is not a recognized format.   |
+| ReadChromatogram(string fileName = "", int chromatIndex = -1)      | Chromatogram   | Reads a chromatogram, opening the file first if it is not the current one. Throws SpectrumFileOpenException if a new file could not be opened.   |
+| ReadSpectrum(string fileName = "", int scanNumber = -1, bool centroid = true)      | Spectrum   | Reads a spectrum, opening the file first if it is not the current one. Throws SpectrumFileOpenException if a new file could not be opened.   |
+| ReadSpectrumEx(string fileName = "", int scanNumber = -1, bool centroid = true)      | SpectrumEx   | Reads a spectrum with the extended per-peak data where the format provides it, opening the file first if it is not the current one. Throws SpectrumFileOpenException if a new file could not be opened.   |
+| Reset()      | void   | Returns to the start of the open file for sequential reading.   |
+| SetFilter(MSFilter filter)      | void   | Sets the MS levels to read, for this reader and any file it has open.   |
 
 * * *
 ## Example
@@ -64,11 +63,11 @@ IEnumerable
 using Nova.Io.Read;
 using Nova.Data;
 
-//Reads all MS1 scans from a Thermo Fisher Scientific data file
-FileReader reader = new FileReader("DDA.raw",MSFilter.MS1);
-foreach(Spectrum spec in reader)
+// Reads all MS1 scans from a Thermo Fisher Scientific data file
+FileReader reader = new FileReader("DDA.raw", MSFilter.MS1);
+foreach (Spectrum spec in reader)
 {
-  //Report each scan number and number of data points
+  // Report each scan number and number of data points
   Console.WriteLine(spec.ScanNumber + " has " + spec.Count + " data points.");
 }
 ```

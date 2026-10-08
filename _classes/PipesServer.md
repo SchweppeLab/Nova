@@ -1,7 +1,7 @@
 ---
 name: PipesServer
 title: PipesServer
-description: A class for sending data to and receiving data from client processes.
+description: A named pipe server that manages connections from multiple PipesClient instances.
 date: 2025-04-15 11:18:14 -0700
 layout: post
 tags: []
@@ -9,46 +9,48 @@ namespaces: IPC.Pipes
 type: Class
 interfaces: []
 classes: []
-siblings: [PipesClient,PipeMessage]
+siblings: [PipesClient, PipeMessage, PipesConnection]
 ---
 
 <br/>
 ## Remarks
-This class implements a lightweight server based on the named pipes from System.IO.Pipes.
+The PipesServer class wraps the NamedPipeServerStream class, and manages multiple
+connections from clients. Messages can be received from clients, or broadcast to individual
+or all clients. The server establishes client identities through a handshake, and names
+those clients for the duration of their connection.
 
 * * *
 ## Constructors
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| [PipesServer(string sID)]({{ '/methods/PipesServer.Constructor.html' | relative_url }}) | Creates a PipesServer with the sID identifier.  |
+| [PipesServer(string sID)]({{ '/methods/PipesServer.Constructor.html' | relative_url }}) | Server constructor. sID is the identity of the server.  |
 
 * * *
 ## Events
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| ClientConnected  | PipeConnectionEvent   | Raised when client has connected.        |
-| ClientDisconnected  | PipeConnectionEvent   | Raised when client has disconnected.        |
-| ClientMessage  | PipeConnectionMessageEvent   | Raised upon reception of client message.        |
-| Error  | PipeExceptionEventHandler   | Raised when an error has occurred.       |
+| ClientConnected  | PipeConnectionEvent   | Indicate when client has connected.   |
+| ClientDisconnected  | PipeConnectionEvent   | Indicate when client has disconnected.   |
+| ClientMessage  | PipeConnectionMessageEvent   | Indicate reception of client message.   |
+| Error  | PipeExceptionEventHandler   | Indicate error has occurred.   |
 
 * * *
 ## Methods
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| [IsRunning()]({{ '/methods/PipesServer.IsRunning.html' | relative_url }})      | bool   |Returns true if the server has been started and is actively listening.         |
-| [Send(PipeMessage message)]({{ '/methods/PipesServer.Send.html' | relative_url }})     | void   |Sends a message to all clients connected to the server.         |
-| [Send(PipeMessage message, string clientID)]({{ '/methods/PipesServer.Send.html' | relative_url }})    | void   | Sends a message to a specific client from the list of connections.  |
+| [IsRunning()]({{ '/methods/PipesServer.IsRunning.html' | relative_url }})      | bool   | Indicates if the server has been started and is currently running.   |
+| [Send(PipeMessage message)]({{ '/methods/PipesServer.Send.html' | relative_url }})     | void   | Sends a message to all clients connected to the server.   |
+| [Send(PipeMessage message, string clientID)]({{ '/methods/PipesServer.Send.html' | relative_url }})    | void   | Sends a message to a specific client from the list of connections.   |
 | [Start()]({{ '/methods/PipesServer.Start.html' | relative_url }}) | void    | Starts the server.   |
-| [Stop()]({{ '/methods/PipesServer.Stop.html' | relative_url }})  | void    | Stops the server, sending disconnect events to each client, and shuts down the current active listener.   |
+| [Stop()]({{ '/methods/PipesServer.Stop.html' | relative_url }})  | void    | Stop the server, sending disconnect events to each client, and shutting down the current active listener.   |
 
 * * *
 ## Example
 
 ```csharp
-// Example C# code
 using Nova.IPC.Pipes;
 
 public class PipeServer

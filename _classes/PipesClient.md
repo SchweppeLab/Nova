@@ -1,7 +1,7 @@
 ---
 name: PipesClient
 title: PipesClient
-description: A class for sending data to and receiving data from a server process.
+description: A named pipe client that sends messages to and receives messages from a PipesServer.
 date: 2025-04-23 11:45:00 -0700
 layout: post
 tags: []
@@ -9,60 +9,61 @@ namespaces: IPC.Pipes
 type: Class
 interfaces: []
 classes: []
-siblings: [PipesServer, PipeMessage]
+siblings: [PipesServer, PipeMessage, PipesConnection]
 ---
 
 <br/>
 ## Remarks
-This class implements a lightweight inter process communication client based on the named pipes from System.IO.Pipes.
+The PipesClient class wraps around the NamedPipeClientStream class. Each PipesClient
+establishes a single pipe between itself and a PipesServer, allowing messages to be both
+received and sent. If the server goes down or is not available, the client reverts to a
+listening state, and reconnects when the server comes back online.
 
 * * *
 ## Constructors
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| PipesClient(string pID, string sID = ".") | Creates a PipesClient where pID should match an existing PipesServer identifier. An sID vale of "." indicates a local server. Otherwise provide network ID.  |
+| PipesClient(string pID, string sID = ".") | PipesClient constructor. pID should match the ID of the server. sID defaults to ".", indicating a local server; otherwise provide the network ID.  |
 
 * * *
 ## Properties
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| AutoReconnect   | bool   | Indicates if the client should attempt to reconnect upon a broken pipe.        |
+| AutoReconnect   | bool   | Indicates if the client should attempt to reconnect upon a broken pipe.   |
 
 * * *
 ## Events
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Disconnected  | PipeConnectionEvent   | Raised when client has disconnected.        |
-| ServerMessage  | PipeConnectionMessageEvent   | Raised upon reception of a server message.        |
-| Error  | PipeExceptionEventHandler   | Raised when an error has occurred.       |
+| Disconnected  | PipeConnectionEvent   | Indicate disconnection event.   |
+| Error  | PipeExceptionEventHandler   | Indicate error occurred.   |
+| ServerMessage  | PipeConnectionMessageEvent   | Indicate message received from server.   |
 
 * * *
 ## Methods
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Send(PipeMessage message)     | void   |Sends a message to the server.         |
+| Send(PipeMessage message)     | void   | Sends a message to the server.   |
 | Start() | void    | Starts the client.   |
-| Stop()  | void    | Stops the client, and does not attempt to reconnect.   |
-| WaitForConnection(int ms)  | void    |   |
-| WaitForDisconnection(int ms)  | void    |   |
+| Stop()  | void    | Stop the client, and do not attempt to reconnect.   |
+| WaitForConnection(int ms)  | void    | Blocks until the client has connected to the server, or the timeout elapses.   |
+| WaitForDisconnection(int ms)  | void    | Blocks until the client has disconnected from the server, or the timeout elapses.   |
 
 * * *
 ## Delegates
 
 | Delegate   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| PipeExceptionEventHandler  | void   | Represents the method that will handle the Error event         |
-
+| PipeExceptionEventHandler(Exception exception)  | void   | Handles an error raised by a pipes client or server.   |
 
 * * *
 ## Example
 
 ```csharp
-// Example C# code
 using Nova.IPC.Pipes;
 
 public class PipeClient

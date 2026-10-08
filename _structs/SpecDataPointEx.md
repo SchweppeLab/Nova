@@ -1,7 +1,7 @@
 ---
 name: SpecDataPointEx
 title: SpecDataPointEx
-description: An extended unit of information in a spectrum (i.e., m/z, intensity, and more).
+description: An extended mass spectrum data point, with per-peak attributes from a Thermo centroid stream.
 date: 2025-04-15 11:18:14 -0700
 layout: post
 tags: []
@@ -13,41 +13,53 @@ siblings: [SpecDataPoint]
 
 <br/>
 ## Remarks
-Provides a means for storing extended spectral data point values. There are limited sources
-of these additional data. Notably, such extended information can be obtained when reading
-mass spectra from the Thermo Fisher Scientific native vendor format (raw). The extended information
-is only available if the spectra was acquired in a suitable analyzer (e.g., Orbitrap) and has
-been processed to centroid format. Use of SpecDataPointEx is not relevant for profile data or
-spectra where the extended information is not stored. In those cases, the extended properties
-will contain zero values.
+An extended mass spectrum data point: m/z and intensity plus the per-peak attributes a Thermo
+centroid stream provides. This is the point type within SpectrumEx. Only the Thermo RAW
+reader fills the extra fields; the mzML, mzXML and MGF readers set m/z and intensity and
+leave the rest at zero.
 
 * * *
 ## Constructors
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| SpecDataPointEx(double mz = 0, double intensity = 0, double noise=0, double baseline=0, int charge=0, double resolution=0) | Initializes the properties to the values, if provided.  |
+| SpecDataPointEx(double mz = 0, double intensity = 0, double noise = 0, double baseline = 0, int charge = 0, double resolution = 0) | Creates a data point, with every value defaulting to zero.  |
 
 * * *
 ## Properties
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Mz           | double   | Gets/sets the m/z value of a spectral data point.         |
-| Intensity    | double   | Gets/sets the intensity value of a spectral data point.   |
-| Noise           | double   | Gets/sets the noise value of a spectral data point.         |
-| Baseline    | double   | Gets/sets the baseline value of a spectral data point.   |
-| Charge           | int   | Gets/sets the charge value of a spectral data point.         |
-| Resolution    | double   | Gets/sets the resolution value of a spectral data point.   |
+| Mz           | double   | The mass to charge ratio (m/z) value for this data point.   |
+| Intensity    | double   | The intensity value for this data point.   |
+| Noise        | double   | The noise level the instrument reported at this peak.   |
+| Baseline     | double   | The baseline level the instrument reported at this peak.   |
+| Charge       | int      | The charge state the instrument assigned to this peak, or zero if none was assigned.   |
+| Resolution   | double   | The mass resolution the instrument measured at this peak.   |
 
 * * *
 ## Methods
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| Read (BinaryReader)      | void   | Reads the six property values from a BinaryReader.         |
-| Write (BinaryWriter)     | void   | Writes the six property values to a BinaryWriter.  |
-| CompareTo (SpecDataPoint)| int    | Performs the CompareTo function on the Mz of two SpecDataPointsEx to identify the lower value.   |
+| CompareTo(SpecDataPointEx x) | int    | Orders data points by m/z alone. Two points at the same m/z compare as equal.   |
+| Read(BinaryReader reader)      | void   | Reads an extended mass spectrum data point.   |
+| Write(BinaryWriter writer)     | void   | Writes an extended mass spectrum data point.   |
 
 * * *
 ## Example
+
+```csharp
+using Nova.Data;
+using Nova.Io.Read;
+
+FileReader reader = new FileReader("DDA.raw", MSFilter.MS2);
+SpectrumEx spectrum = reader.ReadSpectrumEx("", 1000);
+
+for (int i = 0; i < spectrum.Count; i++)
+{
+  SpecDataPointEx peak = spectrum.DataPoints[i];
+  Console.WriteLine(peak.Mz + "\t" + peak.Intensity + "\tz=" + peak.Charge
+    + "\tS/N=" + peak.Intensity / peak.Noise);
+}
+```

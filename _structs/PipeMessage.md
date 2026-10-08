@@ -1,14 +1,14 @@
 ---
 name: PipeMessage
 title: PipeMessage
-description: Structure containing the contents of a message passed between server and clients.
+description: A message passed through a pipe between a server and its clients.
 date: 2025-04-22 13:15:00 -0700
 layout: post
 tags: []
 namespaces: IPC.Pipes
 type: Struct
 interfaces: []
-siblings: []
+siblings: [PipesServer, PipesClient, PipesConnection]
 ---
 
 <br/>
@@ -21,19 +21,12 @@ reserved for encoding and decoding strings. Developers can use the other 254
 characters for their own purposes.
 
 * * *
-## Constructors
-
-| Syntax   | Description                                               |
-|:-------------|:----------------------------------------------------------|
-| PipeMessage | Default constructor. |
-
-* * *
-## Properties
+## Fields
 
 | Identifier   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| MsgCode    | char   | A single character to indicate the type of message.        |
-| MsgData    | byte[]   | The contents of the message encoded to a byte array.   |
+| MsgCode    | char   | Identifies the content of MsgData; '0' is reserved for strings.   |
+| MsgData    | byte[]   | The message payload.   |
 
 * * *
 ## Methods
@@ -41,10 +34,30 @@ characters for their own purposes.
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
 | DecodeString()     | string   | Decoder method to convert the byte[] MsgData array to a string. Should only be called if the array originated from a string.  |
-| EncodeString(string str)      | void   | Encoder method to convert any string into the byte[] MsgData. Note that the MsgCode is automatically set to '0', which is reserved for string data.         |
-
+| EncodeString(string str)      | void   | Encoder method to convert any string into the byte[] MsgData. Note that the MsgCode is automatically set to '0', which is reserved for string data.   |
 
 * * *
 ## Example
 
-None yet.
+```csharp
+using Nova.IPC.Pipes;
+
+PipeMessage text = new PipeMessage();
+text.EncodeString("Hello!");     // MsgCode is now '0'
+
+PipeMessage data = new PipeMessage();
+data.MsgCode = '1';              // a code the receiver knows how to interpret
+data.MsgData = new byte[] { 1, 2, 3 };
+
+foreach (PipeMessage message in new[] { text, data })
+{
+  if (message.MsgCode == '0')
+  {
+    Console.WriteLine(message.DecodeString());
+  }
+  else
+  {
+    Console.WriteLine("Code " + message.MsgCode + ": " + message.MsgData.Length + " bytes");
+  }
+}
+```
