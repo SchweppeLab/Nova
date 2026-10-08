@@ -18,7 +18,11 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>mass spectrometry;spectrum</PackageTags>
     <PackageReleaseNotes>
-1.1.1 - in development; no changes yet.
+1.1.1 - in development.
+
+BREAKING
+* FileReader.CheckFile is private. It only answered a question about the
+  reader's own state, and the read methods already call it.
 
 CORRECTIONS TO THE 1.1.0 NOTES
 * Reading Scan Description from the trailer was listed as new. ThermoRawReader

@@ -133,7 +133,7 @@ namespace Nova.Io.Read
     /// <returns>true if the file is already open, false if not open</returns>
     /// <exception cref="ArgumentNullException">No file name was given and no file is open.</exception>
     /// <exception cref="FileNotFoundException">File not found.</exception>
-    public bool CheckFile(string fileName)
+    private bool CheckFile(string fileName)
     {
       //first, check if we're requesting a new spectrum from the same file
       if (fileName.IsNullOrEmpty())
