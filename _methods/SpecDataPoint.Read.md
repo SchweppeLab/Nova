@@ -20,20 +20,18 @@ overwriting both.
 This is the layout [SpecDataPoint.Write]({{ '/methods/SpecDataPoint.Write.html' | relative_url }}) produces.
 SpecDataPointEx uses a different one, with six fields.
 
-*Written from the implementation. Nova carries no comments for this member.*
-
 * * *
 ## Syntax
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| Read(BinaryReader reader) | Reads the Mz and Intensity value from a BinaryReader.  |
+| Read(BinaryReader reader) | Reads the m/z then the intensity from the stream, each as a double.  |
 
 #### Parameters
 
 | Name   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| reader  | BinaryReader   | The reader to read from. Reading starts at its current position.      |
+| reader  | BinaryReader   | A reader positioned at the start of this data point's values.      |
 
 * * *
 ## Example

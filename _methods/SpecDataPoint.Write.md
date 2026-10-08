@@ -20,20 +20,18 @@ double. No length prefix, no type tag, no terminator.
 This is the layout [SpecDataPoint.Read]({{ '/methods/SpecDataPoint.Read.html' | relative_url }}) expects.
 SpecDataPointEx uses a different one, with six fields.
 
-*Written from the implementation. Nova carries no comments for this member.*
-
 * * *
 ## Syntax
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| Write(BinaryWriter writer) | Writes the Mz and Intensity value to a BinaryWriter.  |
+| Write(BinaryWriter writer) | Writes the m/z then the intensity to the stream, each as a double.  |
 
 #### Parameters
 
 | Name   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| writer  | BinaryWriter   | The writer to write to. Writing starts at its current position.      |
+| writer  | BinaryWriter   | A writer positioned where this data point's values should go.      |
 
 * * *
 ## Example

@@ -19,14 +19,12 @@ set of points into m/z order without a comparer being supplied.
 
 Points with equal Mz compare equal.
 
-*Written from the implementation. Nova carries no comments for this member.*
-
 * * *
 ## Syntax
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| CompareTo(SpecDataPoint x) | Performs the CompareTo function on the Mz of two SpecDataPoints to identify the lower value.  |
+| CompareTo(SpecDataPoint x) | Orders data points by m/z alone. Two points at the same m/z compare as equal.  |
 
 #### Parameters
 
@@ -38,7 +36,7 @@ Points with equal Mz compare equal.
 
 | Type   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| int | Less than zero if this point has the lower m/z, zero if the two are equal, greater than zero if this point has the higher m/z.  |
+| int | Negative, zero or positive as this point's m/z is less than, equal to or greater than x's.  |
 
 * * *
 ## Example

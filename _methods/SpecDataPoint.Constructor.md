@@ -20,21 +20,19 @@ at zero intensity.
 SpecDataPoint is a struct, so an uninitialized array element is already a zeroed point
 rather than a null reference.
 
-*Written from the implementation. Nova carries no comments for this member.*
-
 * * *
 ## Syntax
 
 | Syntax   | Description                                               |
 |:-------------|:----------------------------------------------------------|
-| SpecDataPoint(double mz = 0, double intensity = 0) | Initializes the Mz and Intensity properties to the values provided.  |
+| SpecDataPoint(double mz = 0, double intensity = 0) | Creates a data point, with both values defaulting to zero.  |
 
 #### Parameters
 
 | Name   | Type     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| mz  | double   | The m/z value of the data point. Defaults to 0.      |
-| intensity  | double   | The intensity value of the data point. Defaults to 0.      |
+| mz  | double   | The m/z value.      |
+| intensity  | double   | The intensity value.      |
 
 * * *
 ## Example
