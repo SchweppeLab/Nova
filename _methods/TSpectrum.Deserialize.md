@@ -14,7 +14,10 @@ siblings: [TSpectrum, Spectrum, SpectrumEx]
 
 <br/>
 ## Remarks
-Restores the members [Serialize]({{ '/methods/TSpectrum.Serialize.html' | relative_url }}) carries. The existing data points and precursors are replaced; members Serialize does not carry are left as they were.
+Turns a byte array made by [Serialize]({{ '/methods/TSpectrum.Serialize.html' | relative_url }}) back into a spectrum.
+
+The current version of Serialize does not carry some of the more obscure data members,
+so those are not restored.
 
 Inherited by [Spectrum]({{ '/classes/Spectrum.html' | relative_url }}) and [SpectrumEx]({{ '/classes/SpectrumEx.html' | relative_url }}).
 
