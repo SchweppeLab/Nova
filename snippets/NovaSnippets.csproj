@@ -14,10 +14,6 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <!-- Nova.IO targets net8.0; Nova 1.0.0.18 targets net48 and is consumed
-         through the framework compatibility shim, which warns. v1.1.0 moves
-         Nova to netstandard2.0 and this goes away. -->
-    <NoWarn>$(NoWarn);NU1701</NoWarn>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <!-- Snippets are illustrative, so unused variables and unawaited calls are
@@ -27,10 +23,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Exact versions. Nova.IO's nuspec asks for Nova >= 1.0.0, which would
-         otherwise resolve to the lowest match available. -->
-    <PackageReference Include="Nova" Version="[1.0.0.18]" />
-    <PackageReference Include="Nova.IO" Version="[1.0.0.18]" />
+    <!-- Pinned to exact versions so the snippets are always compiled against the
+         release being documented, never against whatever else is lying around. -->
+    <PackageReference Include="Nova" Version="[1.1.0]" />
+    <PackageReference Include="Nova.IO" Version="[1.1.0]" />
   </ItemGroup>
 
 </Project>
