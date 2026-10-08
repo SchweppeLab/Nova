@@ -9,14 +9,6 @@ namespace NovaSnippets.IoRead
 {
   internal static class IoReadMethodSnippets
   {
-    internal static void FileReader_CheckFile()
-    {
-      FileReader reader = new FileReader("DDA.mzML");
-
-      bool open = reader.CheckFile("");            // true: keep reading DDA.mzML
-      bool other = reader.CheckFile("DIA.mzML");   // false: DIA.mzML exists but is not open
-    }
-
     internal static void FileReader_CheckFileFormat()
     {
       FileFormat format = FileReader.CheckFileFormat("DDA.RAW");   // FileFormat.ThermoRaw

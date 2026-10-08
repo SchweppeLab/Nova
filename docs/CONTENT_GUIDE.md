@@ -49,6 +49,10 @@ This is not always obvious from the folder layout. At v1.0.0.18 `ThermoRawReader
 public while `MzMLReader`, `MzXMLReader` and `MGFReader`, sitting beside it, are
 internal. Check the declaration, never the location.
 
+One exception, by the owner's decision: `FileReader.CheckFile` is public in 1.1.0 but
+should have been private, and becomes private in the next release. It is left off the
+site without comment. Do not restore it.
+
 **Verify every documented member against the source.** Do not carry members forward
 on trust, and do not copy them from a sibling page. Read the type at the release tag
 and check each name, each signature and each return type against it.
