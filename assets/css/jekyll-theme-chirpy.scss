@@ -53,3 +53,17 @@
   }
   
 } /* #archives */
+
+/* API pages: tables hold signatures and full-sentence descriptions, so let
+   cells wrap rather than scroll, and keep the rows compact. */
+.api .content .table-wrapper > table {
+  th,
+  td {
+    padding: 0.25rem 0.75rem;
+    font-size: 90%;
+  }
+
+  td {
+    white-space: normal;
+  }
+}

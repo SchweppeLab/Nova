@@ -140,7 +140,7 @@ same name in the Chirpy gem:
 
 | File | Why it is forked |
 |---|---|
-| `_layouts/post.html` | Adds the "See also" block that resolves the `siblings` front matter across the type collections. Also drops the `post-nav` include, whose older and newer buttons navigate by collection order and mean nothing on API documentation. |
+| `_layouts/post.html` | Adds the "See also" block that resolves the `siblings` front matter across the type collections. Also drops the `post-nav` include, whose older and newer buttons navigate by collection order and mean nothing on API documentation, and marks API pages (any page with a `type`) with an `api` class so table styles apply to them alone. |
 | `_layouts/home.html` | Renders the front page as introduction only, with no post list. |
 | `_includes/topbar.html` | Builds API breadcrumbs from the `namespaces` front matter, because the URL cannot express the hierarchy. |
 | `_includes/sidebar.html` | Points the GitHub icon at the repository rather than the account, and drops the theme's email and RSS handling. |

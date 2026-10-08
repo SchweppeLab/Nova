@@ -21,7 +21,7 @@ Creates an opened ISpectrumFileReader for an MS data file.
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| static [GetReader(string file, MSFilter filter)]({{ '/methods/SpectrumFileReaderFactory.GetReader.html' | relative_url }})     | ISpectrumFileReader   | Creates a reader for the file, chosen by its extension, and opens it. Throws ArgumentException if the file extension is not a recognized format, and SpectrumFileOpenException if the file could not be opened or indexed.  |
+| static [GetReader(string file, MSFilter filter)]({{ '/methods/SpectrumFileReaderFactory.GetReader.html' | relative_url }})     | ISpectrumFileReader   | Creates a reader for the file, chosen by its extension, and opens it.   |
 
 * * *
 ## Example

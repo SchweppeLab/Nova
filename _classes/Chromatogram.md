@@ -45,7 +45,7 @@ IChromatogram
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
 | [Deserialize(byte[] data)]({{ '/methods/Chromatogram.Deserialize.html' | relative_url }})      | void   | Reads the count as a 32-bit integer, then each data point via ChromatDataPoint.Read.   |
-| [Dispose()]({{ '/methods/Chromatogram.Dispose.html' | relative_url }})      | void   | A no-op beyond marking the instance disposed. Present so a chromatogram can be used the same way as the spectrum types.   |
+| [Dispose()]({{ '/methods/Chromatogram.Dispose.html' | relative_url }})      | void   | A no-op beyond marking the instance disposed.   |
 | [Resize(int sz)]({{ '/methods/Chromatogram.Resize.html' | relative_url }})      | void   | Replaces the data points with a new, empty array of the given size. Existing points are discarded.   |
 | [Serialize()]({{ '/methods/Chromatogram.Serialize.html' | relative_url }})      | byte[]   | Writes the count as a 32-bit integer, then each data point via ChromatDataPoint.Write.   |
 

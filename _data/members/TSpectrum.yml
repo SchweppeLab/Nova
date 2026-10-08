@@ -19,7 +19,7 @@ methods:
   - syntax: GetMz(double mz, double ppm = 0)
     returns: int
     page: TSpectrum.GetMz
-    desc: 'Finds the data point at an m/z, or the nearest one within a tolerance. Requires DataPoints sorted by ascending m/z, the order the point types'' CompareTo defines. If both neighbors of a miss are within tolerance, the lower-m/z one is returned. Returns -1 if the spectrum is empty or no point is within tolerance.'
+    desc: 'Finds the data point at an m/z, or the nearest one within a tolerance.'
   - syntax: Resize(int sz)
     returns: void
     page: TSpectrum.Resize
