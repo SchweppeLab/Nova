@@ -354,6 +354,8 @@ namespace Nova.Io.Read
     public bool Open(string fileName)
     {
       openFailure = null;
+      //Release any previous file before opening another
+      Close();
       RawFile = RawFileReaderAdapter.FileFactory(fileName);
       if (!RawFile.IsOpen)
       {
@@ -361,6 +363,7 @@ namespace Nova.Io.Read
         openFailure = RawFile.FileError?.ErrorMessage.IsNullOrEmpty() == false
           ? RawFile.FileError.ErrorMessage
           : "RawFileReader could not open the file.";
+        Close();
         return false;
       }
       RawFile.SelectInstrument(Device.MS, 1);
@@ -392,7 +395,11 @@ namespace Nova.Io.Read
     /// </summary>
     public void Close()
     {
-      if (RawFile != null) RawFile.Dispose();
+      if (RawFile != null)
+      {
+        RawFile.Dispose();
+        RawFile = null;
+      }
     }
 
     /// <summary>
