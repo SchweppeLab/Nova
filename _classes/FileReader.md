@@ -46,7 +46,7 @@ IEnumerable
 
 | Method   | Returns     | Description                                               |
 |:-------------|:---------|:----------------------------------------------------------|
-| CheckFile(string fileName)     | bool   | Checks to see if we requested, or already have, a valid file from which to read a spectrum. Returns true if the file is already open. Throws ArgumentNullException if no file name was given and no file is open, and FileNotFoundException if the file is not found.  |
+| CheckFile(string fileName)     | bool   | Checks to see if we requested, or already have, a valid file from which to read a spectrum. Pass an empty string to keep reading the current file. Returns true if the file is already open. Throws ArgumentNullException if no file name was given and no file is open, and FileNotFoundException if the file is not found.  |
 | static CheckFileFormat(string fileName)     | FileFormat   | Reads a file name string and returns the FileFormat value based on the file extension characters. FormatException thrown if file doesn't have an extension or the extension isn't recognized.  |
 | GetEnumerator()     | IEnumerator   | Yields each spectrum in the open file in file order, subject to the current filter, then resets the reader.   |
 | OpenSpectrumFile(string fileName)      | bool   | Opens a file for reading, closing any file already open. The reader is chosen by file extension. Throws FormatException if the file extension is not a recognized format.   |
