@@ -28,7 +28,7 @@ layout: page
   <h4>Release History</h4>
 </div>
 <div id="archives" class="pl-xl-3">
-  {% for item in site.downloads %}
+  {% for item in site.downloads reversed %}
     {% assign cur_year = item.date | date: '%Y' %}
 
     {% if cur_year != last_year %}
