@@ -23,6 +23,10 @@
     <PackageReleaseNotes>
 1.1.1 - in development; no changes yet.
 
+CORRECTIONS TO THE 1.1.0 NOTES
+* ScanDescription was listed as new. It has been on SpectrumFoundation since
+  1.0.0.18. What changed in 1.1.0 is that pipe serialization includes it.
+
 https://github.com/SchweppeLab/Nova
     </PackageReleaseNotes>
     <Version>1.1.1</Version>

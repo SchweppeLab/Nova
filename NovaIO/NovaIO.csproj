@@ -20,6 +20,10 @@
     <PackageReleaseNotes>
 1.1.1 - in development; no changes yet.
 
+CORRECTIONS TO THE 1.1.0 NOTES
+* Reading Scan Description from the trailer was listed as new. ThermoRawReader
+  has done that since 1.0.0.18.
+
 https://github.com/SchweppeLab/Nova
     </PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
